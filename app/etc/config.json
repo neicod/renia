@@ -1,0 +1,7 @@
+{
+  "modules": {
+    "renia-magento-cart": 1,
+    "renia-module-registry": 1,
+    "renia-router": 1
+  }
+}
