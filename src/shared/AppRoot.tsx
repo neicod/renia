@@ -16,6 +16,7 @@ type RouteEntry = {
   path: string;
   component?: string;
   componentPath?: string;
+  layout?: string;
 };
 
 type SlotEntry = {
@@ -30,6 +31,8 @@ type SlotEntry = {
 type BootstrapData = {
   routes: RouteEntry[];
   slots: Record<string, SlotEntry[]>;
+  layoutSlots?: Record<string, SlotEntry[]>;
+  layouts?: Record<string, string[]>;
 };
 
 const AboutPage: React.FC = () => (
@@ -82,32 +85,75 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap }) => {
         return <Comp key={key} />;
       });
 
+  const renderNamedSlot = (name: string) => {
+    const entries = bootstrap.layoutSlots?.[name] ?? bootstrap.slots[name] ?? [];
+    return renderSlot(entries);
+  };
+
+  const LayoutShell: React.FC<{ layout: string; main: React.ReactNode }> = ({ layout, main }) => {
+    const controlMenu = renderNamedSlot('control-menu');
+    const header = renderNamedSlot('header');
+    const footer = renderNamedSlot('footer');
+    const left = renderNamedSlot('left');
+
+    if (layout === '2column-left') {
+      return (
+        <div>
+          <header style={{ padding: '1rem 0' }}>
+            <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <Link to="/">Start</Link>
+              <Link to="/about">O projekcie</Link>
+              {controlMenu}
+              {header}
+            </nav>
+          </header>
+          <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '1.5rem' }}>
+            <aside>{left}</aside>
+            <main style={{ padding: '1rem 0' }}>{main}</main>
+          </div>
+          <footer style={{ padding: '1rem 0' }}>{footer}</footer>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        <header style={{ padding: '1rem 0' }}>
+          <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <Link to="/">Start</Link>
+            <Link to="/about">O projekcie</Link>
+            {controlMenu}
+            {header}
+          </nav>
+        </header>
+        <main style={{ padding: '1rem 0' }}>{main}</main>
+        <footer style={{ padding: '1rem 0' }}>{footer}</footer>
+      </div>
+    );
+  };
+
   const routes = [
     { path: '/', component: 'HomePage' },
     { path: '/about', component: 'AboutPage' },
     ...bootstrap.routes
   ];
 
-  const controlMenu = bootstrap.slots?.['control-menu'] ?? [];
-
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', color: '#0f172a' }}>
-      <header style={{ padding: '1rem 0' }}>
-        <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Link to="/">Start</Link>
-          <Link to="/about">O projekcie</Link>
-          {renderSlot(controlMenu)}
-        </nav>
-      </header>
-      <main style={{ padding: '1rem 0' }}>
-        <Routes>
-          {routes.map((route) => {
-            const Comp = resolveComponent(route);
-            return <Route key={route.path} path={route.path} element={<Comp />} />;
-          })}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </main>
+      <Routes>
+        {routes.map((route) => {
+          const Comp = resolveComponent(route);
+          const layout = route.layout ?? '1column';
+          return (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={<LayoutShell layout={layout} main={<Comp />} />}
+            />
+          );
+        })}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
     </div>
   );
 };

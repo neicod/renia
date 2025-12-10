@@ -1,7 +1,7 @@
 {
   "modules": {
     "renia-magento-cart": 1,
-    "magento-wishlist": 0,
+    "magento-wishlist": 1,
     "renia-module-registry": 1,
     "renia-router": 1,
     "renia-layout": 1,

@@ -15,12 +15,12 @@ export type SlotEntry = SlotDefinition & { module: string };
 export type LayoutRegistry = {
   slots: Record<string, SlotEntry[]>;
   flat: SlotEntry[];
+  layouts: Record<string, string[]>;
 };
 
 export const builtinLayouts = {
-  '1column': {
-    slots: ['control-menu', 'main']
-  }
+  '1column': ['header', 'control-menu', 'content', 'footer'],
+  '2column-left': ['header', 'control-menu', 'left', 'content', 'footer']
 };
 
 export type LayoutOptions = {
@@ -136,5 +136,7 @@ export const loadLayoutRegistry = async (options: LayoutOptions = {}): Promise<L
     slots[entry.slot].push(entry);
   }
 
-  return { slots, flat: merged };
+  const layouts = builtinLayouts;
+
+  return { slots, flat: merged, layouts };
 };

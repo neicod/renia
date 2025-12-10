@@ -1,3 +1,5 @@
+// Główne entry serwera SSR: Express + render AppRoot z tras/layoutów/interceptorów.
+// Musi pozostać tu jako punkt startu; nie przenoś/nie usuwaj, inaczej SSR/serwowanie statyków przestanie działać.
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,6 +8,7 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server';
 import { loadRoutesRegistry } from 'renia-router';
 import { loadInterceptors } from 'renia-interceptors';
+import { loadLayoutRegistry } from 'renia-layout';
 import AppRoot from '../shared/AppRoot';
 import { htmlTemplate } from './template';
 
@@ -58,7 +61,9 @@ const mergeSlots = (entries: SlotEntry[]): SlotEntry[] => {
 
 app.get('*', async (req, res) => {
   try {
-    const routes = await loadRoutesRegistry({ configPath: path.resolve(process.cwd(), 'app/etc/config.json') });
+    const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
+    const routes = await loadRoutesRegistry({ configPath });
+    const layoutRegistry = await loadLayoutRegistry({ configPath });
 
     const controlMenu: SlotEntry[] = [];
     const api = {
@@ -70,7 +75,6 @@ app.get('*', async (req, res) => {
     };
 
     const context = contextFromPath(req.path);
-    const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
 
     // global
     await loadInterceptors('default', { configPath }, api);
@@ -82,10 +86,17 @@ app.get('*', async (req, res) => {
     }
 
     const bootstrap = {
-      routes: routes.map((r) => ({ path: r.path, component: r.component, componentPath: r.componentPath })),
+      routes: routes.map((r) => ({
+        path: r.path,
+        component: r.component,
+        componentPath: r.componentPath,
+        layout: (r.meta as any)?.layout ?? '1column'
+      })),
       slots: {
         'control-menu': mergeSlots(controlMenu)
-      }
+      },
+      layouts: layoutRegistry.layouts,
+      layoutSlots: layoutRegistry.slots
     };
 
     const appHtml = renderToString(
