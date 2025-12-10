@@ -145,7 +145,7 @@ export class QueryBuilder {
     const vars =
       this.variables && Object.keys(this.variables).length
         ? `(${Object.entries(this.variables)
-            .map(([k, v]) => `${k}: ${v}`)
+            .map(([k, v]) => `$${k}: ${v}`)
             .join(', ')})`
         : '';
     const sel = renderSelection(this.selection, this.fragments);

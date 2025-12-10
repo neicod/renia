@@ -52,7 +52,7 @@ const mapNodesToMenu = (nodes?: any[]): MenuItem[] => {
     .map((node) => ({
       id: String(node.uid ?? node.id ?? node.name ?? Math.random()),
       label: node.name ?? 'Kategoria',
-      url: node.url_path ? `/${node.url_path}` : '#',
+      url: node.url_path ? `/category/${node.url_path}` : '#',
       type: 'category',
       position: typeof node.position === 'number' ? node.position : undefined,
       includeInMenu: node.include_in_menu !== false,

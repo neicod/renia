@@ -6,6 +6,7 @@
   "dependencies": {
     "react": "^18.2.0",
     "renia-layout": "file:../renia-layout",
-    "renia-graphql-client": "file:../renia-graphql-client"
+    "renia-graphql-client": "file:../renia-graphql-client",
+    "renia-menu": "file:../renia-menu"
   }
 }

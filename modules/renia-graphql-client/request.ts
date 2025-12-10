@@ -25,6 +25,17 @@ const buildBody = (payload: GraphQLRequest['payload'], variables?: GraphQLReques
   return { query: payload };
 };
 
+const truncate = (value: string, max = 500) =>
+  value.length > max ? `${value.slice(0, max)}…(truncated)` : value;
+
+const pretty = (value: unknown) => {
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+};
+
 export const executeRequest = async (req: GraphQLRequest) => {
   const method = req.method ?? 'POST';
   const headers: Record<string, string> = {
@@ -37,9 +48,15 @@ export const executeRequest = async (req: GraphQLRequest) => {
   const controller = new AbortController();
   const timeout = req.timeoutMs ?? 5000;
   const t = setTimeout(() => controller.abort(), timeout);
+  const started = Date.now();
 
   try {
     const bodyContent = buildBody(req.payload, req.variables);
+    console.info(
+      `[GraphQL][request] ${method} ${req.endpoint}\n` +
+        `vars: ${pretty(bodyContent.variables)}\n` +
+        `query:\n${truncate(bodyContent.query)}`
+    );
 
     const fetchOptions: RequestInit = {
       method,
@@ -57,6 +74,7 @@ export const executeRequest = async (req: GraphQLRequest) => {
     }
 
     const response = await fetch(req.endpoint, fetchOptions);
+    const duration = Date.now() - started;
     const text = await response.text();
     let parsed: any;
     try {
@@ -64,6 +82,12 @@ export const executeRequest = async (req: GraphQLRequest) => {
     } catch {
       parsed = {};
     }
+
+    console.info(
+      `[GraphQL][response] ${response.status} ${req.endpoint} (${duration}ms)\n` +
+        `errors: ${parsed.errors ? pretty(parsed.errors) : 'none'}\n` +
+        `data: ${parsed.data ? truncate(pretty(parsed.data), 800) : 'none'}`
+    );
 
     if (response.status === 401 || response.status === 403) {
       throw new Error(`Auth error: HTTP ${response.status}`);
@@ -76,6 +100,10 @@ export const executeRequest = async (req: GraphQLRequest) => {
       headers: Object.fromEntries(response.headers.entries())
     };
   } catch (error) {
+    const duration = Date.now() - started;
+    console.error(
+      `[GraphQL][error] ${method} ${req.endpoint} (${duration}ms): ${(error as Error)?.message}`
+    );
     if ((error as any)?.name === 'AbortError') {
       throw new Error(`GraphQL request timed out after ${timeout}ms`);
     }

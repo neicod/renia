@@ -5,6 +5,9 @@
     "renia-module-registry": 1,
     "renia-router": 1,
     "renia-layout": 1,
-    "renia-interceptors": 1
+    "renia-interceptors": 1,
+    "renia-graphql-client": 1,
+    "renia-magento-category": 1,
+    "renia-menu": 1
   }
 }

@@ -2,13 +2,13 @@ import React from 'react';
 import { Link, Route, Routes } from 'react-router-dom';
 import { CartPage, CartControlLink } from 'renia-magento-cart';
 import { WishlistPage, WishlistControlLink } from 'magento-wishlist';
+import { CategoryPage } from 'renia-magento-category/pages/CategoryPage';
+import { CategoryMainMenu } from 'renia-magento-category/components/CategoryMainMenu';
 
 const HomePage: React.FC = () => (
-  <section style={{ display: 'grid', gap: '1.25rem' }}>
-    <div>
-      <h1>React SSR starter</h1>
-      <p>Ten widok jest budowany w oparciu o dynamiczne trasy i sloty z modułów.</p>
-    </div>
+  <section className="card">
+    <h1 style={{ margin: '0 0 0.5rem' }}>React SSR starter</h1>
+    <p style={{ margin: 0 }}>Ten widok jest budowany w oparciu o dynamiczne trasy i sloty z modułów.</p>
   </section>
 );
 
@@ -33,19 +33,26 @@ type BootstrapData = {
   slots: Record<string, SlotEntry[]>;
   layoutSlots?: Record<string, SlotEntry[]>;
   layouts?: Record<string, string[]>;
+  config?: {
+    magentoGraphQLEndpoint?: string;
+    magentoStoreCode?: string;
+    magentoRootCategoryId?: string;
+    magentoProxyEndpoint?: string;
+    preloadedCategoryMenu?: any;
+  };
 };
 
 const AboutPage: React.FC = () => (
-  <section>
-    <h1>O projekcie</h1>
-    <p>Dodaj swoje widoki, logikę routingu i integracje API według potrzeb.</p>
+  <section className="card">
+    <h1 style={{ margin: '0 0 0.5rem' }}>O projekcie</h1>
+    <p style={{ margin: 0 }}>Dodaj swoje widoki, logikę routingu i integracje API według potrzeb.</p>
   </section>
 );
 
 const NotFoundPage: React.FC = () => (
-  <section>
-    <h1>Nie znaleziono</h1>
-    <p>Sprawdź ścieżkę lub dodaj nową trasę.</p>
+  <section className="card">
+    <h1 style={{ margin: '0 0 0.5rem' }}>Nie znaleziono</h1>
+    <p style={{ margin: 0 }}>Sprawdź ścieżkę lub dodaj nową trasę.</p>
   </section>
 );
 
@@ -59,14 +66,18 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap }) => {
     'about': AboutPage,
     'renia-magento-cart/pages/CartPage': CartPage,
     'magento-wishlist/pages/WishlistPage': WishlistPage,
+    'renia-magento-category/pages/CategoryPage': CategoryPage,
     'renia-magento-cart/components/CartControlLink': CartControlLink,
     'magento-wishlist/components/WishlistControlLink': WishlistControlLink,
+    'renia-magento-category/components/CategoryMainMenu': CategoryMainMenu,
     HomePage,
     AboutPage,
     CartPage,
     WishlistPage,
+    CategoryPage,
     CartControlLink,
-    WishlistControlLink
+    WishlistControlLink,
+    CategoryMainMenu
   };
 
   const resolveComponent = (entry: { component?: string; componentPath?: string }): React.FC => {
@@ -98,36 +109,44 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap }) => {
 
     if (layout === '2column-left') {
       return (
-        <div>
-          <header style={{ padding: '1rem 0' }}>
-            <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <Link to="/">Start</Link>
-              <Link to="/about">O projekcie</Link>
-              {controlMenu}
-              {header}
-            </nav>
+        <div className="app-shell">
+          <header className="header">
+            <div className="header__inner">
+              <div className="nav">
+                <Link to="/">Start</Link>
+                <Link to="/about">O projekcie</Link>
+              </div>
+              <div className="slot-stack">
+                {controlMenu}
+              </div>
+            </div>
+            <div className="header__menu">{header}</div>
           </header>
           <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '1.5rem' }}>
             <aside>{left}</aside>
-            <main style={{ padding: '1rem 0' }}>{main}</main>
+            <main className="main">{main}</main>
           </div>
-          <footer style={{ padding: '1rem 0' }}>{footer}</footer>
+          <footer className="footer">{footer}</footer>
         </div>
       );
     }
 
     return (
-      <div>
-        <header style={{ padding: '1rem 0' }}>
-          <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <Link to="/">Start</Link>
-            <Link to="/about">O projekcie</Link>
-            {controlMenu}
-            {header}
-          </nav>
+      <div className="app-shell">
+        <header className="header">
+          <div className="header__inner">
+            <div className="nav">
+              <Link to="/">Start</Link>
+              <Link to="/about">O projekcie</Link>
+            </div>
+            <div className="slot-stack">
+              {controlMenu}
+            </div>
+          </div>
+          <div className="header__menu">{header}</div>
         </header>
-        <main style={{ padding: '1rem 0' }}>{main}</main>
-        <footer style={{ padding: '1rem 0' }}>{footer}</footer>
+        <main className="main">{main}</main>
+        <footer className="footer">{footer}</footer>
       </div>
     );
   };
@@ -139,7 +158,7 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap }) => {
   ];
 
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', color: '#0f172a' }}>
+    <div>
       <Routes>
         {routes.map((route) => {
           const Comp = resolveComponent(route);

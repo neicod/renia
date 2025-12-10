@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 
 export const CategoryPage: React.FC = () => {
   const params = useParams();
-  const slug = params.slug ?? 'category';
+  const slug = params['*'] ?? params.slug ?? 'category';
 
   return (
     <section style={{ display: 'grid', gap: '0.75rem' }}>
