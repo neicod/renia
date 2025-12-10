@@ -1,4 +1,7 @@
 import React from 'react';
+import { CartControlLink } from './components/CartControlLink';
+import { CartPage } from './pages/CartPage';
+export { CartControlLink, CartPage };
 
 export type CartItem = {
   id: string;
@@ -112,5 +115,7 @@ export const CartWidget: React.FC<CartWidgetProps> = ({
 export default {
   CartWidget,
   calculateTotals,
-  formatMoney
+  formatMoney,
+  CartControlLink,
+  CartPage
 };

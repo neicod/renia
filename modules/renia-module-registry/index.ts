@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 export type ModuleSource = 'modules' | 'node_modules';
 
@@ -10,6 +11,8 @@ export type ModuleRecord = {
   enabled: boolean;
   dependencies: string[];
   missingDeps?: string[];
+  hasRegistration: boolean;
+  registrationPath?: string;
 };
 
 export type RegistryOptions = {
@@ -21,6 +24,8 @@ export type RegistryOptions = {
 };
 
 type DirEntry = fs.Dirent & { name: string };
+
+const registrationCandidates = ['registration.ts', 'registration.js', 'registration.json'];
 
 const normalizeStatus = (value: boolean | number | undefined): boolean => {
   if (typeof value === 'boolean') return value;
@@ -55,6 +60,24 @@ const readPackageName = async (pkgPath: string, fallback: string): Promise<strin
   return fallback;
 };
 
+const loadRegistrationMeta = async (
+  registrationPath?: string
+): Promise<{ dependencies: string[] }> => {
+  if (!registrationPath) return { dependencies: [] };
+
+  try {
+    const imported = await import(pathToFileURL(registrationPath).href);
+    const data = (imported?.default ?? imported) as any;
+    if (data && typeof data === 'object' && Array.isArray(data.dependencies)) {
+      return { dependencies: data.dependencies.filter((d: unknown) => typeof d === 'string') };
+    }
+  } catch (error) {
+    console.warn(`Nie udało się wczytać registration z ${registrationPath}:`, error);
+  }
+
+  return { dependencies: [] };
+};
+
 const collectPackages = async (
   rootDir: string,
   source: ModuleSource,
@@ -74,6 +97,9 @@ const collectPackages = async (
 
     let pkgDeps: string[] = [];
     let name = nameOverride ?? entry.name;
+    let registrationPath: string | undefined;
+    let hasRegistration = false;
+    let regDeps: string[] = [];
 
     try {
       const raw = await fs.promises.readFile(pkgPath, 'utf8');
@@ -88,10 +114,31 @@ const collectPackages = async (
       // w razie problemu zostawiamy fallback nazwy i puste deps
     }
 
+    for (const candidate of registrationCandidates) {
+      const candidatePath = path.join(dirPath, candidate);
+      if (fs.existsSync(candidatePath)) {
+        hasRegistration = true;
+        registrationPath = candidatePath;
+        const regMeta = await loadRegistrationMeta(candidatePath);
+        regDeps = regMeta.dependencies;
+        break;
+      }
+    }
+
+    const dependencies = hasRegistration ? regDeps : pkgDeps;
+
     if (seen.has(name)) return;
 
     const enabled = statusLookup(name);
-    records.push({ name, path: dirPath, source, enabled, dependencies: pkgDeps });
+    records.push({
+      name,
+      path: dirPath,
+      source,
+      enabled,
+      dependencies,
+      hasRegistration,
+      registrationPath
+    });
     seen.add(name);
   };
 
@@ -181,6 +228,8 @@ export const loadModuleRegistry = async (options: RegistryOptions = {}): Promise
     changed = false;
     for (const mod of all) {
       if (!mod.enabled) continue;
+      if (!mod.hasRegistration) continue; // walidujemy zależności tylko dla modułów z registration.*
+
       const missing = mod.dependencies.filter((dep) => {
         const target = byName.get(dep);
         return !target || !target.enabled;

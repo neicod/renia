@@ -16,3 +16,5 @@
 14. Nie programuj na własną rękę funkcjonalności, o które nie poprosił użytkownik — skupiaj się na realizacji konkretnych, zadanych celów.
 15. Moduł rejestru `renia-module-registry` (w `modules/`) wykrywa pakiety z `modules` i `node_modules`, zwraca ścieżki, zależności i statusy; statusy domyślnie pochodzą z `app/etc/config.json` (brak wpisu = wyłączony), opcjonalnie z mapy przekazanej w opcjach.
 16. Moduł `renia-router` korzysta z `renia-module-registry` i wczytuje trasy z plików `routes.ts`/`routes.js` w modułach; trasy są sortowane po `priority` i deduplikowane.
+17. Moduł `renia-layout` buduje rejestr slotów z plików `layout.ts/.js/.json` modułów (sortuje po `priority`); ma wbudowany layout `1column` z gniazdami m.in. `control-menu`.
+18. Moduł `renia-interceptors` (narzędziowy) potrafi uruchamiać pliki `interceptors/default.*` i `interceptors/<kontekst>.*` z aktywnych modułów; to wstrzykiwanie logiki zależne od kontekstu trasy/strony.

@@ -1,7 +1,10 @@
 {
   "modules": {
     "renia-magento-cart": 1,
+    "magento-wishlist": 0,
     "renia-module-registry": 1,
-    "renia-router": 1
+    "renia-router": 1,
+    "renia-layout": 1,
+    "renia-interceptors": 1
   }
 }

@@ -1,21 +1,16 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import deepEqual from 'fast-deep-equal';
-import { loadModuleRegistry, type ModuleRecord } from 'renia-module-registry';
+import { loadModuleRegistry } from 'renia-module-registry';
 
 export type RouteDefinition = {
   path: string;
+  componentPath?: string;
   component?: string;
   redirect?: string;
   status?: number;
   priority?: number;
   guards?: string[];
   meta?: Record<string, unknown>;
-};
-
-export type ModuleRoutes = {
-  module: string;
-  routes: RouteDefinition[];
 };
 
 export type RouterOptions = {
@@ -28,6 +23,14 @@ export type RouterOptions = {
 export type RouterEntry = RouteDefinition & { module: string };
 
 const defaultRouteFiles = ['routes.ts', 'routes.js'];
+
+const isEqual = (a: unknown, b: unknown): boolean => {
+  try {
+    return JSON.stringify(a) === JSON.stringify(b);
+  } catch {
+    return false;
+  }
+};
 
 const readRoutesFile = async (filePath: string): Promise<RouteDefinition[] | null> => {
   if (!fs.existsSync(filePath)) return null;
@@ -61,8 +64,10 @@ const pickRoutesFile = (moduleDir: string, explicit?: string): string | null => 
 const normalizeRoute = (route: RouteDefinition): RouteDefinition | null => {
   if (!route || typeof route !== 'object') return null;
   if (typeof route.path !== 'string' || !route.path.trim()) return null;
+  if (!route.component && !route.componentPath) return null;
   const normalized: RouteDefinition = {
     path: route.path,
+    componentPath: route.componentPath,
     component: route.component,
     redirect: route.redirect,
     status: route.status,
@@ -81,8 +86,10 @@ const mergeRoutes = (entries: RouterEntry[]): RouterEntry[] => {
       seen.set(key, entry);
     } else {
       const existing = seen.get(key)!;
-      if (!deepEqual(existing, entry)) {
-        console.warn(`Kolizja tras dla "${entry.path}" o priorytecie ${entry.priority ?? 0} (moduły: ${existing.module} / ${entry.module}) — pomijam duplikat.`);
+      if (!isEqual(existing, entry)) {
+        console.warn(
+          `Kolizja tras dla "${entry.path}" o priorytecie ${entry.priority ?? 0} (moduły: ${existing.module} / ${entry.module}) — pomijam duplikat.`
+        );
       }
     }
   }

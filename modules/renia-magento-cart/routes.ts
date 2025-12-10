@@ -1,9 +1,7 @@
-const routes = [
+export default [
   {
     path: '/cart',
-    component: 'CartPage',
+    componentPath: 'renia-magento-cart/pages/CartPage',
     priority: 100
   }
 ];
-
-export default routes;
