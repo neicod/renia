@@ -36,12 +36,17 @@ export const ProductListingPagination: React.FC<Props> = ({
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '1rem',
-        marginTop: '1.25rem',
-        flexWrap: 'wrap'
+        marginTop: '1.5rem',
+        flexWrap: 'wrap',
+        padding: '0.85rem 1rem',
+        borderRadius: '14px',
+        border: '1px solid #e2e8f0',
+        background: '#fff',
+        boxShadow: '0 10px 18px rgba(15, 23, 42, 0.08)'
       }}
     >
-      <div style={{ color: '#374151', fontSize: '0.95rem' }}>
-        Page {page} of {totalPages}
+      <div style={{ color: '#475569', fontSize: '0.9rem' }}>
+        Strona {page} z {totalPages}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <button
@@ -49,30 +54,42 @@ export const ProductListingPagination: React.FC<Props> = ({
           onClick={() => goTo(page - 1)}
           disabled={!canPrev || disabled}
           style={{
-            padding: '0.5rem 0.9rem',
-            borderRadius: '0.375rem',
-            border: '1px solid #d1d5db',
-            background: canPrev && !disabled ? '#fff' : '#f3f4f6',
-            color: '#111827',
+            padding: '0.45rem 0.9rem',
+            borderRadius: '999px',
+            border: '1px solid #d6e0f5',
+            background: canPrev && !disabled ? '#f7f9ff' : '#f1f5f9',
+            color: '#1e3a8a',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
             cursor: canPrev && !disabled ? 'pointer' : 'not-allowed'
           }}
         >
-          Previous
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Wstecz
         </button>
         <button
           type="button"
           onClick={() => goTo(page + 1)}
           disabled={!canNext || disabled}
           style={{
-            padding: '0.5rem 0.9rem',
-            borderRadius: '0.375rem',
-            border: '1px solid #d1d5db',
-            background: canNext && !disabled ? '#fff' : '#f3f4f6',
-            color: '#111827',
+            padding: '0.45rem 0.9rem',
+            borderRadius: '999px',
+            border: '1px solid #d6e0f5',
+            background: canNext && !disabled ? '#eef6ff' : '#f1f5f9',
+            color: '#1e3a8a',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
             cursor: canNext && !disabled ? 'pointer' : 'not-allowed'
           }}
         >
-          Next
+          Dalej
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       </div>
     </div>

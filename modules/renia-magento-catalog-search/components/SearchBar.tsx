@@ -28,45 +28,20 @@ export const SearchBar: React.FC = () => {
   );
 
   return (
-    <form
-      action="/search"
-      method="get"
-      onSubmit={handleSubmit}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.5rem',
-        padding: '0.25rem 0.75rem',
-        borderRadius: '999px',
-        border: '1px solid #d1d5db',
-        background: '#fff'
-      }}
-    >
+    <form action="/search" method="get" onSubmit={handleSubmit} className="search-bar">
       <input
         type="search"
         name="q"
         value={value}
         onChange={(event) => setValue(event.target.value)}
         placeholder="Szukaj produktów"
-        style={{
-          border: 'none',
-          outline: 'none',
-          minWidth: '160px',
-          fontSize: '0.95rem'
-        }}
+        className="search-input"
       />
-      <button
-        type="submit"
-        style={{
-          border: 'none',
-          background: '#2563eb',
-          color: '#fff',
-          borderRadius: '999px',
-          padding: '0.35rem 0.9rem',
-          fontWeight: 600,
-          cursor: 'pointer'
-        }}
-      >
+      <button type="submit" className="search-button" aria-label="Wyszukaj produkty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="11" cy="11" r="7" />
+          <line x1="16.65" y1="16.65" x2="21" y2="21" />
+        </svg>
         Szukaj
       </button>
     </form>

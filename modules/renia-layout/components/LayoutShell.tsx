@@ -90,6 +90,12 @@ export const LayoutShell: React.FC<Props> = ({
     <div className="app-shell">
       <header className="header">
         <div className="header__inner">
+          <div className="header__brand">
+            <Link to="/" className="brand-logo">
+              Renia Store
+            </Link>
+            <p className="brand-tagline">Everyday essentials, curated for you</p>
+          </div>
           <div className="nav">
             <Link to="/">Start</Link>
             <Link to="/about">O projekcie</Link>

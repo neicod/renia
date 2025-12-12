@@ -42,26 +42,31 @@ export const ProductListingToolbar: React.FC<Props> = ({
         justifyContent: 'space-between',
         gap: '1rem',
         flexWrap: 'wrap',
-        marginBottom: '1rem'
+        marginBottom: '1.25rem',
+        padding: '0.9rem 1.1rem',
+        borderRadius: '14px',
+        border: '1px solid #e2e8f0',
+        background: '#fff',
+        boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)'
       }}
     >
-      <div style={{ color: '#374151', fontSize: '0.95rem' }}>
-        {totalItems ? `Showing ${start}–${end} of ${totalItems} products` : 'Products'}
+      <div style={{ color: '#0f172a', fontSize: '0.95rem', fontWeight: 500 }}>
+        {totalItems ? `Pokazuję ${start}–${end} z ${totalItems} produktów` : 'Produkty'}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ color: '#374151', fontSize: '0.95rem' }}>Sort by:</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Sortuj:</span>
           <select
             value={selectedSort}
             onChange={(e) => onSortChange(e.target.value)}
             disabled={disabled}
             style={{
-              padding: '0.5rem 0.75rem',
-              borderRadius: '0.375rem',
-              border: '1px solid #d1d5db',
-              background: disabled ? '#f9fafb' : '#fff',
-              color: '#111827',
-              minWidth: '180px'
+              padding: '0.45rem 0.9rem',
+              borderRadius: '999px',
+              border: '1px solid #d7def0',
+              background: '#f8faff',
+              color: '#0f172a',
+              minWidth: '170px'
             }}
           >
             {sortOptions.map((option) => (
@@ -71,24 +76,24 @@ export const ProductListingToolbar: React.FC<Props> = ({
             ))}
           </select>
         </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ color: '#374151', fontSize: '0.95rem' }}>Items per page:</span>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Na stronę:</span>
           <select
             value={String(itemsPerPage)}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
             disabled={disabled || perPageOptions.length <= 1}
             style={{
-              padding: '0.5rem 0.75rem',
-              borderRadius: '0.375rem',
-              border: '1px solid #d1d5db',
-              background: disabled ? '#f9fafb' : '#fff',
-              color: '#111827',
-              minWidth: '140px'
+              padding: '0.45rem 0.9rem',
+              borderRadius: '999px',
+              border: '1px solid #d7def0',
+              background: '#f8faff',
+              color: '#0f172a',
+              minWidth: '120px'
             }}
           >
             {perPageOptions.map((option) => (
               <option key={option} value={option}>
-                {option} per page
+                {option}
               </option>
             ))}
           </select>
