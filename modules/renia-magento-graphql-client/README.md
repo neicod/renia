@@ -7,9 +7,7 @@ Lekki pomocnik do budowania żądań GraphQL do Magento. Opakowuje `GraphQLReque
 ```ts
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 
-const factory = new MagentoGraphQLRequestFactory(); // endpoint z configu lub /api/magento/graphql
-
-const request = factory.create({
+const request = MagentoGraphQLRequestFactory.create({
   payload: `
     query GetSomething($id: String!) {
       product(id: $id) { name }
@@ -20,4 +18,4 @@ const request = factory.create({
 // request ma już ustawiony endpoint, można podać do executeRequest()
 ```
 
-Endpoint jest pobierany w kolejności: `__APP_CONFIG__.magentoProxyEndpoint`, `__APP_CONFIG__.magentoGraphQLEndpoint`, `window.__APP_BOOTSTRAP__.config`, fallback `/api/magento/graphql`. Endpoint jest rozwiązywany wewnątrz fabryki (konstruktor nie przyjmuje parametrów).
+Endpoint jest pobierany w kolejności: `__APP_CONFIG__.magentoProxyEndpoint`, `__APP_CONFIG__.magentoGraphQLEndpoint`, `window.__APP_BOOTSTRAP__.config`, fallback `/api/magento/graphql`. Endpoint jest rozwiązywany wewnątrz serwisu (nie tworzysz obiektów ani nie przekazujesz własnego endpointu).

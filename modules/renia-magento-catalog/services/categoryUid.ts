@@ -13,8 +13,7 @@ const runQuery = async ({
 }) => {
   const query = new QueryBuilder(buildCategoryUidQuery(filter)).toString();
 
-  const factory = new MagentoGraphQLRequestFactory();
-  const req = factory.create({
+  const req = MagentoGraphQLRequestFactory.create({
     method: 'POST',
     payload: query,
     headers: {

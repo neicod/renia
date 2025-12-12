@@ -22,7 +22,7 @@ Cel: moduł kategorii oparty na Magento GraphQL. Dostarcza stronę kategorii, ko
 - API: `fetchMenu(options)` → zwraca ujednolicone drzewo menu (`MenuItem[]` z `renia-menu`).
 - Budowa requestu:
   - `payload`: zapytanie GraphQL jako `QueryBuilder` (domyślnie `categoryList(filters: $filters)` z polami `uid/name/url_path/include_in_menu/position/children`, zagnieżdżenie kontrolowane parametrem `depth` – domyślnie 2).
-  - Endpoint rozwiązywany wewnątrz fabryki (`MagentoGraphQLRequestFactory`); z zewnątrz przekazujesz tylko `variables`, `headers` (np. `store`), `auth` (bearer/basic/header), `timeoutMs`.
+  - Endpoint rozwiązywany wewnątrz serwisu (`MagentoGraphQLRequestFactory` udostępniającego `create()`); z zewnątrz przekazujesz tylko `variables`, `headers` (np. `store`), `auth` (bearer/basic/header), `timeoutMs`.
   - Domyślne zmienne: `filters` z `parent_id = 2` (traktowane jako root kategorii) – docelowo należy pobrać ten identyfikator z konfiguracji Magento zamiast stałej.
 - Hooki przed wysłaniem:
   - Lista middleware `(req, ctx) => req|void`, wywoływana w kolejności; pozwala dodać/zmodyfikować nagłówki, auth, zmienne, logikę; zwracany `req` nadpisuje poprzedni. `ctx` zawiera string zapytania (`query`).

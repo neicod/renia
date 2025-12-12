@@ -13,6 +13,8 @@ type Props = {
   total?: number;
   page: number;
   pageSize: number;
+  pageSizeOptions: number[];
+  onPageSizeChange: (value: number) => void;
   disabled?: boolean;
 };
 
@@ -23,10 +25,14 @@ export const ProductListingToolbar: React.FC<Props> = ({
   total,
   page,
   pageSize,
+  pageSizeOptions,
+  onPageSizeChange,
   disabled
 }) => {
   const start = total ? Math.min((page - 1) * pageSize + 1, total) : 0;
   const end = total ? Math.min(page * pageSize, total) : 0;
+  const perPageOptions =
+    pageSizeOptions && pageSizeOptions.length ? pageSizeOptions : [pageSize];
 
   return (
     <div
@@ -42,28 +48,52 @@ export const ProductListingToolbar: React.FC<Props> = ({
       <div style={{ color: '#374151', fontSize: '0.95rem' }}>
         {total ? `Showing ${start}–${end} of ${total} products` : 'Products'}
       </div>
-      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span style={{ color: '#374151', fontSize: '0.95rem' }}>Sort by:</span>
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
-          style={{
-            padding: '0.5rem 0.75rem',
-            borderRadius: '0.375rem',
-            border: '1px solid #d1d5db',
-            background: disabled ? '#f9fafb' : '#fff',
-            color: '#111827',
-            minWidth: '180px'
-          }}
-        >
-          {sortOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#374151', fontSize: '0.95rem' }}>Sort by:</span>
+          <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            style={{
+              padding: '0.5rem 0.75rem',
+              borderRadius: '0.375rem',
+              border: '1px solid #d1d5db',
+              background: disabled ? '#f9fafb' : '#fff',
+              color: '#111827',
+              minWidth: '180px'
+            }}
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span style={{ color: '#374151', fontSize: '0.95rem' }}>Items per page:</span>
+          <select
+            value={String(pageSize)}
+            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            disabled={disabled || perPageOptions.length <= 1}
+            style={{
+              padding: '0.5rem 0.75rem',
+              borderRadius: '0.375rem',
+              border: '1px solid #d1d5db',
+              background: disabled ? '#f9fafb' : '#fff',
+              color: '#111827',
+              minWidth: '140px'
+            }}
+          >
+            {perPageOptions.map((option) => (
+              <option key={option} value={option}>
+                {option} per page
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
     </div>
   );
 };

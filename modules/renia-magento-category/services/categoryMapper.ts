@@ -1,5 +1,5 @@
 // @env: mixed
-import type { Category } from './categoryRepository';
+import type { Category } from '../types/category';
 
 export const mapCategoryNode = (node: any): Category => ({
   id: String(node?.uid ?? node?.id ?? node?.name ?? Math.random()),

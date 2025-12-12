@@ -75,9 +75,7 @@ export const fetchCategoryProducts = async (
 
   const headers: Record<string, string> = { ...(opts.headers ?? {}) };
 
-  const factory = new MagentoGraphQLRequestFactory();
-
-  const request = factory.create({
+  const request = MagentoGraphQLRequestFactory.create({
     method: 'POST',
     payload,
     headers,

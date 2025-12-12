@@ -4,5 +4,5 @@
 - Zależności: `renia-graphql-client` (wykonanie requestu, typy).
 - Główne elementy:
 - `readMagentoEndpoint()` — odczytuje endpoint z `__APP_CONFIG__` lub `__APP_BOOTSTRAP__.config`, fallback `/api/magento/graphql` (używane wyłącznie wewnątrz fabryki).
-- `MagentoGraphQLRequestFactory` — trzyma endpoint (ustawiany wewnątrz z konfiguracji), metoda `create` buduje kompletny `GraphQLRequest` (default `POST`).
-- Użycie: utwórz fabrykę raz na moduł/serwis i generuj z niej requesty, a następnie wykonuj je przez `executeRequest` z `renia-graphql-client`.
+- `MagentoGraphQLRequestFactory` — serwis udostępniający `getEndpoint()` oraz `create()` budujące kompletny `GraphQLRequest` (default `POST`); nie wymaga instancjonowania.
+- Użycie: importuj serwis i wywołuj `MagentoGraphQLRequestFactory.create(...)`, a następnie wykonuj request przez `executeRequest` z `renia-graphql-client`.

@@ -39,7 +39,6 @@ export const fetchProduct = async (options: FetchProductOptions): Promise<Produc
   if (!options.urlKey && !options.sku) {
     throw new Error('fetchProduct: wymagany urlKey lub sku');
   }
-  const factory = new MagentoGraphQLRequestFactory();
 
   const filters = options.urlKey
     ? `url_key: { eq: "${options.urlKey}" }`
@@ -49,7 +48,7 @@ export const fetchProduct = async (options: FetchProductOptions): Promise<Produc
 
   const headers: Record<string, string> = { ...(options.headers ?? {}) };
 
-  const req = factory.create({
+  const req = MagentoGraphQLRequestFactory.create({
     method: 'POST',
     payload: query,
     headers,

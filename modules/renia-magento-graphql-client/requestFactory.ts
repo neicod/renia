@@ -4,31 +4,28 @@ import { readMagentoEndpoint } from './utils/magentoEndpoint';
 
 type CreateParams = Omit<GraphQLRequest, 'endpoint'>;
 
-export class MagentoGraphQLRequestFactory {
-  private readonly endpoint: string;
-
-  constructor() {
-    const resolved = readMagentoEndpoint();
-    if (!resolved) {
-      throw new Error('Magento GraphQL endpoint is not configured');
-    }
-    this.endpoint = resolved;
+const resolveEndpoint = () => {
+  const endpoint = readMagentoEndpoint();
+  if (!endpoint) {
+    throw new Error('Magento GraphQL endpoint is not configured');
   }
+  return endpoint;
+};
 
-  getEndpoint() {
-    return this.endpoint;
-  }
+const createRequest = (params: CreateParams): GraphQLRequest => {
+  const { method = 'POST', headers, variables, payload, auth, timeoutMs } = params;
+  return {
+    endpoint: resolveEndpoint(),
+    method,
+    headers,
+    variables,
+    payload,
+    auth,
+    timeoutMs
+  };
+};
 
-  create(params: CreateParams): GraphQLRequest {
-    const { method = 'POST', headers, variables, payload, auth, timeoutMs } = params;
-    return {
-      endpoint: this.endpoint,
-      method,
-      headers,
-      variables,
-      payload,
-      auth,
-      timeoutMs
-    };
-  }
-}
+export const MagentoGraphQLRequestFactory = {
+  getEndpoint: resolveEndpoint,
+  create: createRequest
+};

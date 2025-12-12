@@ -73,8 +73,7 @@ const runBeforeSend = async (req: GraphQLRequest, hooks: BeforeSendHook[], ctx: 
 };
 
 export const fetchMenu = async (options: FetchMenuOptions): Promise<MenuItem[]> => {
-  const factory = new MagentoGraphQLRequestFactory();
-  const endpoint = factory.getEndpoint();
+  const endpoint = MagentoGraphQLRequestFactory.getEndpoint();
   const cacheKey = [
     endpoint,
     options.depth ?? DEFAULT_DEPTH,
@@ -95,7 +94,7 @@ export const fetchMenu = async (options: FetchMenuOptions): Promise<MenuItem[]> 
 
     const baseHeaders: Record<string, string> = { ...(options.headers ?? {}) };
 
-    const baseRequest: GraphQLRequest = factory.create({
+    const baseRequest: GraphQLRequest = MagentoGraphQLRequestFactory.create({
       method: 'POST',
       payload: query,
       variables: options.variables ?? {

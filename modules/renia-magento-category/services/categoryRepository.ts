@@ -6,31 +6,13 @@ import { fetchMenu } from './menu';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 import { CATEGORY_BY_URL_PATH, CATEGORY_BY_UID } from './categoryQueries';
 import { mapCategoryNode } from './categoryMapper';
-
-export interface Category {
-  id: string;
-  label: string;
-  url: string;
-  urlPath?: string;
-  type?: string;
-  position?: number;
-  includeInMenu?: boolean;
-  children?: Category[];
-}
+import type { Category } from '../types/category';
 
 export class CategoryRepository {
-  private endpoint: string;
-  private factory: MagentoGraphQLRequestFactory;
-
-  constructor() {
-    this.factory = new MagentoGraphQLRequestFactory();
-    this.endpoint = this.factory.getEndpoint();
-  }
-
   async getByUid(uid: string): Promise<Category | null> {
     const query = new QueryBuilder(CATEGORY_BY_UID).toString();
 
-    const req = this.factory.create({
+    const req = MagentoGraphQLRequestFactory.create({
       method: 'POST',
       payload: query,
       variables: { uid }
@@ -49,7 +31,7 @@ export class CategoryRepository {
 
     const query = new QueryBuilder(CATEGORY_BY_URL_PATH).toString();
 
-    const req = this.factory.create({
+    const req = MagentoGraphQLRequestFactory.create({
       method: 'POST',
       payload: query,
       variables: { path: cleaned }
