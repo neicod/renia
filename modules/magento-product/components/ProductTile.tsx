@@ -1,5 +1,6 @@
 // @env: mixed
 import React from 'react';
+import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
 import type { Product } from '../types';
 
 type ProductTileProps = {
@@ -98,6 +99,7 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
             />
           </svg>
         </a>
+        <SlotRenderer name="product-listing-actions" props={{ product }} />
       </div>
     </article>
   );

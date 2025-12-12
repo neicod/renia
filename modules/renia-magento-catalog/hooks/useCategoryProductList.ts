@@ -5,18 +5,24 @@ import type { ProductSearchResults } from 'magento-product';
 import { useProductListing } from './useProductListing';
 
 type UseCategoryProductListArgs = {
-  env: 'ssr' | 'client';
   categoryUid?: string;
   initialListing?: ProductSearchResults | null;
 };
 
 export const useCategoryProductList = ({
-  env,
   categoryUid,
   initialListing
 }: UseCategoryProductListArgs) => {
   const buildCriteria = React.useCallback(
-    ({ page, pageSize, sortOrders }) => {
+    ({
+      page,
+      pageSize,
+      sortOrders
+    }: {
+      page: number;
+      pageSize: number;
+      sortOrders?: SearchCriteria['sortOrders'];
+    }) => {
       if (!categoryUid) {
         return null;
       }
@@ -33,7 +39,6 @@ export const useCategoryProductList = ({
   );
 
   return useProductListing({
-    env,
     initialListing,
     buildCriteria,
     resetKey: categoryUid

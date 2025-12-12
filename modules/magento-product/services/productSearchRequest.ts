@@ -1,8 +1,7 @@
 // @env: mixed
 import type { SearchCriteria } from '@framework/api';
-import { QueryBuilder } from 'renia-graphql-client/builder';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
-import { PRODUCT_SEARCH_QUERY } from './queries';
+import { buildProductSearchQuery } from './queries';
 import { buildFilterInput, buildSortInput } from './productSearchTransforms';
 
 const DEFAULT_PAGE_SIZE = 12;
@@ -19,13 +18,12 @@ export const createProductSearchRequest = (criteria: SearchCriteria) => {
     sort: buildSortInput(criteria)
   };
 
-  const query = new QueryBuilder(PRODUCT_SEARCH_QUERY).toString();
-
   return MagentoGraphQLRequestFactory.create({
     method: 'POST',
-    payload: query,
+    payload: buildProductSearchQuery(),
     headers: {},
-    variables
+    variables,
+    operationId: 'magentoProduct.search'
   });
 };
 

@@ -21,7 +21,7 @@ if (rootElement) {
     rootElement,
     <React.StrictMode>
       <BrowserRouter>
-        <AppRoot bootstrap={bootstrap} />
+        <AppRoot bootstrap={bootstrap} runtime="client" />
       </BrowserRouter>
     </React.StrictMode>
   );

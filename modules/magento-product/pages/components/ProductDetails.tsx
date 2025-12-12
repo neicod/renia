@@ -1,5 +1,6 @@
 // @env: mixed
 import React from 'react';
+import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
 import type { Product } from '../../types';
 
 type Props = {
@@ -45,6 +46,7 @@ export const ProductDetails: React.FC<Props> = ({ product }) => {
       <div style={{ color: '#64748b' }}>
         <p>Opis produktu zostanie uzupełniony po integracji z Magento (placeholder).</p>
       </div>
+      <SlotRenderer name="product-view-actions" props={{ product }} />
     </section>
   );
 };

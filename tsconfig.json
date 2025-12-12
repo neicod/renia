@@ -19,5 +19,5 @@
     "allowSyntheticDefaultImports": true,
     "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["src", "modules"]
 }

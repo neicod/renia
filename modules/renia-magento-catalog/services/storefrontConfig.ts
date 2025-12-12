@@ -1,22 +1,18 @@
 // @env: mixed
-import { executeRequest } from 'renia-graphql-client';
+import { executeGraphQLRequest } from '@framework/api/graphqlClient';
+import { QueryBuilder } from 'renia-graphql-client/builder';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
+import type { StoreConfig } from 'renia-magento-store';
 
-export type StorefrontPageSizeConfig = {
-  defaultGridPerPage?: number;
+export const DEFAULT_PAGE_SIZE = 12;
+
+export type CatalogStorefrontConfig = {
+  gridPerPage?: number;
   gridPerPageValues: number[];
 };
 
-const STORE_CONFIG_QUERY = `
-  query StorefrontPageSizeConfig {
-    storeConfig {
-      grid_per_page
-      grid_per_page_values
-    }
-  }
-`;
-
-let configPromise: Promise<StorefrontPageSizeConfig> | null = null;
+let cache: CatalogStorefrontConfig | null = null;
+let inFlight: Promise<CatalogStorefrontConfig> | null = null;
 
 const parseNumber = (value: unknown): number | undefined => {
   if (typeof value === 'number') {
@@ -30,61 +26,96 @@ const parseNumber = (value: unknown): number | undefined => {
 };
 
 const parseValues = (value: unknown): number[] => {
-  const items: string[] = [];
+  const entries: string[] = [];
   if (typeof value === 'string') {
-    items.push(...value.split(','));
+    entries.push(...value.split(','));
   } else if (Array.isArray(value)) {
-    items.push(
-      ...value.map((entry) => (typeof entry === 'string' ? entry : String(entry ?? '')))
-    );
+    entries.push(...value.map((entry) => (typeof entry === 'string' ? entry : String(entry ?? ''))));
   }
-  return items
+  return entries
     .map((entry) => parseNumber(entry))
-    .filter((num): num is number => typeof num === 'number' && num > 0);
+    .filter((val): val is number => typeof val === 'number' && val > 0);
 };
 
-const normalizeValues = (values: number[], defaultValue?: number): number[] => {
+const normalizeValues = (values: number[], fallback?: number): number[] => {
   const uniq = new Set<number>();
   values.forEach((val) => {
     if (Number.isFinite(val) && val > 0) {
       uniq.add(val);
     }
   });
-  if (typeof defaultValue === 'number' && defaultValue > 0) {
-    uniq.add(defaultValue);
+  if (typeof fallback === 'number' && fallback > 0) {
+    uniq.add(fallback);
   }
-  return Array.from(uniq).sort((a, b) => a - b);
+  const sorted = Array.from(uniq).sort((a, b) => a - b);
+  return sorted.length ? sorted : [DEFAULT_PAGE_SIZE];
 };
 
-export const fetchStorefrontPageSizeConfig = async (): Promise<StorefrontPageSizeConfig> => {
-  if (!configPromise) {
-    configPromise = (async () => {
-      const request = MagentoGraphQLRequestFactory.create({
-        method: 'POST',
-        payload: STORE_CONFIG_QUERY,
-      });
+export const extractCatalogStorefrontConfig = (
+  store?: StoreConfig | null
+): CatalogStorefrontConfig | null => {
+  if (!store?.raw) return null;
+  const raw = store.raw as Record<string, unknown>;
+  const gridPerPage = parseNumber((raw as any)?.grid_per_page);
+  const options = normalizeValues(parseValues((raw as any)?.grid_per_page_values), gridPerPage);
+  return {
+    gridPerPage,
+    gridPerPageValues: options
+  };
+};
 
-      const response = await executeRequest(request);
-      if (response.errors) {
-        throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
-      }
+const buildStorefrontPageSizeQuery = () => {
+  const builder = new QueryBuilder('query').setName('StorefrontPageSizeConfig');
+  builder.addField([], 'storeConfig');
+  builder.addField(['storeConfig'], 'grid_per_page');
+  builder.addField(['storeConfig'], 'grid_per_page_values');
+  return builder;
+};
 
-      const rawConfig = (response.data as any)?.storeConfig ?? {};
+const fetchCatalogStorefrontConfig = async (): Promise<CatalogStorefrontConfig> => {
+  const request = MagentoGraphQLRequestFactory.create({
+    method: 'POST',
+    payload: buildStorefrontPageSizeQuery(),
+    operationId: 'magentoCatalog.storefrontConfig'
+  });
+  const response = await executeGraphQLRequest(request);
+  if (response.errors) {
+    throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
+  }
+  const raw = ((response.data as any)?.storeConfig ?? {}) as Record<string, unknown>;
+  const config = extractCatalogStorefrontConfig({ raw } as StoreConfig);
+  return (
+    config ?? {
+      gridPerPage: DEFAULT_PAGE_SIZE,
+      gridPerPageValues: [DEFAULT_PAGE_SIZE]
+    }
+  );
+};
 
-      const defaultGridPerPage = parseNumber(rawConfig?.grid_per_page);
-      const parsedValues = parseValues(rawConfig?.grid_per_page_values);
-      const gridPerPageValues = normalizeValues(parsedValues, defaultGridPerPage);
-
-      return {
-        defaultGridPerPage,
-        gridPerPageValues,
-      };
-    })();
+export const getCatalogStorefrontConfig = async (
+  options: { forceRefresh?: boolean; store?: StoreConfig | null } = {}
+): Promise<CatalogStorefrontConfig> => {
+  const fromStore = extractCatalogStorefrontConfig(options.store);
+  if (fromStore) {
+    cache = fromStore;
+    return fromStore;
   }
 
-  return configPromise;
+  if (cache && !options.forceRefresh) {
+    return cache;
+  }
+
+  if (!inFlight) {
+    inFlight = fetchCatalogStorefrontConfig().finally(() => {
+      inFlight = null;
+    });
+  }
+
+  cache = await inFlight;
+  return cache;
 };
 
 export default {
-  fetchStorefrontPageSizeConfig,
+  getCatalogStorefrontConfig,
+  extractCatalogStorefrontConfig
 };

@@ -1,5 +1,5 @@
 // @env: mixed
-import { executeRequest } from 'renia-graphql-client';
+import { executeGraphQLRequest } from '@framework/api/graphqlClient';
 import type { SearchCriteria } from '@framework/api';
 import type { Product } from '../types';
 import { fetchProduct } from './product';
@@ -18,7 +18,7 @@ const getByUrlKey = async (urlKey: string): Promise<Product | null> => {
 
 const getList = async (criteria: SearchCriteria): Promise<ProductSearchResults> => {
   const req = createProductSearchRequest(criteria);
-  const res = await executeRequest(req);
+  const res = await executeGraphQLRequest(req);
   if (res.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(res.errors)}`);
   }

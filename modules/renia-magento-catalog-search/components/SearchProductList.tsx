@@ -28,7 +28,6 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
   if (meta && meta.type && meta.type !== 'search') {
     return null;
   }
-  const env = typeof window === 'undefined' ? 'ssr' : 'client';
   const query = useQueryParam(meta);
   const initialListing = React.useMemo(
     () => initialListingProp ?? meta?.searchProductListing ?? null,
@@ -40,7 +39,7 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
     isInitialLoading,
     listing: { products, total, sort, sortOptions, page, pageSize, pageSizeOptions },
     handlers: { onSortChange, onItemsPerPageChange, onPageChange }
-  } = useSearchProductList({ env, query, initialListing });
+  } = useSearchProductList({ query, initialListing });
 
   if (!query) {
     return (

@@ -9,6 +9,7 @@ import type {
 } from 'magento-product';
 import type { Product } from 'magento-product';
 import { useStorefrontPageSize } from './useStorefrontPageSize';
+import { useAppEnvironment } from '@framework/runtime/AppEnvContext';
 
 type Status = 'idle' | 'loading' | 'ready' | 'error' | 'empty';
 type SortOption = { value: string; label: string };
@@ -76,23 +77,19 @@ type CriteriaBuilderArgs = {
 };
 
 type UseProductListingArgs = {
-  env: 'ssr' | 'client';
   initialListing?: ProductSearchResults | null;
   buildCriteria: (args: CriteriaBuilderArgs) => SearchCriteria | null;
   resetKey?: string;
 };
 
 export const useProductListing = ({
-  env,
   initialListing,
   buildCriteria,
   resetKey
 }: UseProductListingArgs) => {
+  const { runtime } = useAppEnvironment();
   const repo = React.useMemo<ProductRepositoryService>(() => productRepository, []);
-  const { pageSize, pageSizeOptions, setUserPageSize } = useStorefrontPageSize({
-    env,
-    resetKey
-  });
+  const { pageSize, pageSizeOptions, setUserPageSize } = useStorefrontPageSize({ resetKey });
 
   const listingStateRef = React.useRef<DerivedListingState | null>(null);
   if (!listingStateRef.current) {
@@ -183,7 +180,7 @@ export const useProductListing = ({
           setStatus(items.length ? 'ready' : 'empty');
         }
       } catch (err) {
-        console.error('[useProductListing] Failed to fetch products', { env, err });
+        console.error('[useProductListing] Failed to fetch products', { runtime, err });
         if (!cancelled) {
           setStatus('error');
           setTotal(0);
@@ -195,7 +192,7 @@ export const useProductListing = ({
     return () => {
       cancelled = true;
     };
-  }, [criteria, env, repo, sort, userSelectedSort]);
+  }, [criteria, runtime, repo, sort, userSelectedSort]);
 
   const pageSizeSafe = Math.max(pageSize, 1);
   const handleSortChange = React.useCallback((value: string) => {

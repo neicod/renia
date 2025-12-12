@@ -1,5 +1,5 @@
 // @env: mixed
-import { executeRequest } from 'renia-graphql-client';
+import { executeGraphQLRequest } from '@framework/api/graphqlClient';
 import { QueryBuilder } from 'renia-graphql-client/builder';
 import type { SearchCriteria, SearchResults } from '@framework/api';
 import { fetchMenu } from './menu';
@@ -15,10 +15,11 @@ export class CategoryRepository {
     const req = MagentoGraphQLRequestFactory.create({
       method: 'POST',
       payload: query,
-      variables: { uid }
+      variables: { uid },
+      operationId: 'magentoCategory.byUid'
     });
 
-    const res = await executeRequest(req);
+    const res = await executeGraphQLRequest(req);
     if (res.errors) {
       throw new Error(`GraphQL errors: ${JSON.stringify(res.errors)}`);
     }
@@ -34,10 +35,11 @@ export class CategoryRepository {
     const req = MagentoGraphQLRequestFactory.create({
       method: 'POST',
       payload: query,
-      variables: { path: cleaned }
+      variables: { path: cleaned },
+      operationId: 'magentoCategory.byUrlPath'
     });
 
-    const res = await executeRequest(req);
+    const res = await executeGraphQLRequest(req);
     if (res.errors) {
       throw new Error(`GraphQL errors: ${JSON.stringify(res.errors)}`);
     }

@@ -166,6 +166,20 @@ export const htmlTemplate = ({
       position: relative;
       flex-wrap: wrap;
     }
+    .main-menu__item {
+      position: relative;
+      display: inline-flex;
+      padding-bottom: 0.75rem;
+    }
+    .main-menu__item::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 12px;
+      background: transparent;
+    }
     .main-menu__link {
       display: inline-flex;
       align-items: center;
@@ -186,17 +200,18 @@ export const htmlTemplate = ({
       opacity: 0;
       pointer-events: none;
       position: absolute;
-      top: calc(100% + 6px);
+      top: calc(100% + 8px);
       left: 0;
-      min-width: 220px;
+      min-width: 240px;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 14px;
       box-shadow: var(--shadow);
-      padding: 0.5rem;
+      padding: 0.65rem;
       list-style: none;
       margin: 0;
       z-index: 30;
+      transition: opacity 120ms ease;
     }
     .main-menu__item:hover > .main-menu__dropdown,
     .main-menu__item:focus-within > .main-menu__dropdown,
@@ -206,9 +221,22 @@ export const htmlTemplate = ({
       opacity: 1;
       pointer-events: auto;
     }
+    .main-menu__dropdown-item {
+      position: relative;
+      padding-right: 0.4rem;
+    }
+    .main-menu__dropdown-item::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: -16px;
+      width: 24px;
+      background: transparent;
+    }
     .main-menu__dropdown-link {
       display: block;
-      padding: 0.4rem 0.55rem;
+      padding: 0.45rem 0.65rem;
       border-radius: 10px;
       color: var(--text);
       font-weight: 500;
@@ -219,9 +247,9 @@ export const htmlTemplate = ({
       color: var(--accent);
     }
     .main-menu__dropdown .main-menu__dropdown {
-      top: 0;
-      left: 100%;
-      margin-left: 10px;
+      top: -6px;
+      left: calc(100% + 12px);
+      margin-left: 0;
     }
     .main {
       padding: 0 0 2rem;

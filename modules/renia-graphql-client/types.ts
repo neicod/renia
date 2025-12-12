@@ -47,6 +47,7 @@ export type GraphQLRequest = {
   headers?: Record<string, string>;
   auth?: AuthOption[];
   timeoutMs?: number;
+  operationId?: string;
 };
 
 export type GraphQLResponse<T = any> = {

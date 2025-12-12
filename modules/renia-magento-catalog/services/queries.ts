@@ -1,13 +1,17 @@
 // @env: mixed
-import { PRODUCT_IN_LIST_FRAGMENT } from 'magento-product/services/queries';
+import { QueryBuilder } from 'renia-graphql-client/builder';
+import { registerProductInListFragment } from 'magento-product/services/queries';
 
-export const buildCategoryUidQuery = (filter: string): string => `
-  query CategoryUid {
-    categoryList(filters: { ${filter} }) {
-      uid
+export const buildCategoryUidQuery = (filter: string): QueryBuilder => {
+  const builder = new QueryBuilder('query').setName('CategoryUid');
+  builder.addField([], 'categoryList', {
+    args: {
+      filters: `{ ${filter} }`
     }
-  }
-`;
+  });
+  builder.addField(['categoryList'], 'uid');
+  return builder;
+};
 
 export const buildCategoryProductsQuery = ({
   filter,
@@ -19,23 +23,31 @@ export const buildCategoryProductsQuery = ({
   sort?: string;
   pageSize: number;
   currentPage: number;
-}): string => {
-  const sortString = sort ? `, sort: { ${sort} }` : '';
+}): QueryBuilder => {
+  const builder = new QueryBuilder('query').setName('CategoryProducts');
+  registerProductInListFragment(builder);
 
-  return `
-    query CategoryProducts {
-      products(
-        filter: { ${filter} }
-        pageSize: ${pageSize}
-        currentPage: ${currentPage}
-        ${sortString}
-      ) {
-        items { ...ProductInList }
-        total_count
-        page_info { current_page page_size }
-      }
-    }
+  const args: Record<string, string | number> = {
+    pageSize,
+    currentPage
+  };
 
-    ${PRODUCT_IN_LIST_FRAGMENT}
-  `;
+  if (filter) {
+    args.filter = `{ ${filter} }`;
+  }
+  if (sort) {
+    args.sort = `{ ${sort} }`;
+  }
+
+  builder.addField([], 'products', { args });
+  builder.addField(['products'], 'items');
+  builder.spreadFragment(['products', 'items'], 'ProductInList');
+
+  builder.addField(['products'], 'total_count');
+
+  builder.addField(['products'], 'page_info');
+  builder.addField(['products', 'page_info'], 'current_page');
+  builder.addField(['products', 'page_info'], 'page_size');
+
+  return builder;
 };

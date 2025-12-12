@@ -1,6 +1,5 @@
 // @env: mixed
-import { executeRequest } from 'renia-graphql-client';
-import { QueryBuilder } from 'renia-graphql-client/builder';
+import { executeGraphQLRequest } from '@framework/api/graphqlClient';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 import { buildCategoryUidQuery } from './queries';
 
@@ -11,17 +10,16 @@ const runQuery = async ({
   filter: string;
   headers?: Record<string, string>;
 }) => {
-  const query = new QueryBuilder(buildCategoryUidQuery(filter)).toString();
-
   const req = MagentoGraphQLRequestFactory.create({
     method: 'POST',
-    payload: query,
+    payload: buildCategoryUidQuery(filter),
     headers: {
       ...(headers ?? {})
-    }
+    },
+    operationId: 'magentoCatalog.categoryUid'
   });
 
-  const res = await executeRequest(req);
+  const res = await executeGraphQLRequest(req);
   if (res.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(res.errors)}`);
   }

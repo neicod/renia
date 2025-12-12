@@ -34,6 +34,9 @@ export default (api: SlotsApi = {}) => {
     slot: 'content',
     componentPath: 'renia-magento-catalog-search/components/SearchProductList',
     id: 'search-product-list',
-    priority: 20
+    priority: 20,
+    meta: {
+      onlyForRouteTypes: ['search']
+    }
   });
 };

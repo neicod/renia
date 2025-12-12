@@ -1,8 +1,14 @@
 // @env: mixed
 import React from 'react';
-import { fetchStorefrontPageSizeConfig } from '../services/storefrontConfig';
+import { useAppEnvironment } from '@framework/runtime/AppEnvContext';
+import {
+  getCatalogStorefrontConfig,
+  extractCatalogStorefrontConfig,
+  DEFAULT_PAGE_SIZE as DEFAULT_PAGE_SIZE_CFG,
+  type CatalogStorefrontConfig
+} from '../services/storefrontConfig';
 
-export const DEFAULT_PAGE_SIZE = 12;
+export const DEFAULT_PAGE_SIZE = DEFAULT_PAGE_SIZE_CFG;
 
 const normalizePageSize = (value: number) => {
   if (!Number.isFinite(value)) return DEFAULT_PAGE_SIZE;
@@ -10,11 +16,11 @@ const normalizePageSize = (value: number) => {
 };
 
 type UseStorefrontPageSizeArgs = {
-  env: 'ssr' | 'client';
   resetKey?: string;
 };
 
-export const useStorefrontPageSize = ({ env, resetKey }: UseStorefrontPageSizeArgs) => {
+export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = {}) => {
+  const { runtime, store } = useAppEnvironment();
   const [pageSize, setPageSize] = React.useState<number>(DEFAULT_PAGE_SIZE);
   const [pageSizeOptions, setPageSizeOptions] = React.useState<number[]>([DEFAULT_PAGE_SIZE]);
   const [defaultPageSize, setDefaultPageSize] = React.useState<number>(DEFAULT_PAGE_SIZE);
@@ -25,31 +31,41 @@ export const useStorefrontPageSize = ({ env, resetKey }: UseStorefrontPageSizeAr
     defaultPageSizeRef.current = defaultPageSize;
   }, [defaultPageSize]);
 
+  const applyConfig = React.useCallback((config?: CatalogStorefrontConfig | null) => {
+    if (!config) return;
+    const allowedOptions =
+      config.gridPerPageValues?.length
+        ? config.gridPerPageValues
+        : [config.gridPerPage ?? DEFAULT_PAGE_SIZE];
+
+    const fallbackDefault = config.gridPerPage ?? allowedOptions[0] ?? DEFAULT_PAGE_SIZE;
+
+    setPageSizeOptions(allowedOptions);
+    setDefaultPageSize(fallbackDefault);
+    if (!userSelectedRef.current) {
+      setPageSize(fallbackDefault);
+    }
+  }, []);
+
   React.useEffect(() => {
+    const parsed = extractCatalogStorefrontConfig(store);
+    if (parsed) {
+      applyConfig(parsed);
+    }
+  }, [store, applyConfig]);
+
+  React.useEffect(() => {
+    if (extractCatalogStorefrontConfig(store)) return;
+
     let cancelled = false;
 
     const loadStorefrontConfig = async () => {
       try {
-        const config = await fetchStorefrontPageSizeConfig();
+        const fetched = await getCatalogStorefrontConfig({ store });
         if (cancelled) return;
-
-        const allowedOptions =
-          config.gridPerPageValues.length > 0
-            ? config.gridPerPageValues
-            : config.defaultGridPerPage
-              ? [config.defaultGridPerPage]
-              : [DEFAULT_PAGE_SIZE];
-
-        const fallbackDefault =
-          config.defaultGridPerPage ?? allowedOptions[0] ?? DEFAULT_PAGE_SIZE;
-
-        setPageSizeOptions(allowedOptions);
-        setDefaultPageSize(fallbackDefault);
-        if (!userSelectedRef.current) {
-          setPageSize(fallbackDefault);
-        }
+        applyConfig(fetched);
       } catch (error) {
-        console.error('[useStorefrontPageSize] Failed to load store config', { env, error });
+        console.error('[useStorefrontPageSize] Failed to load storefront config', { runtime, error });
         if (cancelled) return;
 
         setPageSizeOptions((prev) => (prev.length ? prev : [DEFAULT_PAGE_SIZE]));
@@ -64,7 +80,7 @@ export const useStorefrontPageSize = ({ env, resetKey }: UseStorefrontPageSizeAr
     return () => {
       cancelled = true;
     };
-  }, [env]);
+  }, [runtime, store, applyConfig]);
 
   React.useEffect(() => {
     if (!userSelectedRef.current) {

@@ -1,8 +1,8 @@
 // @env: server
-import type { SearchCriteria } from '@framework/api';
-import { createCategoryRepository } from './services/categoryRepository';
-import { prefetchProductListing } from 'renia-magento-catalog/services/productListingPrefetch';
-import type { ProductSearchResults } from 'magento-product';
+import type {SearchCriteria} from '@framework/api';
+import {createCategoryRepository} from './services/categoryRepository';
+import {prefetchProductListing} from 'renia-magento-catalog/services/productListingPrefetch';
+import type {ProductSearchResults} from 'magento-product';
 
 const DEFAULT_PAGE_SIZE = 12;
 
@@ -18,8 +18,7 @@ const fetchInitialProductListing = async (
   if (!categoryUid) return null;
   try {
     const criteria = buildInitialCriteria(categoryUid);
-    const res = await prefetchProductListing(criteria);
-    return res;
+    return await prefetchProductListing(criteria);
   } catch (error) {
     console.error('[CategoryRouteHandler] Failed to fetch initial product listing', {
       categoryUid,

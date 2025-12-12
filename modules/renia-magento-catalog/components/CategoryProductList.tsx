@@ -13,8 +13,6 @@ type Props = {
 };
 
 export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: initialListingProp }) => {
-  const env = typeof window === 'undefined' ? 'ssr' : 'client';
-
   const category = React.useMemo(() => (meta as any)?.category, [meta]);
   const categoryUid = typeof category?.id === 'string' ? category.id : undefined;
   const initialListing = React.useMemo(
@@ -27,7 +25,7 @@ export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: ini
     isInitialLoading,
     listing: { products, total, sort, sortOptions, page, pageSize, pageSizeOptions },
     handlers: { onSortChange, onItemsPerPageChange, onPageChange }
-  } = useCategoryProductList({ env, categoryUid, initialListing });
+  } = useCategoryProductList({ categoryUid, initialListing });
 
   if (!categoryUid) {
     return null;

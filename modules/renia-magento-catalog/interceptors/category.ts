@@ -14,7 +14,8 @@ export default (api: any) => {
       priority: 20,
       props: {},
       meta: {
-        requiresCategoryPath: true
+        requiresCategoryPath: true,
+        onlyForRouteTypes: ['category']
       }
     });
   }

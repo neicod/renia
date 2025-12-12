@@ -10,6 +10,9 @@
     "renia-menu": 1,
     "magento-product": 1,
     "renia-magento-catalog": 1,
-    "renia-magento-catalog-search": 1
+    "renia-magento-store": 1,
+    "renia-magento-catalog-search": 1,
+    "renia-module-cart": 1,
+    "renia-ui-toast": 1
   }
 }

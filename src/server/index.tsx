@@ -17,6 +17,7 @@ import AppRoot from '@framework/runtime/AppRoot';
 import { htmlTemplate } from './template';
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
+import { getStoreConfig } from 'renia-magento-store';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -155,10 +156,18 @@ app.get('*', async (req, res) => {
 
     let preloadedCategoryMenu: MenuItem[] | undefined;
 
-    const appConfig = {
+    const appConfig: {
+      magentoGraphQLEndpoint?: string;
+      magentoRootCategoryId?: string;
+      magentoProxyEndpoint?: string;
+      magentoStoreCode?: string;
+      preloadedCategoryMenu?: MenuItem[];
+      store?: Awaited<ReturnType<typeof getStoreConfig>>;
+    } = {
       magentoGraphQLEndpoint: process.env.MAGENTO_GRAPHQL_ENDPOINT,
       magentoRootCategoryId: process.env.MAGENTO_ROOT_CATEGORY_ID,
       magentoProxyEndpoint: process.env.MAGENTO_PROXY_ENDPOINT ?? '/api/magento/graphql',
+      magentoStoreCode: process.env.MAGENTO_STORE_CODE,
       preloadedCategoryMenu
     };
 
@@ -180,6 +189,18 @@ app.get('*', async (req, res) => {
         appConfig.preloadedCategoryMenu = preloadedCategoryMenu;
       } catch (err) {
         console.error('Nie udało się wstępnie pobrać menu kategorii:', err);
+      }
+    }
+
+    if (!appConfig.store) {
+      try {
+        const storeConfig = await getStoreConfig();
+        appConfig.store = storeConfig;
+        if (!appConfig.magentoStoreCode && storeConfig.code) {
+          appConfig.magentoStoreCode = storeConfig.code;
+        }
+      } catch (err) {
+        console.error('Nie udało się pobrać konfiguracji sklepu:', err);
       }
     }
 
@@ -305,7 +326,7 @@ app.get('*', async (req, res) => {
 
     const appHtml = renderToString(
       <StaticRouter location={req.url}>
-        <AppRoot bootstrap={bootstrap} />
+        <AppRoot bootstrap={bootstrap} runtime="ssr" />
       </StaticRouter>
     );
 

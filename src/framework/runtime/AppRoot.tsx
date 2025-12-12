@@ -2,6 +2,8 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { registerComponents, resolveComponentEntry } from '../registry/componentRegistry';
+import { AppEnvironmentProvider, type AppRuntime } from './AppEnvContext';
+import type { StoreConfig } from 'renia-magento-store';
 import LayoutShell from 'renia-layout/components/LayoutShell';
 import type { SlotEntry as LayoutSlotEntry } from 'renia-layout/types';
 import 'renia-magento-cart/registerComponents';
@@ -44,6 +46,7 @@ type BootstrapData = {
     magentoRootCategoryId?: string;
     magentoProxyEndpoint?: string;
     preloadedCategoryMenu?: any;
+    store?: StoreConfig;
   };
 };
 
@@ -54,12 +57,7 @@ const AboutPage: React.FC = () => (
   </section>
 );
 
-const NotFoundPage: React.FC = () => (
-  <section className="card">
-    <h1 style={{ margin: '0 0 0.5rem' }}>Nie znaleziono</h1>
-    <p style={{ margin: 0 }}>Sprawdź ścieżkę lub dodaj nową trasę.</p>
-  </section>
-);
+const MissingComponent: React.FC = () => null;
 
 registerComponents({
   HomePage,
@@ -68,11 +66,12 @@ registerComponents({
 
 type AppRootProps = {
   bootstrap: BootstrapData;
+  runtime?: AppRuntime;
 };
 
-export const AppRoot: React.FC<AppRootProps> = ({ bootstrap }) => {
+export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' }) => {
   const resolveComponent = (entry: { component?: string; componentPath?: string }): React.ComponentType<any> =>
-    resolveComponentEntry(entry, NotFoundPage);
+    resolveComponentEntry(entry, MissingComponent);
 
   const routes = [
     { path: '/', component: 'HomePage' },
@@ -80,32 +79,37 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap }) => {
     ...bootstrap.routes
   ];
 
+  const storeCode = (bootstrap?.config as any)?.magentoStoreCode ?? bootstrap?.config?.store?.code;
+  const storeConfig = bootstrap?.config?.store;
+
   return (
-    <div>
-      <Routes>
-        {routes.map((route) => {
-          const Comp = resolveComponent(route);
-          const layout = route.layout ?? '1column';
-          return (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={
-                <LayoutShell
-                  layout={layout}
-                  main={<Comp />}
-                  resolveComponent={resolveComponent}
-                  slots={bootstrap.slots}
-                  layoutSlots={bootstrap.layoutSlots}
-                  routeMeta={route.meta}
-                />
-              }
-            />
-          );
-        })}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </div>
+    <AppEnvironmentProvider runtime={runtime} storeCode={storeCode} store={storeConfig}>
+      <div>
+        <Routes>
+          {routes.map((route) => {
+            const Comp = resolveComponent(route);
+            const layout = route.layout ?? '1column';
+            return (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <LayoutShell
+                    layout={layout}
+                    main={<Comp />}
+                    resolveComponent={resolveComponent}
+                    slots={bootstrap.slots}
+                    layoutSlots={bootstrap.layoutSlots}
+                    subslots={bootstrap.subslots}
+                    routeMeta={route.meta}
+                  />
+                }
+              />
+            );
+          })}
+        </Routes>
+      </div>
+    </AppEnvironmentProvider>
   );
 };
 

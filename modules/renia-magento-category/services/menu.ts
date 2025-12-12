@@ -1,5 +1,5 @@
 // @env: mixed
-import { executeRequest } from 'renia-graphql-client';
+import { executeGraphQLRequest } from '@framework/api/graphqlClient';
 import type { AuthOption, GraphQLRequest } from 'renia-graphql-client';
 import { QueryBuilder } from 'renia-graphql-client/builder';
 import type { MenuItem } from 'renia-menu';
@@ -102,7 +102,8 @@ export const fetchMenu = async (options: FetchMenuOptions): Promise<MenuItem[]> 
       },
       auth: options.auth,
       headers: baseHeaders,
-      timeoutMs: options.timeoutMs
+      timeoutMs: options.timeoutMs,
+      operationId: 'magentoCategory.menu'
     });
 
     const finalRequest =
@@ -110,7 +111,7 @@ export const fetchMenu = async (options: FetchMenuOptions): Promise<MenuItem[]> 
         ? await runBeforeSend(baseRequest, options.beforeSend, { query })
         : baseRequest;
 
-    const response = await executeRequest(finalRequest);
+    const response = await executeGraphQLRequest(finalRequest);
 
     if (response.errors) {
       throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);

@@ -1,6 +1,5 @@
 // @env: mixed
-import { executeRequest } from 'renia-graphql-client';
-import { QueryBuilder } from 'renia-graphql-client/builder';
+import { executeGraphQLRequest } from '@framework/api/graphqlClient';
 import type { Product } from 'magento-product/types';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 import { buildCategoryProductsQuery } from './queries';
@@ -65,13 +64,12 @@ export const fetchCategoryProducts = async (
         .join(', ')
     : '';
 
-  const query = buildCategoryProductsQuery({
+  const payload = buildCategoryProductsQuery({
     filter: filterString,
     sort: sortString || undefined,
     pageSize,
     currentPage: page
   });
-  const payload = new QueryBuilder(query).toString();
 
   const headers: Record<string, string> = { ...(opts.headers ?? {}) };
 
@@ -79,10 +77,11 @@ export const fetchCategoryProducts = async (
     method: 'POST',
     payload,
     headers,
-    timeoutMs: opts.timeoutMs
+    timeoutMs: opts.timeoutMs,
+    operationId: 'magentoCatalog.categoryProducts'
   });
 
-  const res = await executeRequest(request);
+  const res = await executeGraphQLRequest(request);
   if (res.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(res.errors)}`);
   }

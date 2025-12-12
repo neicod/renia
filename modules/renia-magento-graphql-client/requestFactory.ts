@@ -13,7 +13,7 @@ const resolveEndpoint = () => {
 };
 
 const createRequest = (params: CreateParams): GraphQLRequest => {
-  const { method = 'POST', headers, variables, payload, auth, timeoutMs } = params;
+  const { method = 'POST', headers, variables, payload, auth, timeoutMs, operationId } = params;
   return {
     endpoint: resolveEndpoint(),
     method,
@@ -21,7 +21,8 @@ const createRequest = (params: CreateParams): GraphQLRequest => {
     variables,
     payload,
     auth,
-    timeoutMs
+    timeoutMs,
+    operationId
   };
 };
 

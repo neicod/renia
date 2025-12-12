@@ -11,6 +11,7 @@
     "build:client": "node scripts/build-client.mjs",
     "build:server": "node scripts/build-server.mjs",
     "start": "NODE_PATH=./modules node dist/server/index.js",
+    "test": "NODE_PATH=./modules tsx --test tests/graphqlHeaders.test.ts",
     "clean": "rm -rf dist",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx"
   },
@@ -27,9 +28,12 @@
     "renia-interceptors": "file:modules/renia-interceptors",
     "renia-layout": "file:modules/renia-layout",
     "renia-magento-cart": "file:modules/renia-magento-cart",
+    "renia-module-cart": "file:modules/renia-module-cart",
     "renia-magento-catalog": "file:modules/renia-magento-catalog",
+    "renia-magento-store": "file:modules/renia-magento-store",
     "renia-magento-catalog-search": "file:modules/renia-magento-catalog-search",
     "renia-magento-category": "file:modules/renia-magento-category",
+    "renia-ui-toast": "file:modules/renia-ui-toast",
     "magento-product": "file:modules/magento-product"
   },
   "devDependencies": {

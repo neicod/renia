@@ -1,6 +1,5 @@
 // @env: mixed
-import { executeRequest } from 'renia-graphql-client';
-import { QueryBuilder } from 'renia-graphql-client/builder';
+import { executeGraphQLRequest } from '@framework/api/graphqlClient';
 import type { Product } from '../types';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 import { buildProductDetailQuery } from './queries';
@@ -44,18 +43,17 @@ export const fetchProduct = async (options: FetchProductOptions): Promise<Produc
     ? `url_key: { eq: "${options.urlKey}" }`
     : `sku: { eq: "${options.sku}" }`;
 
-  const query = new QueryBuilder(buildProductDetailQuery(filters)).toString();
-
   const headers: Record<string, string> = { ...(options.headers ?? {}) };
 
   const req = MagentoGraphQLRequestFactory.create({
     method: 'POST',
-    payload: query,
+    payload: buildProductDetailQuery(filters),
     headers,
-    timeoutMs: options.timeoutMs
+    timeoutMs: options.timeoutMs,
+    operationId: 'magentoProduct.detail'
   });
 
-  const res = await executeRequest(req);
+  const res = await executeGraphQLRequest(req);
   if (res.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(res.errors)}`);
   }
