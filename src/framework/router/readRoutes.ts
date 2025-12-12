@@ -29,7 +29,7 @@ export const readRoutesFile = async (filePath: string): Promise<RouteDefinition[
     if (Array.isArray(data)) return data as RouteDefinition[];
     if (Array.isArray(data?.routes)) return data.routes as RouteDefinition[];
   } catch (error) {
-    console.warn(`Nie udało się wczytać tras z ${filePath}:`, error);
+    console.error(`Nie udało się wczytać tras z ${filePath}:`, error);
   }
   return null;
 };

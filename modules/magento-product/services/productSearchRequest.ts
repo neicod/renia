@@ -13,6 +13,7 @@ export const createProductSearchRequest = (criteria: SearchCriteria) => {
 
   const variables = {
     filter: buildFilterInput(criteria),
+    search: criteria.search,
     pageSize,
     currentPage,
     sort: buildSortInput(criteria)

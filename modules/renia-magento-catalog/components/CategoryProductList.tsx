@@ -5,38 +5,33 @@ import { ProductListingToolbar } from './ProductListingToolbar';
 import { ProductListingPagination } from './ProductListingPagination';
 import { useCategoryProductList } from '../hooks/useCategoryProductList';
 
+import type { ProductSearchResults } from 'magento-product';
+
 type Props = {
   meta?: Record<string, unknown>;
+  initialListing?: ProductSearchResults | null;
 };
 
-export const CategoryProductList: React.FC<Props> = ({ meta }) => {
+export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: initialListingProp }) => {
   const env = typeof window === 'undefined' ? 'ssr' : 'client';
 
   const category = React.useMemo(() => (meta as any)?.category, [meta]);
   const categoryUid = typeof category?.id === 'string' ? category.id : undefined;
-
-  console.info('[CategoryProductList] Render', {
-    env,
-    categoryUid
-  });
+  const initialListing = React.useMemo(
+    () => initialListingProp ?? (meta as any)?.categoryProductListing,
+    [initialListingProp, meta]
+  );
 
   const {
-    hasRepo,
-    products,
-    total,
     status,
     isInitialLoading,
-    sort,
-    sortOptions,
-    page,
-    pageSize,
-    pageSizeOptions,
-    handleSortChange,
-    handlePageSizeChange,
-    handlePageChange
-  } = useCategoryProductList({ env, categoryUid });
+    listing: { products, total, sort, sortOptions, page, pageSize, pageSizeOptions },
+    handlers: { onSortChange, onItemsPerPageChange, onPageChange }
+  } = useCategoryProductList({ env, categoryUid, initialListing });
 
-  if (!categoryUid || !hasRepo) return null;
+  if (!categoryUid) {
+    return null;
+  }
 
   const controlsDisabled = status === 'loading';
 
@@ -44,13 +39,13 @@ export const CategoryProductList: React.FC<Props> = ({ meta }) => {
     <div>
       <ProductListingToolbar
         sortOptions={sortOptions}
-        value={sort}
-        onChange={handleSortChange}
-        total={total}
-        page={page}
-        pageSize={pageSize}
+        selectedSort={sort}
+        onSortChange={onSortChange}
+        totalItems={total}
+        currentPage={page}
+        itemsPerPage={pageSize}
         pageSizeOptions={pageSizeOptions}
-        onPageSizeChange={handlePageSizeChange}
+        onItemsPerPageChange={onItemsPerPageChange}
         disabled={controlsDisabled}
       />
       <ProductList
@@ -64,7 +59,7 @@ export const CategoryProductList: React.FC<Props> = ({ meta }) => {
         page={page}
         pageSize={pageSize}
         total={total}
-        onPageChange={handlePageChange}
+        onPageChange={onPageChange}
         disabled={controlsDisabled}
       />
     </div>

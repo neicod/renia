@@ -42,7 +42,7 @@ export const loadComponentRegistrations = async (
       await import(pathToFileURL(regFile).href);
       loaded.add(mod.name);
     } catch (error) {
-      console.warn(`Nie udało się załadować rejestru komponentów dla modułu "${mod.name}" (${regFile}):`, error);
+      console.error(`Nie udało się załadować rejestru komponentów dla modułu "${mod.name}" (${regFile}):`, error);
     }
   }
 };

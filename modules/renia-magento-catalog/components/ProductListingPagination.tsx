@@ -17,7 +17,9 @@ export const ProductListingPagination: React.FC<Props> = ({
   disabled
 }) => {
   const totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
-  if (totalPages <= 1) return null;
+  if (totalPages <= 1) {
+      return null;
+  }
 
   const canPrev = page > 1;
   const canNext = page < totalPages;

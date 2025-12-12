@@ -43,7 +43,7 @@ const loadConfigStatus = async (configPath: string): Promise<Record<string, bool
       return parsed.modules as Record<string, boolean | number>;
     }
   } catch (error) {
-    console.warn(`Nie udało się wczytać ${configPath}:`, error);
+    console.error(`Nie udało się wczytać ${configPath}:`, error);
   }
   return {};
 };
@@ -73,7 +73,7 @@ const loadRegistrationMeta = async (
       return { dependencies: data.dependencies.filter((d: unknown) => typeof d === 'string') };
     }
   } catch (error) {
-    console.warn(`Nie udało się wczytać registration z ${registrationPath}:`, error);
+    console.error(`Nie udało się wczytać registration z ${registrationPath}:`, error);
   }
 
   return { dependencies: [] };
@@ -195,7 +195,7 @@ const topologicalSort = (records: ModuleRecord[]): ModuleRecord[] => {
   }
 
   if (hasCycle) {
-    console.warn('Wykryto cykl zależności modułów; kolejność może być niedeterministyczna.');
+    console.error('Wykryto cykl zależności modułów; kolejność może być niedeterministyczna.');
   }
 
   return sorted;
@@ -238,7 +238,7 @@ export const loadModuleRegistry = async (options: RegistryOptions = {}): Promise
       if (missing.length > 0) {
         mod.enabled = false;
         mod.missingDeps = missing;
-        console.warn(`Moduł "${mod.name}" wyłączony: brak zależności ${missing.join(', ')}`);
+        console.error(`Moduł "${mod.name}" wyłączony: brak zależności ${missing.join(', ')}`);
         changed = true;
       }
     }

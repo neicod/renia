@@ -8,6 +8,7 @@ import 'renia-magento-cart/registerComponents';
 import 'magento-wishlist/registerComponents';
 import 'renia-magento-category/registerComponents';
 import 'renia-magento-catalog/registerComponents';
+import 'renia-magento-catalog-search/registerComponents';
 import 'magento-product/registerComponents';
 import 'renia-layout/registerComponents';
 

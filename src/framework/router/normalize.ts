@@ -36,7 +36,7 @@ export const mergeRoutes = (entries: RouterEntry[]): RouterEntry[] => {
     } else {
       const existing = seen.get(key)!;
       if (!isEqual(existing, entry)) {
-        console.warn(
+        console.error(
           `Kolizja tras dla "${entry.path}" o priorytecie ${entry.priority ?? 0} (moduły: ${existing.module} / ${entry.module}) — pomijam duplikat.`
         );
       }

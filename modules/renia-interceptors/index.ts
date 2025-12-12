@@ -38,7 +38,7 @@ const runInterceptorFile = async ({ filePath, moduleName, context, onError, api 
     if (onError) {
       onError({ module: moduleName, file: filePath, error });
     } else {
-      console.warn(`Błąd w interceptorze ${moduleName} -> ${filePath}:`, error);
+      console.error(`Błąd w interceptorze ${moduleName} -> ${filePath}:`, error);
     }
   }
 };

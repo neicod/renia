@@ -58,7 +58,7 @@ const readLayoutFile = async (filePath: string): Promise<SlotDefinition[] | null
     if (Array.isArray(data)) return data as SlotDefinition[];
     if (Array.isArray(data?.slots)) return data.slots as SlotDefinition[];
   } catch (error) {
-    console.warn(`Nie udało się wczytać layoutu z ${filePath}:`, error);
+    console.error(`Nie udało się wczytać layoutu z ${filePath}:`, error);
   }
   return null;
 };
@@ -90,7 +90,7 @@ const mergeSlots = (entries: SlotEntry[]): SlotEntry[] => {
     } else {
       const existing = seen.get(key)!;
       if (!isEqual(existing, entry)) {
-        console.warn(
+        console.error(
           `Kolizja slotu "${entry.slot}" dla komponentu ${entry.component} (moduły: ${existing.module} / ${entry.module}) — pomijam duplikat.`
         );
       }

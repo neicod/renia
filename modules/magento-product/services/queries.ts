@@ -20,12 +20,14 @@ export const PRODUCT_IN_LIST_FRAGMENT = `
 export const PRODUCT_SEARCH_QUERY = `
   query ProductSearch(
     $filter: ProductAttributeFilterInput,
+    $search: String,
     $pageSize: Int,
     $currentPage: Int,
     $sort: ProductAttributeSortInput
   ) {
     products(
       filter: $filter,
+      search: $search,
       pageSize: $pageSize,
       currentPage: $currentPage,
       sort: $sort

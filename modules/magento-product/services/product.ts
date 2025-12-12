@@ -56,7 +56,6 @@ export const fetchProduct = async (options: FetchProductOptions): Promise<Produc
   });
 
   const res = await executeRequest(req);
-  console.log(res);
   if (res.errors) {
     throw new Error(`GraphQL errors: ${JSON.stringify(res.errors)}`);
   }

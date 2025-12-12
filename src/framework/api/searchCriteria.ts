@@ -30,4 +30,5 @@ export type SearchCriteria = {
   sortOrders?: SortOrder[];
   pageSize?: number;
   currentPage?: number;
+  search?: string;
 };

@@ -8,31 +8,31 @@ type SortOption = {
 
 type Props = {
   sortOptions: SortOption[];
-  value: string;
-  onChange: (value: string) => void;
-  total?: number;
-  page: number;
-  pageSize: number;
+  selectedSort: string;
+  onSortChange: (nextSort: string) => void;
+  totalItems?: number;
+  currentPage: number;
+  itemsPerPage: number;
   pageSizeOptions: number[];
-  onPageSizeChange: (value: number) => void;
+  onItemsPerPageChange: (nextPageSize: number) => void;
   disabled?: boolean;
 };
 
 export const ProductListingToolbar: React.FC<Props> = ({
   sortOptions,
-  value,
-  onChange,
-  total,
-  page,
-  pageSize,
+  selectedSort,
+  onSortChange,
+  totalItems,
+  currentPage,
+  itemsPerPage,
   pageSizeOptions,
-  onPageSizeChange,
+  onItemsPerPageChange,
   disabled
 }) => {
-  const start = total ? Math.min((page - 1) * pageSize + 1, total) : 0;
-  const end = total ? Math.min(page * pageSize, total) : 0;
+  const start = totalItems ? Math.min((currentPage - 1) * itemsPerPage + 1, totalItems) : 0;
+  const end = totalItems ? Math.min(currentPage * itemsPerPage, totalItems) : 0;
   const perPageOptions =
-    pageSizeOptions && pageSizeOptions.length ? pageSizeOptions : [pageSize];
+    pageSizeOptions && pageSizeOptions.length ? pageSizeOptions : [itemsPerPage];
 
   return (
     <div
@@ -46,14 +46,14 @@ export const ProductListingToolbar: React.FC<Props> = ({
       }}
     >
       <div style={{ color: '#374151', fontSize: '0.95rem' }}>
-        {total ? `Showing ${start}–${end} of ${total} products` : 'Products'}
+        {totalItems ? `Showing ${start}–${end} of ${totalItems} products` : 'Products'}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ color: '#374151', fontSize: '0.95rem' }}>Sort by:</span>
           <select
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={selectedSort}
+            onChange={(e) => onSortChange(e.target.value)}
             disabled={disabled}
             style={{
               padding: '0.5rem 0.75rem',
@@ -74,8 +74,8 @@ export const ProductListingToolbar: React.FC<Props> = ({
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ color: '#374151', fontSize: '0.95rem' }}>Items per page:</span>
           <select
-            value={String(pageSize)}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            value={String(itemsPerPage)}
+            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
             disabled={disabled || perPageOptions.length <= 1}
             style={{
               padding: '0.5rem 0.75rem',

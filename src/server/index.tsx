@@ -46,9 +46,8 @@ const ensureClientBundle = async () => {
       plugins: []
     });
     clientBundleReady = true;
-    console.info('Zbudowano paczkę klienta (auto)');
   } catch (err) {
-    console.warn('Nie udało się zbudować paczki klienta (auto):', err);
+    console.error('Nie udało się zbudować paczki klienta (auto):', err);
   }
 };
 
@@ -180,7 +179,7 @@ app.get('*', async (req, res) => {
         });
         appConfig.preloadedCategoryMenu = preloadedCategoryMenu;
       } catch (err) {
-        console.warn('Nie udało się wstępnie pobrać menu kategorii:', err);
+        console.error('Nie udało się wstępnie pobrać menu kategorii:', err);
       }
     }
 
@@ -254,8 +253,39 @@ app.get('*', async (req, res) => {
           }
         }
       } catch (err) {
-        console.warn(`Nie udało się uruchomić handlera dla trasy ${match?.path}:`, err);
+        console.error(`Nie udało się uruchomić handlera dla trasy ${match?.path}:`, err);
       }
+    }
+
+    if (routeMeta?.categoryProductListing) {
+      Object.values(slots).forEach((entries) => {
+        entries.forEach((entry) => {
+          if (
+            entry.componentPath === 'renia-magento-catalog/components/CategoryProductList' ||
+            entry.component === 'renia-magento-catalog/components/CategoryProductList'
+          ) {
+            entry.props = {
+              ...(entry.props ?? {}),
+              initialListing: routeMeta.categoryProductListing
+            };
+          }
+        });
+      });
+    }
+    if (routeMeta?.searchProductListing) {
+      Object.values(slots).forEach((entries) => {
+        entries.forEach((entry) => {
+          if (
+            entry.componentPath === 'renia-magento-catalog-search/components/SearchProductList' ||
+            entry.component === 'renia-magento-catalog-search/components/SearchProductList'
+          ) {
+            entry.props = {
+              ...(entry.props ?? {}),
+              initialListing: routeMeta.searchProductListing
+            };
+          }
+        });
+      });
     }
 
     const bootstrap = {
@@ -299,5 +329,5 @@ app.get('*', async (req, res) => {
 const port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {
-  console.log(`SSR server uruchomiony: http://localhost:${port}`);
+  // intentionally silent in dev to reduce log noise
 });
