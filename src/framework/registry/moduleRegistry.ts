@@ -1,3 +1,4 @@
+// @env: server
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -228,7 +229,7 @@ export const loadModuleRegistry = async (options: RegistryOptions = {}): Promise
     changed = false;
     for (const mod of all) {
       if (!mod.enabled) continue;
-      if (!mod.hasRegistration) continue; // walidujemy zależności tylko dla modułów z registration.*
+      if (!mod.hasRegistration) continue;
 
       const missing = mod.dependencies.filter((dep) => {
         const target = byName.get(dep);
@@ -247,4 +248,8 @@ export const loadModuleRegistry = async (options: RegistryOptions = {}): Promise
   const disabled = all.filter((m) => !m.enabled);
 
   return [...enabledSorted, ...disabled];
+};
+
+export default {
+  loadModuleRegistry
 };
