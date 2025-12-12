@@ -1,3 +1,4 @@
+// @env: mixed
 export type ArgValue = string | number | boolean | null;
 
 export type SelectionNode = {
@@ -31,10 +32,17 @@ export type HeaderAuth = { type: 'header'; name: string; value: string };
 
 export type AuthOption = BearerAuth | BasicAuth | HeaderAuth;
 
+export type GraphQLPayload =
+  | string
+  | {
+      toObject: () => Operation;
+      toString: () => string;
+    };
+
 export type GraphQLRequest = {
   endpoint: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  payload: string | Operation;
+  payload: GraphQLPayload;
   variables?: Record<string, unknown>;
   headers?: Record<string, string>;
   auth?: AuthOption[];

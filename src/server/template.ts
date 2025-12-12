@@ -1,3 +1,4 @@
+// @env: server
 type TemplateOptions = {
   appHtml: string;
   title?: string;

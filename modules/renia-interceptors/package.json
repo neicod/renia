@@ -4,6 +4,6 @@
   "type": "module",
   "main": "./index.ts",
   "dependencies": {
-    "renia-module-registry": "file:../renia-module-registry"
+    "fast-deep-equal": "^3.1.3"
   }
 }

@@ -1,22 +1,58 @@
+// @env: server
 // Główne entry serwera SSR: Express + render AppRoot z tras/layoutów/interceptorów.
 // Musi pozostać tu jako punkt startu; nie przenoś/nie usuwaj, inaczej SSR/serwowanie statyków przestanie działać.
 import 'dotenv/config';
 import express from 'express';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom/server';
-import { loadRoutesRegistry } from 'renia-router';
+import { loadRoutesRegistry } from '@framework/router';
+import { matchPath } from 'react-router-dom';
 import { loadInterceptors } from 'renia-interceptors';
 import { loadLayoutRegistry } from 'renia-layout';
-import AppRoot from '../shared/AppRoot';
+import AppRoot from '@framework/runtime/AppRoot';
 import { htmlTemplate } from './template';
 import type { MenuItem } from 'renia-menu';
+import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const staticDir = path.resolve(process.cwd(), 'dist/public');
+const clientEntry = path.resolve(process.cwd(), 'src/client/index.tsx');
+const clientOutFile = path.join(staticDir, 'index.js');
+
+let clientBundleReady = false;
+const ensureClientBundle = async () => {
+  if (clientBundleReady) return;
+  if (fs.existsSync(clientOutFile)) {
+    clientBundleReady = true;
+    return;
+  }
+  if (process.env.NODE_ENV === 'production') return;
+
+  try {
+    await fs.promises.mkdir(staticDir, { recursive: true });
+    const esbuild = await import('esbuild');
+    await esbuild.build({
+      entryPoints: [clientEntry],
+      bundle: true,
+      sourcemap: true,
+      format: 'esm',
+      outfile: clientOutFile,
+      loader: { '.tsx': 'tsx', '.ts': 'ts' },
+      plugins: []
+    });
+    clientBundleReady = true;
+    console.info('Zbudowano paczkę klienta (auto)');
+  } catch (err) {
+    console.warn('Nie udało się zbudować paczki klienta (auto):', err);
+  }
+};
+
+await ensureClientBundle();
 
 app.use('/static', express.static(staticDir, { index: false }));
 app.use(express.json({ limit: '1mb' }));
@@ -36,6 +72,19 @@ type SlotEntry = {
   componentPath?: string;
   priority?: number;
   enabled?: boolean;
+  props?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
+};
+
+type SubslotEntry = {
+  slot: string;
+  id?: string;
+  component?: string;
+  componentPath?: string;
+  priority?: number;
+  enabled?: boolean;
+  props?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
 };
 
 const mergeSlots = (entries: SlotEntry[]): SlotEntry[] => {
@@ -47,7 +96,7 @@ const mergeSlots = (entries: SlotEntry[]): SlotEntry[] => {
       entry.id ??
       `${entry.componentPath ?? entry.component ?? 'component'}::${entry.slot}`;
 
-    const current = map.get(key) ?? {};
+    const current: SlotEntry = map.get(key) ?? { slot: entry.slot };
     const merged: SlotEntry = {
       ...current,
       ...entry,
@@ -101,10 +150,22 @@ app.post('/api/magento/graphql', async (req, res) => {
 app.get('*', async (req, res) => {
   try {
     const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
+    await loadComponentRegistrations({ configPath });
     const routes = await loadRoutesRegistry({ configPath });
     const layoutRegistry = await loadLayoutRegistry({ configPath });
 
     let preloadedCategoryMenu: MenuItem[] | undefined;
+
+    const appConfig = {
+      magentoGraphQLEndpoint: process.env.MAGENTO_GRAPHQL_ENDPOINT,
+      magentoRootCategoryId: process.env.MAGENTO_ROOT_CATEGORY_ID,
+      magentoProxyEndpoint: process.env.MAGENTO_PROXY_ENDPOINT ?? '/api/magento/graphql',
+      preloadedCategoryMenu
+    };
+
+    // Udostępniamy config również w kontekście SSR, aby komponenty mogły z niego korzystać.
+    (globalThis as any).__APP_CONFIG__ = appConfig;
+
     if (process.env.MAGENTO_GRAPHQL_ENDPOINT) {
       try {
         const { fetchMenu } = await import('renia-magento-category/services/menu');
@@ -114,37 +175,31 @@ app.get('*', async (req, res) => {
           : undefined;
 
         preloadedCategoryMenu = await fetchMenu({
-          endpoint: process.env.MAGENTO_GRAPHQL_ENDPOINT,
-          storeCode: process.env.MAGENTO_STORE_CODE,
           variables,
           headers: process.env.MAGENTO_HOST_HEADER ? { host: process.env.MAGENTO_HOST_HEADER } : undefined
         });
+        appConfig.preloadedCategoryMenu = preloadedCategoryMenu;
       } catch (err) {
         console.warn('Nie udało się wstępnie pobrać menu kategorii:', err);
       }
     }
 
-    const appConfig = {
-      magentoGraphQLEndpoint: process.env.MAGENTO_GRAPHQL_ENDPOINT,
-      magentoStoreCode: process.env.MAGENTO_STORE_CODE,
-      magentoRootCategoryId: process.env.MAGENTO_ROOT_CATEGORY_ID,
-      magentoProxyEndpoint: process.env.MAGENTO_PROXY_ENDPOINT ?? '/api/magento/graphql',
-      preloadedCategoryMenu
-    };
-
-    // Udostępniamy config również w kontekście SSR, aby komponenty mogły z niego korzystać.
-    (globalThis as any).__APP_CONFIG__ = appConfig;
-
     const slotEntries: SlotEntry[] = [];
+    const subslotEntries: SubslotEntry[] = [];
     const api = {
       slots: {
         add: (entry: SlotEntry) => {
           if (entry?.slot && (entry?.component || entry?.componentPath)) slotEntries.push(entry);
         }
+      },
+      subslots: {
+        add: (entry: SubslotEntry) => {
+          if (entry?.slot && (entry?.component || entry?.componentPath)) subslotEntries.push(entry);
+        }
       }
     };
 
-    const context = contextFromPath(req.path);
+  const context = contextFromPath(req.path);
 
     // global
     await loadInterceptors('default', { configPath }, api);
@@ -156,7 +211,16 @@ app.get('*', async (req, res) => {
     }
 
     const slots: Record<string, SlotEntry[]> = {};
+    const subslots: Record<string, SubslotEntry[]> = {};
+    const categoryPath =
+      context === 'category'
+        ? req.path.replace(/^\/+category\/?/, '').replace(/\/+$/, '')
+        : undefined;
+
     for (const entry of slotEntries) {
+      if (context === 'category' && entry.slot === 'content' && categoryPath) {
+        entry.props = { ...(entry.props ?? {}), categoryUrlPath: categoryPath };
+      }
       const list = slots[entry.slot] ?? [];
       list.push(entry);
       slots[entry.slot] = list;
@@ -165,14 +229,45 @@ app.get('*', async (req, res) => {
       slots[slot] = mergeSlots(slots[slot]);
     });
 
+    for (const entry of subslotEntries) {
+      const list = subslots[entry.slot] ?? [];
+      list.push(entry);
+      subslots[entry.slot] = list;
+    }
+    Object.keys(subslots).forEach((slot) => {
+      subslots[slot] = mergeSlots(subslots[slot]);
+    });
+
+    const match = routes.find((r) => matchPath({ path: r.path, end: false }, req.path));
+    const routeMeta = { ...(match?.meta ?? {}) };
+
+    if (match?.handler) {
+      try {
+        const handlerModule = await import(match.handler);
+        const handler = handlerModule.default ?? handlerModule;
+        if (typeof handler === 'function') {
+          const handlerResult =
+            (await handler({ req, route: match, params: matchPath({ path: match.path, end: false }, req.path)?.params ?? {} })) ||
+            {};
+          if (handlerResult.meta && typeof handlerResult.meta === 'object') {
+            Object.assign(routeMeta, handlerResult.meta);
+          }
+        }
+      } catch (err) {
+        console.warn(`Nie udało się uruchomić handlera dla trasy ${match?.path}:`, err);
+      }
+    }
+
     const bootstrap = {
       routes: routes.map((r) => ({
         path: r.path,
         component: r.component,
         componentPath: r.componentPath,
-        layout: (r.meta as any)?.layout ?? '1column'
+        layout: (r.meta as any)?.layout ?? '1column',
+        meta: r.path === match?.path ? routeMeta : r.meta ?? {}
       })),
       slots,
+      subslots,
       layouts: layoutRegistry.layouts,
       layoutSlots: layoutRegistry.slots,
       config: appConfig

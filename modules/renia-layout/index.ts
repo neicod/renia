@@ -1,16 +1,10 @@
 import fs from 'node:fs';
+// @env: mixed
 import path from 'node:path';
-import { loadModuleRegistry } from 'renia-module-registry';
-
-export type SlotDefinition = {
-  slot: string;
-  component: string;
-  priority?: number;
-  props?: Record<string, unknown>;
-  meta?: Record<string, unknown>;
-};
-
-export type SlotEntry = SlotDefinition & { module: string };
+import type { SlotDefinition, SlotEntry } from './types';
+import { loadModuleRegistry } from '@framework/registry/moduleRegistry';
+export { default as LayoutPage } from './pages/LayoutPage';
+export { default as LayoutShell } from './components/LayoutShell';
 
 export type LayoutRegistry = {
   slots: Record<string, SlotEntry[]>;
@@ -72,11 +66,15 @@ const readLayoutFile = async (filePath: string): Promise<SlotDefinition[] | null
 const normalizeDefinition = (def: SlotDefinition): SlotDefinition | null => {
   if (!def || typeof def !== 'object') return null;
   if (typeof def.slot !== 'string' || !def.slot.trim()) return null;
-  if (typeof def.component !== 'string' || !def.component.trim()) return null;
+  const component = typeof def.component === 'string' && def.component.trim() ? def.component : undefined;
+  const componentPath =
+    typeof def.componentPath === 'string' && def.componentPath.trim() ? def.componentPath : undefined;
+  if (!component && !componentPath) return null;
 
   return {
     slot: def.slot,
-    component: def.component,
+    component,
+    componentPath,
     priority: def.priority ?? 0,
     props: def.props && typeof def.props === 'object' ? def.props : undefined,
     meta: def.meta && typeof def.meta === 'object' ? def.meta : undefined

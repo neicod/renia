@@ -1,7 +1,8 @@
+// @env: server
 import path from 'node:path';
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { loadModuleRegistry } from 'renia-module-registry';
+import { loadModuleRegistry } from '@framework/registry/moduleRegistry';
 
 export type InterceptorContext = string;
 

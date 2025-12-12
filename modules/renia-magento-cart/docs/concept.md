@@ -8,7 +8,7 @@ Składniki:
 - Sloty: interceptor `interceptors/default.ts` dodaje link koszyka do `control-menu` z `id` do deduplikacji.
 
 Zależności:
-- Deklarowane w `registration.js`: `renia-router`, `renia-interceptors`, `renia-layout`.
+- Deklarowane w `registration.js`: `renia-interceptors`, `renia-layout`.
 
 Konwencje:
 - Używaj `componentPath` w rejestrach (serializowalność).

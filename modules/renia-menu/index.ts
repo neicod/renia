@@ -1,3 +1,4 @@
+// @env: mixed
 export type MenuItem = {
   id: string;
   label: string;

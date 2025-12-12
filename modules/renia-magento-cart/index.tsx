@@ -1,5 +1,6 @@
-import React from 'react';
+import * as React from 'react';
 import { CartControlLink } from './components/CartControlLink';
+// @env: mixed
 import { CartPage } from './pages/CartPage';
 export { CartControlLink, CartPage };
 

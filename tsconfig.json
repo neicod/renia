@@ -6,7 +6,10 @@
     "moduleResolution": "Node",
     "baseUrl": ".",
     "paths": {
-      "*": ["modules/*", "node_modules/*", "*"]
+      "*": ["modules/*", "node_modules/*", "*"],
+      "@framework/*": ["src/framework/*"],
+      "@framework/api": ["src/framework/api/index.ts"],
+      "@framework/api/*": ["src/framework/api/*"]
     },
     "jsx": "react-jsx",
     "strict": true,

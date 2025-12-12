@@ -1,3 +1,4 @@
+// @env: mixed
 import type { ArgValue, FragmentDef, Operation, OperationKind, SelectionNode } from './types';
 
 const argToString = (v: ArgValue): string =>
@@ -53,9 +54,15 @@ export class QueryBuilder {
   private variables: Record<string, string> = {};
   private selection: SelectionNode[] = [];
   private fragments: Record<string, FragmentDef> = {};
+  private rawSource?: string;
 
-  constructor(type: OperationKind) {
-    this.type = type;
+  constructor(typeOrSource: OperationKind | string) {
+    if (typeOrSource === 'query' || typeOrSource === 'mutation') {
+      this.type = typeOrSource;
+    } else {
+      this.type = 'query';
+      this.rawSource = typeOrSource;
+    }
   }
 
   setName(name: string) {
@@ -132,6 +139,15 @@ export class QueryBuilder {
   }
 
   toObject(): Operation {
+    if (this.rawSource) {
+      return {
+        type: this.type,
+        name: this.name,
+        variables: { ...this.variables },
+        selection: this.selection,
+        fragments: { ...this.fragments }
+      };
+    }
     return {
       type: this.type,
       name: this.name,
@@ -142,6 +158,9 @@ export class QueryBuilder {
   }
 
   toString(): string {
+    if (this.rawSource) {
+      return this.rawSource;
+    }
     const vars =
       this.variables && Object.keys(this.variables).length
         ? `(${Object.entries(this.variables)

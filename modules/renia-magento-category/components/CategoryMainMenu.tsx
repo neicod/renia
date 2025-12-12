@@ -1,3 +1,4 @@
+// @env: mixed
 import React from 'react';
 import type { MenuItem } from 'renia-menu';
 import { fetchMenu } from '../services/menu';
@@ -9,15 +10,6 @@ const readGraphQLEndpoint = (): string | undefined => {
   if (typeof window !== 'undefined') {
     const cfg = (window as any).__APP_BOOTSTRAP__?.config ?? {};
     return cfg.magentoProxyEndpoint ?? cfg.magentoGraphQLEndpoint;
-  }
-  return undefined;
-};
-
-const readStoreCode = (): string | undefined => {
-  const globalConfig = (globalThis as any).__APP_CONFIG__;
-  if (globalConfig?.magentoStoreCode) return globalConfig.magentoStoreCode;
-  if (typeof window !== 'undefined') {
-    return (window as any).__APP_BOOTSTRAP__?.config?.magentoStoreCode;
   }
   return undefined;
 };
@@ -47,9 +39,9 @@ export const CategoryMainMenu: React.FC = () => {
     preloaded && preloaded.length ? 'ready' : 'idle'
   );
   const endpoint = React.useMemo(() => readGraphQLEndpoint(), []);
-  const storeCode = React.useMemo(() => readStoreCode(), []);
   const rootCategoryId = React.useMemo(() => readRootCategoryId(), []);
   const preloadedMemo = React.useMemo(() => preloaded, [preloaded]);
+  const fetchingRef = React.useRef(false);
 
   React.useEffect(() => {
     if (preloadedMemo && preloadedMemo.length) {
@@ -64,12 +56,14 @@ export const CategoryMainMenu: React.FC = () => {
     const run = async () => {
       if (!endpoint) return;
       if (preloadedMemo && preloadedMemo.length) return;
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
       setStatus('loading');
       try {
         const variables = rootCategoryId
           ? { filters: { parent_id: { eq: rootCategoryId } } }
           : undefined;
-        const data = await fetchMenu({ endpoint, storeCode, variables });
+        const data = await fetchMenu({ variables });
         if (!cancelled) {
           setItems(data);
           setStatus(data.length ? 'ready' : 'empty');
@@ -78,13 +72,15 @@ export const CategoryMainMenu: React.FC = () => {
         console.error('Błąd pobierania menu kategorii', err);
         if (!cancelled) setStatus('error');
       }
+      fetchingRef.current = false;
     };
 
     run();
     return () => {
       cancelled = true;
+      fetchingRef.current = false;
     };
-  }, [endpoint, rootCategoryId, storeCode, preloadedMemo]);
+  }, [endpoint, rootCategoryId, preloadedMemo]);
 
   const renderTree = (nodes: MenuItem[], depth = 0): React.ReactNode => {
     if (!nodes.length) return null;

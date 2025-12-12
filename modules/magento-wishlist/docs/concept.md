@@ -8,7 +8,7 @@ Składniki:
 - Sloty: interceptor `interceptors/default.ts` dodaje link do `control-menu` (globalnie) z `id` `wishlist-link`.
 
 Zależności:
-- Deklarowane w `registration.js`: `renia-router`, `renia-interceptors`, `renia-layout`.
+- Deklarowane w `registration.js`: `renia-interceptors`, `renia-layout`.
 
 Konwencje:
 - Rejestry używają `componentPath` dla serializowalności.

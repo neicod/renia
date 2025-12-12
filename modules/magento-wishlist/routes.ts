@@ -1,3 +1,4 @@
+// @env: mixed
 export default [
   {
     path: '/wishlist',

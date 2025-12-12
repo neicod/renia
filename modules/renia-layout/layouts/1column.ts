@@ -1,4 +1,5 @@
+// @env: mixed
 export default {
   name: '1column',
-  slots: ['control-menu', 'main']
+  slots: ['header', 'control-menu', 'content', 'footer']
 };

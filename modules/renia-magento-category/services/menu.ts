@@ -1,6 +1,9 @@
+// @env: mixed
 import { executeRequest } from 'renia-graphql-client';
 import type { AuthOption, GraphQLRequest } from 'renia-graphql-client';
+import { QueryBuilder } from 'renia-graphql-client/builder';
 import type { MenuItem } from 'renia-menu';
+import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 
 type BeforeSendHook = (
   req: GraphQLRequest,
@@ -8,8 +11,6 @@ type BeforeSendHook = (
 ) => Promise<GraphQLRequest | void> | GraphQLRequest | void;
 
 export type FetchMenuOptions = {
-  endpoint: string;
-  storeCode?: string;
   depth?: number;
   auth?: AuthOption[];
   headers?: Record<string, string>;
@@ -72,43 +73,60 @@ const runBeforeSend = async (req: GraphQLRequest, hooks: BeforeSendHook[], ctx: 
 };
 
 export const fetchMenu = async (options: FetchMenuOptions): Promise<MenuItem[]> => {
-  const depth = options.depth ?? DEFAULT_DEPTH;
-  const query = buildCategoryQuery(depth);
+  const factory = new MagentoGraphQLRequestFactory();
+  const endpoint = factory.getEndpoint();
+  const cacheKey = [
+    endpoint,
+    options.depth ?? DEFAULT_DEPTH,
+    options.variables ? JSON.stringify(options.variables) : 'default'
+  ].join('::');
 
-  const baseHeaders: Record<string, string> = { ...(options.headers ?? {}) };
-  if (options.storeCode) {
-    baseHeaders['store'] = options.storeCode;
+  const cache =
+    (globalThis as any).__RENIA_MENU_CACHE__ ||
+    ((globalThis as any).__RENIA_MENU_CACHE__ = new Map<string, Promise<MenuItem[]>>());
+
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey)!;
   }
 
-  const baseRequest: GraphQLRequest = {
-    endpoint: options.endpoint,
-    method: 'POST',
-    payload: query,
-    variables: options.variables ?? {
-      filters: { parent_id: { eq: DEFAULT_ROOT_CATEGORY_ID } }
-    },
-    auth: options.auth,
-    headers: baseHeaders,
-    timeoutMs: options.timeoutMs
-  };
+  const task = (async () => {
+    const depth = options.depth ?? DEFAULT_DEPTH;
+    const query = new QueryBuilder(buildCategoryQuery(depth)).toString();
 
-  const finalRequest =
-    options.beforeSend && options.beforeSend.length
-      ? await runBeforeSend(baseRequest, options.beforeSend, { query })
-      : baseRequest;
+    const baseHeaders: Record<string, string> = { ...(options.headers ?? {}) };
 
-  const response = await executeRequest(finalRequest);
+    const baseRequest: GraphQLRequest = factory.create({
+      method: 'POST',
+      payload: query,
+      variables: options.variables ?? {
+        filters: { parent_id: { eq: DEFAULT_ROOT_CATEGORY_ID } }
+      },
+      auth: options.auth,
+      headers: baseHeaders,
+      timeoutMs: options.timeoutMs
+    });
 
-  if (response.errors) {
-    throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
-  }
+    const finalRequest =
+      options.beforeSend && options.beforeSend.length
+        ? await runBeforeSend(baseRequest, options.beforeSend, { query })
+        : baseRequest;
 
-  const list = (response.data as any)?.categoryList;
-  if (!Array.isArray(list)) {
-    throw new Error('Brak danych categoryList w odpowiedzi GraphQL');
-  }
+    const response = await executeRequest(finalRequest);
 
-  return mapNodesToMenu(list);
+    if (response.errors) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(response.errors)}`);
+    }
+
+    const list = (response.data as any)?.categoryList;
+    if (!Array.isArray(list)) {
+      throw new Error('Brak danych categoryList w odpowiedzi GraphQL');
+    }
+
+    return mapNodesToMenu(list);
+  })();
+
+  cache.set(cacheKey, task);
+  return task;
 };
 
 export default {

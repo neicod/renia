@@ -1,3 +1,4 @@
+// @env: server
 export default (api: any) => {
   if (api?.slots?.add) {
     api.slots.add({

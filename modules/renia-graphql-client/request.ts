@@ -1,5 +1,9 @@
-import type { AuthOption, GraphQLRequest } from './types';
+// @env: mixed
+import type { AuthOption, GraphQLRequest, GraphQLPayload } from './types';
 import { QueryBuilder } from './builder';
+
+const getEnv = (key: string) =>
+  typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
 
 const applyAuthHeaders = (auth: AuthOption[] = [], headers: Record<string, string>) => {
   for (const item of auth) {
@@ -14,11 +18,16 @@ const applyAuthHeaders = (auth: AuthOption[] = [], headers: Record<string, strin
   }
 };
 
+const isBuilderLike = (
+  payload: GraphQLPayload
+): payload is { toObject: () => any; toString: () => string } =>
+  typeof (payload as any)?.toObject === 'function' && typeof (payload as any)?.toString === 'function';
+
 const buildBody = (payload: GraphQLRequest['payload'], variables?: GraphQLRequest['variables']) => {
   if (typeof payload === 'string') {
     return { query: payload, variables };
   }
-  if (payload instanceof QueryBuilder) {
+  if (payload instanceof QueryBuilder || isBuilderLike(payload)) {
     const op = payload.toObject();
     return { query: payload.toString(), variables: variables ?? op.variables };
   }
@@ -52,11 +61,13 @@ export const executeRequest = async (req: GraphQLRequest) => {
 
   try {
     const bodyContent = buildBody(req.payload, req.variables);
-    console.info(
-      `[GraphQL][request] ${method} ${req.endpoint}\n` +
-        `vars: ${pretty(bodyContent.variables)}\n` +
-        `query:\n${truncate(bodyContent.query)}`
-    );
+    if (getEnv('GRAPHQL_LOG_REQUEST') !== '0') {
+      console.info(
+        `[GraphQL][request] ${method} ${req.endpoint}\n` +
+          `vars: ${pretty(bodyContent.variables)}\n` +
+          `query:\n${truncate(bodyContent.query)}`
+      );
+    }
 
     const fetchOptions: RequestInit = {
       method,
@@ -83,11 +94,13 @@ export const executeRequest = async (req: GraphQLRequest) => {
       parsed = {};
     }
 
-    console.info(
-      `[GraphQL][response] ${response.status} ${req.endpoint} (${duration}ms)\n` +
-        `errors: ${parsed.errors ? pretty(parsed.errors) : 'none'}\n` +
-        `data: ${parsed.data ? truncate(pretty(parsed.data), 800) : 'none'}`
-    );
+    if (getEnv('GRAPHQL_LOG_RESPONSE') !== '0') {
+      console.info(
+        `[GraphQL][response] ${response.status} ${req.endpoint} (${duration}ms)\n` +
+          `errors: ${parsed.errors ? pretty(parsed.errors) : 'none'}\n` +
+          `data: ${parsed.data ? truncate(pretty(parsed.data), 800) : 'none'}`
+      );
+    }
 
     if (response.status === 401 || response.status === 403) {
       throw new Error(`Auth error: HTTP ${response.status}`);

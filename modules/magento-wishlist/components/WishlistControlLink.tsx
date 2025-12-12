@@ -1,3 +1,4 @@
+// @env: mixed
 import React from 'react';
 
 export const WishlistControlLink: React.FC = () => (
