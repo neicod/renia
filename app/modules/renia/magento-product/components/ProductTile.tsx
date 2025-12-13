@@ -2,6 +2,7 @@
 import React from 'react';
 import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
 import type { Product } from '../types';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 type ProductTileProps = {
   product: Product;
@@ -9,6 +10,7 @@ type ProductTileProps = {
 
 export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
   const link = `/product/${product.urlKey ?? product.sku}`;
+  const { t } = useI18n();
   return (
     <article
       style={{
@@ -71,7 +73,7 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
             {product.price.value.toFixed(2)} {product.price.currency}
           </div>
         ) : (
-          <div style={{ color: '#94a3b8', fontWeight: 600 }}>Cena dostępna w koszyku</div>
+          <div style={{ color: '#94a3b8', fontWeight: 600 }}>{t('product.price.inCart')}</div>
         )}
         <a
           href={link}
@@ -88,7 +90,7 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
             fontWeight: 600
           }}
         >
-          Zobacz produkt
+          {t('product.cta.view')}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path
               d="M5 12h14M13 6l6 6-6 6"

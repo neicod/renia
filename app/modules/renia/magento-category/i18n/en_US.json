@@ -1,0 +1,6 @@
+{
+  "category.menu.noEndpoint": "GraphQL endpoint missing",
+  "category.menu.error": "Could not load categories",
+  "category.menu.loading": "Loading categories...",
+  "category.menu.empty": "No categories to display"
+}

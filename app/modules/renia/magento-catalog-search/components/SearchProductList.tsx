@@ -5,6 +5,7 @@ import type { ProductSearchResults } from 'magento-product';
 import { ProductList } from 'magento-product/components/ProductList';
 import { ProductListingToolbar, ProductListingPagination } from 'renia-magento-catalog';
 import { useSearchProductList } from '../hooks/useSearchProductList';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 type SearchMeta = {
   type?: string;
@@ -28,6 +29,7 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
   if (meta && meta.type && meta.type !== 'search') {
     return null;
   }
+  const { t } = useI18n();
   const query = useQueryParam(meta);
   const initialListing = React.useMemo(
     () => initialListingProp ?? meta?.searchProductListing ?? null,
@@ -44,10 +46,8 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
   if (!query) {
     return (
       <div style={{ padding: '1rem 0' }}>
-        <h2 style={{ margin: '0 0 0.5rem' }}>Wyszukaj produkty</h2>
-        <p style={{ margin: 0, color: '#4b5563' }}>
-          Użyj pola wyszukiwania w nagłówku, aby znaleźć interesujące Cię produkty.
-        </p>
+        <h2 style={{ margin: '0 0 0.5rem' }}>{t('search.title')}</h2>
+        <p style={{ margin: 0, color: '#4b5563' }}>{t('search.hint')}</p>
       </div>
     );
   }
@@ -57,9 +57,9 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
   return (
     <div>
       <div style={{ marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Wyniki dla: {query}</h2>
+        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{t('search.results', { query })}</h2>
         <p style={{ margin: '0.25rem 0 0', color: '#4b5563' }}>
-          Znaleziono {total} {total === 1 ? 'produkt' : 'produktów'}.
+          {t(total === 1 ? 'search.found.one' : 'search.found.many', { total })}
         </p>
       </div>
       <ProductListingToolbar
@@ -77,8 +77,8 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
         products={products}
         loading={status === 'loading'}
         initialLoading={isInitialLoading}
-        error={status === 'error' ? 'Failed to fetch products' : null}
-        emptyLabel="Nie znaleziono produktów dla tej frazy"
+        error={status === 'error' ? t('search.error') : null}
+        emptyLabel={t('search.empty')}
       />
       <ProductListingPagination
         page={page}

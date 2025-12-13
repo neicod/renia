@@ -1,0 +1,9 @@
+{
+  "search.title": "Search products",
+  "search.hint": "Use the search bar in the header to find products.",
+  "search.results": "Results for: :query",
+  "search.found.one": "Found :total product.",
+  "search.found.many": "Found :total products.",
+  "search.empty": "No products found for this query",
+  "search.error": "Failed to fetch products"
+}

@@ -4,6 +4,7 @@ import type { CartItem } from 'renia-module-cart';
 import { useCart } from 'renia-module-cart';
 import { useToast } from 'renia-ui-toast/hooks/useToast';
 import { useCartManager } from '../context/CartManagerContext';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 import { getCartItemRemoteId } from 'renia-magento-cart/utils/cartItemRemoteId';
 
 const formatPrice = (valueCents: number, currency?: string) => {
@@ -15,6 +16,7 @@ export const CartPage: React.FC = () => {
   const cart = useCart();
   const manager = useCartManager();
   const toast = useToast();
+  const { t } = useI18n();
   const [loading, setLoading] = React.useState(false);
   const [updatingItemId, setUpdatingItemId] = React.useState<string | null>(null);
   const [removingItemId, setRemovingItemId] = React.useState<string | null>(null);
@@ -38,7 +40,7 @@ export const CartPage: React.FC = () => {
       console.error('[CartPage] Nie udało się odświeżyć koszyka', error);
       toast({
         tone: 'error',
-        title: 'Nie udało się odświeżyć koszyka'
+        title: t('cart.error.refresh')
       });
     } finally {
       setLoading(false);
@@ -81,8 +83,8 @@ export const CartPage: React.FC = () => {
     if (!remoteId) {
       toast({
         tone: 'error',
-        title: 'Brak identyfikatora pozycji',
-        description: 'Nie udało się zmienić ilości.'
+        title: t('cart.error.noRemoteId'),
+        description: t('cart.error.updateQty')
       });
       return;
     }
@@ -91,7 +93,7 @@ export const CartPage: React.FC = () => {
       await manager.updateItemQuantity({ cartItemId: remoteId, quantity });
       toast({
         tone: 'success',
-        title: 'Zaktualizowano ilość',
+        title: t('cart.success.qtyUpdated'),
         description: item.name
       });
       clearQtyValue(item.id);
@@ -99,7 +101,7 @@ export const CartPage: React.FC = () => {
       console.error('[CartPage] update qty error', error);
       toast({
         tone: 'error',
-        title: 'Nie udało się zmienić ilości',
+        title: t('cart.error.updateQty'),
         description: error instanceof Error ? error.message : undefined
       });
     } finally {
@@ -112,8 +114,8 @@ export const CartPage: React.FC = () => {
     if (!remoteId) {
       toast({
         tone: 'error',
-        title: 'Brak identyfikatora pozycji',
-        description: 'Nie udało się usunąć produktu.'
+        title: t('cart.error.noRemoteId'),
+        description: t('cart.error.removeItem')
       });
       return;
     }
@@ -122,7 +124,7 @@ export const CartPage: React.FC = () => {
       await manager.removeItem({ cartItemId: remoteId });
       toast({
         tone: 'info',
-        title: 'Usunięto z koszyka',
+        title: t('cart.info.removed'),
         description: item.name
       });
       clearQtyValue(item.id);
@@ -163,16 +165,16 @@ export const CartPage: React.FC = () => {
         clearTimeout(undoTimer.current);
         undoTimer.current = null;
       }
-      toast({
-        tone: 'success',
-        title: 'Przywrócono produkt',
-        description: lastRemoved.name
-      });
+        toast({
+          tone: 'success',
+          title: t('cart.success.restored'),
+          description: lastRemoved.name
+        });
     } catch (error) {
       console.error('[CartPage] undo remove error', error);
       toast({
         tone: 'error',
-        title: 'Nie udało się przywrócić produktu',
+        title: t('cart.error.restore'),
         description: error instanceof Error ? error.message : undefined
       });
     } finally {
@@ -189,11 +191,11 @@ export const CartPage: React.FC = () => {
     <section className="card" style={{ display: 'grid', gap: '1rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ margin: 0 }}>Koszyk</h1>
+          <h1 style={{ margin: 0 }}>{t('cart.title')}</h1>
           <p style={{ margin: '0.25rem 0 0', color: '#64748b' }}>
             {cart.items.length
-              ? `${cart.items.length} pozycji · ${formatPrice(totalCents, currency)}`
-              : 'Koszyk jest pusty'}
+              ? t('cart.summary', { count: cart.items.length, total: formatPrice(totalCents, currency) })
+              : t('cart.empty')}
           </p>
         </div>
         <button
@@ -208,12 +210,12 @@ export const CartPage: React.FC = () => {
             cursor: loading ? 'not-allowed' : 'pointer'
           }}
         >
-          {loading ? 'Odświeżanie...' : 'Odśwież koszyk'}
+          {loading ? t('cart.refresh.loading') : t('cart.refresh.action')}
         </button>
       </header>
 
       {loading && !cart.items.length ? (
-        <p style={{ color: '#6b7280' }}>Ładowanie koszyka...</p>
+        <p style={{ color: '#6b7280' }}>{t('cart.loading')}</p>
       ) : null}
 
       {lastRemoved ? (

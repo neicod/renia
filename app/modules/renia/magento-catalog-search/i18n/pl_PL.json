@@ -1,0 +1,9 @@
+{
+  "search.title": "Wyszukaj produkty",
+  "search.hint": "Użyj pola wyszukiwania w nagłówku, aby znaleźć produkty.",
+  "search.results": "Wyniki dla: :query",
+  "search.found.one": "Znaleziono :total produkt.",
+  "search.found.many": "Znaleziono :total produktów.",
+  "search.empty": "Nie znaleziono produktów dla tej frazy",
+  "search.error": "Nie udało się pobrać produktów"
+}

@@ -1,0 +1,27 @@
+{
+  "cart.title": "Cart",
+  "cart.empty": "Your cart is empty",
+  "cart.summary": ":count items · :total",
+  "cart.refresh.action": "Refresh cart",
+  "cart.refresh.loading": "Refreshing...",
+  "cart.loading": "Loading cart...",
+
+  "cart.link": "Cart",
+
+  "cart.error.refresh": "Could not refresh the cart",
+  "cart.error.noRemoteId": "Missing cart item identifier",
+  "cart.error.updateQty": "Could not change quantity",
+  "cart.error.removeItem": "Could not remove the product",
+  "cart.error.restore": "Could not restore the product",
+
+  "cart.success.qtyUpdated": "Quantity updated",
+  "cart.success.restored": "Product restored",
+
+  "cart.info.removed": "Removed from cart",
+
+  "cart.undo": "Undo",
+  "cart.remove": "Remove",
+  "cart.qty": "Qty",
+  "cart.total": "Total",
+  "cart.goto": "Go to cart"
+}

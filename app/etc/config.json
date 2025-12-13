@@ -15,6 +15,7 @@
     "renia-module-cart": 1,
     "renia-ui-toast": 1,
     "renia-magento-cart-sidebar": 1,
-    "renia-magento-customer": 0
+    "renia-magento-customer": 0,
+    "renia-i18n": 1
   }
 }

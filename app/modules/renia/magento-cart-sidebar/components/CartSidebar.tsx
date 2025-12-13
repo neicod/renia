@@ -8,6 +8,7 @@ import {
   closeCartSidebar
 } from '../services/cartSidebarStore';
 import { getCartItemRemoteId } from 'renia-magento-cart/utils/cartItemRemoteId';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 const useSidebarState = () =>
   React.useSyncExternalStore(
@@ -38,6 +39,7 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
   onUpdateQuantity,
   onRemove
 }) => {
+  const { t } = useI18n();
   const [qty, setQty] = React.useState(item.qty);
   const isFirstRender = React.useRef(true);
   const debounceRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -108,7 +110,7 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
               padding: '0.3rem 0.65rem',
               cursor: disabled || qty <= 1 ? 'not-allowed' : 'pointer'
             }}
-            aria-label="Zmniejsz ilość"
+            aria-label={t('cartSidebar.qty.decrease')}
           >
             −
           </button>
@@ -126,7 +128,7 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
               background: 'transparent'
             }}
             disabled={disabled}
-            aria-label="Ilość"
+            aria-label={t('cartSidebar.qty.label')}
           />
           <button
             type="button"
@@ -138,7 +140,7 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
               padding: '0.3rem 0.65rem',
               cursor: disabled ? 'not-allowed' : 'pointer'
             }}
-            aria-label="Zwiększ ilość"
+            aria-label={t('cartSidebar.qty.increase')}
           >
             +
           </button>
@@ -157,7 +159,7 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
             cursor: disabled ? 'not-allowed' : 'pointer'
           }}
         >
-          {removing ? 'Usuwanie...' : 'Usuń'}
+          {removing ? t('cartSidebar.remove.loading') : t('cartSidebar.remove.action')}
         </button>
       </div>
       <div style={{ fontWeight: 600 }}>
@@ -172,6 +174,7 @@ export const CartSidebar: React.FC = () => {
   const cart = useCart();
   const toast = useToast();
   const manager = useCartManager();
+  const { t } = useI18n();
   const [updatingItemId, setUpdatingItemId] = React.useState<string | null>(null);
   const [removingItemId, setRemovingItemId] = React.useState<string | null>(null);
 
@@ -184,8 +187,8 @@ export const CartSidebar: React.FC = () => {
       if (!remoteId) {
         toast({
           tone: 'error',
-          title: 'Brak identyfikatora pozycji',
-          description: 'Nie udało się zaktualizować ilości.'
+          title: t('cart.error.noRemoteId'),
+          description: t('cart.error.updateQty')
         });
         return;
       }
@@ -196,7 +199,7 @@ export const CartSidebar: React.FC = () => {
         console.error('[CartSidebar] update qty error', error);
         toast({
           tone: 'error',
-          title: 'Nie udało się zmienić ilości',
+          title: t('cart.error.updateQty'),
           description: error instanceof Error ? error.message : undefined
         });
       } finally {
@@ -238,8 +241,8 @@ export const CartSidebar: React.FC = () => {
       if (!remoteId) {
         toast({
           tone: 'error',
-          title: 'Brak identyfikatora pozycji',
-          description: 'Nie udało się usunąć produktu.'
+          title: t('cart.error.noRemoteId'),
+          description: t('cart.error.removeItem')
         });
         return;
       }
@@ -255,7 +258,7 @@ export const CartSidebar: React.FC = () => {
         console.error('[CartSidebar] remove item error', error);
         toast({
           tone: 'error',
-          title: 'Nie udało się usunąć produktu',
+          title: t('cart.error.removeItem'),
           description: error instanceof Error ? error.message : undefined
         });
       } finally {
@@ -308,9 +311,11 @@ export const CartSidebar: React.FC = () => {
           }}
         >
           <div>
-            <h2 style={{ margin: 0 }}>Twój koszyk</h2>
+            <h2 style={{ margin: 0 }}>{t('cartSidebar.title')}</h2>
             <p style={{ margin: '0.25rem 0 0', color: '#64748b' }}>
-              {cart.items.length ? `${cart.items.length} pozycji` : 'Koszyk jest pusty'}
+              {cart.items.length
+                ? t('cartSidebar.count', { count: cart.items.length })
+                : t('cart.empty')}
             </p>
           </div>
           <button
@@ -322,7 +327,7 @@ export const CartSidebar: React.FC = () => {
               fontSize: '1.5rem',
               cursor: 'pointer'
             }}
-            aria-label="Zamknij koszyk"
+            aria-label={t('cartSidebar.close')}
           >
             ×
           </button>
@@ -342,7 +347,7 @@ export const CartSidebar: React.FC = () => {
             ))
           ) : (
             <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: '2rem' }}>
-              Brak produktów w koszyku.
+              {t('cart.empty')}
             </div>
           )}
         </div>
@@ -354,7 +359,7 @@ export const CartSidebar: React.FC = () => {
               fontWeight: 700
             }}
           >
-            <span>Razem</span>
+            <span>{t('cart.total')}</span>
             <span>{formatPrice(totalCents, currency)}</span>
           </div>
           <a
@@ -372,7 +377,7 @@ export const CartSidebar: React.FC = () => {
             }}
             onClick={() => closeCartSidebar()}
           >
-            Przejdź do koszyka
+            {t('cart.goto')}
           </a>
         </footer>
       </aside>

@@ -1,5 +1,6 @@
 // @env: mixed
 import React from 'react';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 type SortOption = {
   value: string;
@@ -33,6 +34,7 @@ export const ProductListingToolbar: React.FC<Props> = ({
   const end = totalItems ? Math.min(currentPage * itemsPerPage, totalItems) : 0;
   const perPageOptions =
     pageSizeOptions && pageSizeOptions.length ? pageSizeOptions : [itemsPerPage];
+  const { t } = useI18n();
 
   return (
     <div
@@ -51,11 +53,17 @@ export const ProductListingToolbar: React.FC<Props> = ({
       }}
     >
       <div style={{ color: '#0f172a', fontSize: '0.95rem', fontWeight: 500 }}>
-        {totalItems ? `Pokazuję ${start}–${end} z ${totalItems} produktów` : 'Produkty'}
+        {totalItems
+          ? t('catalog.listing.showing', {
+              start,
+              end,
+              total: totalItems
+            })
+          : t('catalog.listing.title')}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Sortuj:</span>
+          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('catalog.listing.sort')}:</span>
           <select
             value={selectedSort}
             onChange={(e) => onSortChange(e.target.value)}
@@ -77,7 +85,7 @@ export const ProductListingToolbar: React.FC<Props> = ({
           </select>
         </label>
         <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Na stronę:</span>
+          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('catalog.listing.perPage')}:</span>
           <select
             value={String(itemsPerPage)}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}

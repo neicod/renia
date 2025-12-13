@@ -6,6 +6,7 @@ import { AppEnvironmentProvider, type AppRuntime } from './AppEnvContext';
 import type { StoreConfig } from 'renia-magento-store';
 import LayoutShell from 'renia-layout/components/LayoutShell';
 import type { SlotEntry as LayoutSlotEntry } from 'renia-layout/types';
+import { I18nProvider } from 'renia-i18n/context/I18nProvider';
 import 'renia-magento-cart/registerComponents';
 import 'magento-wishlist/registerComponents';
 import 'renia-magento-category/registerComponents';
@@ -14,6 +15,8 @@ import 'renia-magento-catalog-search/registerComponents';
 import 'magento-product/registerComponents';
 import 'renia-layout/registerComponents';
 import 'renia-magento-cart-sidebar/registerComponents';
+import 'renia-i18n/registerComponents';
+import 'renia-ui-toast/registerComponents';
 import 'renia-magento-customer/registerComponents';
 
 const HomePage: React.FC = () => (
@@ -49,6 +52,10 @@ type BootstrapData = {
     magentoProxyEndpoint?: string;
     preloadedCategoryMenu?: any;
     store?: StoreConfig;
+    i18n?: {
+      lang?: string;
+      messages?: Record<string, string>;
+    };
   };
 };
 
@@ -83,35 +90,38 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
 
   const storeCode = (bootstrap?.config as any)?.magentoStoreCode ?? bootstrap?.config?.store?.code;
   const storeConfig = bootstrap?.config?.store;
+  const i18n = bootstrap?.config?.i18n ?? {};
 
   return (
-    <AppEnvironmentProvider runtime={runtime} storeCode={storeCode} store={storeConfig}>
-      <div>
-        <Routes>
-          {routes.map((route) => {
-            const Comp = resolveComponent(route);
-            const layout = route.layout ?? '1column';
-            return (
-              <Route
-                key={route.path}
-                path={route.path}
-                element={
-                  <LayoutShell
-                    layout={layout}
-                    main={<Comp />}
-                    resolveComponent={resolveComponent}
-                    slots={bootstrap.slots}
-                    layoutSlots={bootstrap.layoutSlots}
-                    subslots={bootstrap.subslots}
-                    routeMeta={route.meta}
-                  />
-                }
-              />
-            );
-          })}
-        </Routes>
-      </div>
-    </AppEnvironmentProvider>
+    <I18nProvider lang={i18n.lang} messages={i18n.messages}>
+      <AppEnvironmentProvider runtime={runtime} storeCode={storeCode} store={storeConfig}>
+        <div>
+          <Routes>
+            {routes.map((route) => {
+              const Comp = resolveComponent(route);
+              const layout = route.layout ?? '1column';
+              return (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={
+                    <LayoutShell
+                      layout={layout}
+                      main={<Comp />}
+                      resolveComponent={resolveComponent}
+                      slots={bootstrap.slots}
+                      layoutSlots={bootstrap.layoutSlots}
+                      subslots={bootstrap.subslots}
+                      routeMeta={route.meta}
+                    />
+                  }
+                />
+              );
+            })}
+          </Routes>
+        </div>
+      </AppEnvironmentProvider>
+    </I18nProvider>
   );
 };
 

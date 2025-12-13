@@ -2,15 +2,17 @@
 import React from 'react';
 import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
 import type { Product } from '../../types';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 type Props = {
   product: Product;
 };
 
 export const ProductDetails: React.FC<Props> = ({ product }) => {
+  const { t } = useI18n();
   const price = product.price
     ? `${product.price.value.toFixed(2)} ${product.price.currency}`
-    : 'Cena dostępna w koszyku';
+    : t('product.price.inCart');
 
   const originalDiffers =
     product.priceOriginal && product.price && product.priceOriginal.value !== product.price.value;
@@ -44,7 +46,7 @@ export const ProductDetails: React.FC<Props> = ({ product }) => {
         </div>
       ) : null}
       <div style={{ color: '#64748b' }}>
-        <p>Opis produktu zostanie uzupełniony po integracji z Magento (placeholder).</p>
+        <p>{t('product.description.placeholder')}</p>
       </div>
       <SlotRenderer name="product-view-actions" props={{ product }} />
     </section>

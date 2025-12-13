@@ -18,6 +18,8 @@ import { htmlTemplate } from './template';
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { getStoreConfig } from 'renia-magento-store';
+import { loadMessages as loadI18nMessages } from 'renia-i18n/services/loader';
+import { loadMessages as loadI18nMessages } from 'renia-i18n/services/loader';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -350,6 +352,10 @@ app.get('*', async (req, res) => {
       });
     }
 
+    // I18n: wybierz język (storeConfig.locale) i dołącz scalone tłumaczenia z dist/i18n
+    const lang = appConfig.store?.locale ?? 'en_US';
+    const i18nMessages = loadI18nMessages(lang);
+
     const bootstrap = {
       routes: routes.map((r) => ({
         path: r.path,
@@ -362,8 +368,31 @@ app.get('*', async (req, res) => {
       subslots,
       layouts: layoutRegistry.layouts,
       layoutSlots: layoutRegistry.slots,
-      config: appConfig
+      config: {
+        ...appConfig,
+        i18n: {
+          lang,
+          messages: i18nMessages
+        }
+      }
     };
+
+    // Podaj initial translations do I18nBootstrap jeśli slot istnieje
+    const overlay = bootstrap.slots?.['global-overlay'];
+    if (overlay) {
+      overlay.forEach((entry: any) => {
+        if (
+          entry.componentPath === 'renia-i18n/components/I18nBootstrap' ||
+          entry.component === 'renia-i18n/components/I18nBootstrap'
+        ) {
+          entry.props = {
+            ...(entry.props ?? {}),
+            initialLang: lang,
+            initialMessages: i18nMessages
+          };
+        }
+      });
+    }
 
     const appHtml = renderToString(
       <StaticRouter location={req.url}>

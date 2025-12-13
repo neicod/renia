@@ -1,5 +1,6 @@
 // @env: mixed
 import React from 'react';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 type Props = {
   page: number;
@@ -20,6 +21,7 @@ export const ProductListingPagination: React.FC<Props> = ({
   if (totalPages <= 1) {
       return null;
   }
+  const { t } = useI18n();
 
   const canPrev = page > 1;
   const canNext = page < totalPages;
@@ -46,7 +48,7 @@ export const ProductListingPagination: React.FC<Props> = ({
       }}
     >
       <div style={{ color: '#475569', fontSize: '0.9rem' }}>
-        Strona {page} z {totalPages}
+        {t('catalog.pagination.page', { page, totalPages })}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <button
@@ -68,7 +70,7 @@ export const ProductListingPagination: React.FC<Props> = ({
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Wstecz
+          {t('catalog.pagination.prev')}
         </button>
         <button
           type="button"
@@ -86,7 +88,7 @@ export const ProductListingPagination: React.FC<Props> = ({
             cursor: canNext && !disabled ? 'pointer' : 'not-allowed'
           }}
         >
-          Dalej
+          {t('catalog.pagination.next')}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

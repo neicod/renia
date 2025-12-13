@@ -4,6 +4,7 @@ import { ProductList } from 'magento-product/components/ProductList';
 import { ProductListingToolbar } from './ProductListingToolbar';
 import { ProductListingPagination } from './ProductListingPagination';
 import { useCategoryProductList } from '../hooks/useCategoryProductList';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 import type { ProductSearchResults } from 'magento-product';
 
@@ -19,6 +20,7 @@ export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: ini
     () => initialListingProp ?? (meta as any)?.categoryProductListing,
     [initialListingProp, meta]
   );
+  const { t } = useI18n();
 
   const {
     status,
@@ -50,8 +52,8 @@ export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: ini
         products={products}
         loading={status === 'loading'}
         initialLoading={isInitialLoading}
-        error={status === 'error' ? 'Failed to fetch products' : null}
-        emptyLabel="No products in this category"
+        error={status === 'error' ? t('catalog.listing.error') : null}
+        emptyLabel={t('catalog.listing.empty')}
       />
       <ProductListingPagination
         page={page}

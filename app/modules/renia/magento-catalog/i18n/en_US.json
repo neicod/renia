@@ -1,0 +1,12 @@
+{
+  "catalog.listing.title": "Products",
+  "catalog.listing.showing": "Showing :start–:end of :total products",
+  "catalog.listing.sort": "Sort by",
+  "catalog.listing.perPage": "Items per page",
+  "catalog.listing.empty": "No products in this category",
+  "catalog.listing.error": "Failed to fetch products",
+
+  "catalog.pagination.page": "Page :page of :totalPages",
+  "catalog.pagination.prev": "Previous",
+  "catalog.pagination.next": "Next"
+}

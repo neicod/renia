@@ -2,6 +2,7 @@
 import React from 'react';
 import type { MenuItem } from 'renia-menu';
 import { fetchMenu } from '../services/menu';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 const readGraphQLEndpoint = (): string | undefined => {
   const globalConfig = (globalThis as any).__APP_CONFIG__;
@@ -38,6 +39,7 @@ export const CategoryMainMenu: React.FC = () => {
   const [status, setStatus] = React.useState<'idle' | 'loading' | 'ready' | 'error' | 'empty'>(
     preloaded && preloaded.length ? 'ready' : 'idle'
   );
+  const { t } = useI18n();
   const endpoint = React.useMemo(() => readGraphQLEndpoint(), []);
   const rootCategoryId = React.useMemo(() => readRootCategoryId(), []);
   const preloadedMemo = React.useMemo(() => preloaded, [preloaded]);
@@ -125,10 +127,10 @@ export const CategoryMainMenu: React.FC = () => {
     );
   };
 
-  if (!endpoint) return renderState('Brak endpointu GraphQL');
-  if (status === 'error') return renderState('Nie udało się wczytać menu', 'error');
-  if (status === 'loading' && items.length === 0) return renderState('Ładowanie kategorii...', 'info');
-  if (status === 'empty') return renderState('Brak kategorii do wyświetlenia');
+  if (!endpoint) return renderState(t('category.menu.noEndpoint'));
+  if (status === 'error') return renderState(t('category.menu.error'), 'error');
+  if (status === 'loading' && items.length === 0) return renderState(t('category.menu.loading'), 'info');
+  if (status === 'empty') return renderState(t('category.menu.empty'));
 
   return renderTree(items);
 };
