@@ -39,24 +39,35 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
   onRemove
 }) => {
   const [qty, setQty] = React.useState(item.qty);
+  const isFirstRender = React.useRef(true);
+  const debounceRef = React.useRef<NodeJS.Timeout | null>(null);
 
   React.useEffect(() => {
     setQty(item.qty);
   }, [item.qty]);
 
-  const handleSubmit = React.useCallback(
-    (event: React.FormEvent) => {
-      event.preventDefault();
+  // Debounce zapisu ilości – 1s po ostatniej zmianie
+  // Debounce zapisu ilości – 1s po ostatniej lokalnej zmianie
+  React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
       void onUpdateQuantity(qty);
-    },
-    [qty, onUpdateQuantity]
-  );
+    }, 1000);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [qty]); // celowo bez onUpdateQuantity, oczekujemy stabilnego callbacku
 
   const handleIncrement = React.useCallback(
     (delta: number) => {
       const next = Math.max(1, qty + delta);
       setQty(next);
-      void onUpdateQuantity(next);
     },
     [qty, onUpdateQuantity]
   );
@@ -77,10 +88,7 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
         <div style={{ fontWeight: 600 }}>{item.name}</div>
         <div style={{ color: '#64748b', fontSize: '0.9rem' }}>SKU: {item.sku ?? 'brak'}</div>
       </div>
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}
-      >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
         <div
           style={{
             display: 'inline-flex',
@@ -136,20 +144,6 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
           </button>
         </div>
         <button
-          type="submit"
-          disabled={disabled}
-          style={{
-            padding: '0.35rem 0.85rem',
-            borderRadius: '999px',
-            border: '1px solid #cbd5f5',
-            background: disabled ? '#f1f5f9' : '#fff',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            fontWeight: 600
-          }}
-        >
-          {updating ? 'Zapisywanie...' : 'Zapisz'}
-        </button>
-        <button
           type="button"
           onClick={onRemove}
           disabled={disabled}
@@ -165,7 +159,7 @@ const CartSidebarItem: React.FC<SidebarItemProps> = ({
         >
           {removing ? 'Usuwanie...' : 'Usuń'}
         </button>
-      </form>
+      </div>
       <div style={{ fontWeight: 600 }}>
         {formatPrice(item.priceCents * item.qty, item.currency ?? currency)}
       </div>
@@ -178,33 +172,11 @@ export const CartSidebar: React.FC = () => {
   const cart = useCart();
   const toast = useToast();
   const manager = useCartManager();
-  const [loading, setLoading] = React.useState(false);
   const [updatingItemId, setUpdatingItemId] = React.useState<string | null>(null);
   const [removingItemId, setRemovingItemId] = React.useState<string | null>(null);
 
   const totalCents = cart.items.reduce((sum, item) => sum + item.priceCents * item.qty, 0);
   const currency = cart.items[0]?.currency ?? 'USD';
-
-  const refreshCart = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      await manager.refreshCart();
-    } catch (error) {
-      console.error('[CartSidebar] refresh error', error);
-      toast({
-        tone: 'error',
-        title: 'Nie udało się odświeżyć koszyka'
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast, manager]);
-
-  React.useEffect(() => {
-    if (isOpen) {
-      refreshCart();
-    }
-  }, [isOpen, refreshCart]);
 
   const handleUpdateQuantity = React.useCallback(
     async (item: CartItem, quantity: number) => {
@@ -220,11 +192,6 @@ export const CartSidebar: React.FC = () => {
       setUpdatingItemId(item.id);
       try {
         await manager.updateItemQuantity({ cartItemId: remoteId, quantity });
-        toast({
-          tone: 'success',
-          title: 'Zaktualizowano ilość',
-          description: item.name
-        });
       } catch (error) {
         console.error('[CartSidebar] update qty error', error);
         toast({
@@ -237,6 +204,32 @@ export const CartSidebar: React.FC = () => {
       }
     },
     [toast, manager]
+  );
+
+  // stabilny callback per item.id aby debounce nie odpalał się wielokrotnie przy zmianie referencji
+  const handleUpdateQuantityForItem = React.useRef(
+    new Map<string | number, (qty: number) => Promise<void>>()
+  );
+
+  // sprzątanie usuniętych pozycji, zachowanie referencji istniejących
+  React.useEffect(() => {
+    const alive = new Set(cart.items.map((it) => it.id));
+    for (const key of handleUpdateQuantityForItem.current.keys()) {
+      if (!alive.has(key)) {
+        handleUpdateQuantityForItem.current.delete(key);
+      }
+    }
+  }, [cart.items]);
+
+  const getUpdateHandler = React.useCallback(
+    (item: CartItem) => {
+      const cached = handleUpdateQuantityForItem.current.get(item.id);
+      if (cached) return cached;
+      const fn = (qty: number) => handleUpdateQuantity(item, qty);
+      handleUpdateQuantityForItem.current.set(item.id, fn);
+      return fn;
+    },
+    [handleUpdateQuantity]
   );
 
   const handleRemoveItem = React.useCallback(
@@ -317,11 +310,7 @@ export const CartSidebar: React.FC = () => {
           <div>
             <h2 style={{ margin: 0 }}>Twój koszyk</h2>
             <p style={{ margin: '0.25rem 0 0', color: '#64748b' }}>
-              {cart.items.length
-                ? `${cart.items.length} pozycji`
-                : loading
-                  ? 'Ładowanie...'
-                  : 'Koszyk jest pusty'}
+              {cart.items.length ? `${cart.items.length} pozycji` : 'Koszyk jest pusty'}
             </p>
           </div>
           <button
@@ -347,13 +336,13 @@ export const CartSidebar: React.FC = () => {
                 currency={currency}
                 updating={updatingItemId === item.id}
                 removing={removingItemId === item.id}
-                onUpdateQuantity={(qty) => handleUpdateQuantity(item, qty)}
+                onUpdateQuantity={getUpdateHandler(item)}
                 onRemove={() => handleRemoveItem(item)}
               />
             ))
           ) : (
             <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: '2rem' }}>
-              {loading ? 'Ładowanie koszyka...' : 'Brak produktów w koszyku.'}
+              Brak produktów w koszyku.
             </div>
           )}
         </div>

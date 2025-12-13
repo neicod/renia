@@ -143,9 +143,6 @@ const buildUpdateCartItemsMutation = () => {
     }
   });
   buildCartSelection(builder, ['updateCartItems', 'cart']);
-  builder.addField(['updateCartItems'], 'user_errors');
-  builder.addField(['updateCartItems', 'user_errors'], 'code');
-  builder.addField(['updateCartItems', 'user_errors'], 'message');
   return builder;
 };
 

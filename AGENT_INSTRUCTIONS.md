@@ -1,7 +1,7 @@
 # Instrukcje dla agentów
 
 1. Odpowiadaj po polsku i zwięźle.
-1. Zanim zaczniesz, zerknij do `README.md` (przegląd architektury) i `docs/MODULES.md` (opis modułów); aktualizuj je, jeśli dokładasz nowe możliwości.
+1. Zanim zaczniesz, zerknij do `README.md` (przegląd architektury), `docs/MODULES.md` (opis modułów) **oraz `docs/concept.md` w obrębie modułu**, żeby znać jego kontrakty; aktualizuj dokumentację, jeśli dokładasz nowe możliwości.
 1. Nigdy nie używaj `window.localStorage` bezpośrednio – zawsze korzystaj z serwisu `@framework/storage/browserStorage`, aby centralnie śledzić operacje.
 1. Nie cofaj ani nie nadpisuj istniejących zmian użytkownika; unikaj destrukcyjnych komend typu `git reset --hard`.
 1. Do wyszukiwania plików lub tekstu używaj `rg` / `rg --files`, a zmiany w pojedynczych plikach wprowadzaj przez `apply_patch`, gdy to możliwe.

@@ -34,6 +34,7 @@ Centralna dokumentacja aplikacji znajdującej się w katalogu `frontend`. Zawier
   - `storeCode`: kod sklepu (z konfiguracji lub `.env`),
   - `store`: znormalizowane `StoreConfig`.
 - **Moduł `renia-magento-store`.**
+- **Moduły koszyka:** `renia-magento-cart` (logika/akcje/sloty koszyka) + `renia-magento-cart-sidebar` (wysuwany panel bazujący na tym samym stanie). Sidebara nie renderujemy na SSR; korzysta z istniejącego cache koszyka (TTL 1 h w `browserStorage`, 7 dni dla `cartId`).
   - `getStoreConfig()` wykonuje zapytanie `storeConfig`, cache’uje wynik (statyczny cache + in-flight promise) i automatycznie rejestruje nagłówek `store`.
   - Plik `services/storeHeaders.ts` rejestruje globalny augmenter nagłówków, który dokleja `store` do każdego zapytania GraphQL – na SSR i w przeglądarce.
 - **Wykorzystanie kontekstu.** W `AppRoot` storeConfig jest przekazywany do provider’a, a komponenty (np. `LayoutShell`, `useStorefrontPageSize`) korzystają z niego bez dodatkowych zapytań.
@@ -73,7 +74,7 @@ Centralna dokumentacja aplikacji znajdującej się w katalogu `frontend`. Zawier
 
 ### Interceptory – kiedy i jak ich używać
 
-Interceptory to preferowana metoda rozszerzania UI poza „własnym” modułem. Używaj ich gdy:
+Interceptory to preferowana metoda rozszerzania UI poza „własnym” modułem. Zawsze przed zmianami przejrzyj `docs/concept.md` w danym module. Używaj interceptorów gdy:
 - musisz dodać/wyłączyć komponent w określonym slocie (`control-menu`, `content`, `left` itd.),
 - potrzebujesz reakcji na kontekst trasy (np. tylko dla `/category/*`, `/search`, `/product/:urlKey`),
 - chcesz zarejestrować SSR-owe dane (np. przekazać `initialListing` do slotu).

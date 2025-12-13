@@ -7,10 +7,11 @@ export default function cartSidebarInterceptor(api: any = {}) {
     priority: 180
   });
 
+  // Podmień domyślny link koszyka, aby otwierał sidebar (poza stroną /cart)
   api.slots?.add?.({
     slot: 'control-menu',
-    componentPath: 'renia-magento-cart-sidebar/components/CartSidebarToggle',
-    id: 'cart-sidebar-toggle',
-    priority: 95
+    componentPath: 'renia-magento-cart-sidebar/components/CartLinkSidebar',
+    id: 'cart-link',
+    priority: 100
   });
 }
