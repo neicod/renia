@@ -3,7 +3,11 @@ import { customerStore } from './customerStore';
 import { customerApi } from './customerApi';
 import { getStoredCustomerToken, storeCustomerToken, clearCustomerToken } from './authStorage';
 import { cartManager } from 'renia-magento-cart/services/cartManager';
-import { getStoredCartId, storeCartId, clearStoredCartId } from 'renia-magento-cart/services/cartStorage';
+import { cartIdStorage } from 'renia-magento-cart/services/cartIdStorage';
+
+const getStoredCartId = () => cartIdStorage.read();
+const storeCartId = (id: string) => cartIdStorage.write(id);
+const clearStoredCartId = () => cartIdStorage.clear();
 
 const handleCartAfterLogin = async () => {
   const guestCartId = getStoredCartId();

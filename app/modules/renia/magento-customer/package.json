@@ -2,5 +2,8 @@
   "name": "renia-magento-customer",
   "version": "0.1.0",
   "type": "module",
-  "main": "./index.ts"
+  "main": "./index.ts",
+  "dependencies": {
+    "renia-magento-cart": "file:../magento-cart"
+  }
 }
