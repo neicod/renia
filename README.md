@@ -172,6 +172,13 @@ registerComponent('renia-magento-catalog-search/components/SearchProductList', S
   ```
 - Sloty działają na SSR i w kliencie; kolejność kontrolujesz `priority`, a wyłączenie następuje przez `enabled: false`.
 
+## System tłumaczeń (i18n)
+
+1. **Struktura plików.** Każdy moduł trzyma swoje frazy w `app/modules/<vendor>/<module>/i18n/<lang>.json` (ścieżka względem katalogu `frontend`). Globalne override’y umieszczaj w `app/i18n/<lang>.json` – mają wyższy priorytet.
+2. **Budowanie paczek.** Polecenie `npm run build:i18n` skanuje aktywne moduły, scala ich paczki z override’ami i zapisuje wynik do `dist/i18n/<lang>.json`. SSR wczytuje gotowe pliki i przekazuje je do `I18nProvider`, więc pamiętaj, by odpalić build po każdej zmianie kluczy.
+3. **Użycie w kodzie.** Komponenty korzystają z `useI18n()` i funkcji `t(key, params?)`. Dostępne są placeholdery nazwane (`:name`) i pozycyjne (`%1`). Nie interpoluj tekstów ręcznie.
+4. **Konwencje.** Dodając nowy klucz, dopisz co najmniej wariant `en_US` i `pl_PL`. Gdy moduł wymaga tłumaczeń, trzymaj je razem z kodem modułu – nie twórz kopii w głównym repo.
+
 ## Przechowywanie danych w przeglądarce
 
 1. **Centralny serwis `browserStorage`.** Wszystkie interakcje z `localStorage` przechodzą przez `@framework/storage/browserStorage`. Dzięki temu mamy 1) bezpieczny fallback poza przeglądarką, 2) statystyki odczytów/zapisów (`getUsageSnapshot()`).

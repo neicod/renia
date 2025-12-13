@@ -1,26 +1,22 @@
 # Koncepcja: magento-product
 
-Cel: moduł obsługujący dane i prezentację produktu Magento (GraphQL). Dostarcza kartę produktu (PDP) z własnym routerem oraz komponent listy produktów, który może być osadzany w `content` na stronach kategorii (współpraca z `renia-magento-catalog`).
+Cel: moduł obsługujący dane i prezentację produktu Magento (GraphQL). Dostarcza:
+- repozytorium produktów (`getList`, `getByUrlKey`) zbudowane na `QueryBuilder`,
+- komponenty prezentacyjne (`ProductList`, `ProductTile`, `ProductPage`),
+- sloty rozszerzeń dla listingu i karty produktu.
 
-Zakres (do implementacji):
-- Router PDP:
-  - Rejestracja trasy produktu (np. `/product/:urlKey` lub `/p/:sku`) w `routes.ts` (`componentPath`, `layout`).
-  - Komponent `ProductPage` renderuje szczegóły produktu (tytuł, cena, media, opis; placeholder na start).
-- Serwisy produktu:
-  - `fetchProduct({ sku|urlKey, fields, variables, beforeSend })` oparte na `renia-graphql-client`.
-  - Obsługa stanów: loading/error/brak danych, opcjonalnie cache (TTL) po kluczu SKU/urlKey.
-- Komponent listy produktów:
-  - `ProductList` renderujący kolekcję produktów (grid/lista), wyświetla podstawowe pola (miniatura, nazwa, cena, CTA).
-  - Komponent ma props/kontrakt tak, by `renia-magento-catalog` mógł przekazać wyniki query kategorii lub własne zapytanie (SSR/CSR).
-  - Stany: loading/error/empty, opcjonalnie prosty skeleton.
-- Typy/model:
-  - Wspólny kontrakt `Product`/`Price`/`Media` itp., używany przez listing i PDP.
-  - Możliwe rozszerzenia przez interceptor/slot (np. badge, dodatkowe pola).
-- Konfiguracja:
-  - Endpoint przez proxy `/api/magento/graphql` (domyślnie) lub `MAGENTO_GRAPHQL_ENDPOINT`.
-  - Auth/nagłówki przez `beforeSend`/opcje requestu.
-- Integracje:
-  - Współpraca z `renia-magento-catalog` (listing w kontekście kategorii).
-  - Możliwe sloty/interceptory do wzbogacania karty produktu (np. cross-sell, badge).
+Składniki:
+- **Repozytorium:** `services/productRepository.ts` korzysta z helperów `productSearchRequest.ts`/`productSearchResponse.ts` i wystawia tylko `getList` oraz `getByUrlKey`. Wszystkie inne operacje (mapowanie, filtrowanie) zostały wydzielone, by repo było serwisem (bez `new`/singletonów).
+- **Komponenty:** `ProductList` renderuje siatkę (`.product-grid`) z obsługą stanów empty/error/loading; `ProductTile` pokazuje miniaturę, cenę i CTA (korzysta z tłumaczeń `product.*`). `ProductPage` (PDP) używa tych samych typów i slotów `product-view-actions`.
+- **Sloty:** `ProductTile` publikuje `product-listing-actions`, a `ProductDetails` `product-view-actions`, co pozwala innym modułom (np. koszykowi) wstrzykiwać swoje akcje przez `api.subslots.add`.
+- **i18n:** moduł zawiera `i18n/en_US.json` i `i18n/pl_PL.json`; wszystkie teksty użytkownika przechodzą przez `useI18n()`.
 
-Zależności: wymaga `renia-graphql-client`; współpracuje z `renia-magento-catalog` (listing) i slotami/layoutem. При wdrażaniu dopisz zależności w `registration.js`.
+Integracje:
+- Listing kategorii (`renia-magento-catalog`) i wyszukiwarka (`renia-magento-catalog-search`) przekazują wyniki do `ProductList`.
+- Sloty `product-listing-actions`/`product-view-actions` są wykorzystywane m.in. przez `renia-magento-cart`.
+- Endpoint GraphQL i nagłówki są obsługiwane przez `renia-magento-graphql-client` + augmentery.
+
+Konwencje:
+- Nie rozszerzaj repozytorium o nowe metody – dodawaj helpery obok (`services/*`).
+- Jeżeli potrzebujesz dodatkowych pól w zapytaniu, użyj augmentera QueryBuildera (`registerGraphQLQueryAugmenter`) i sprawdź `ctx.operationId`.
+- Dodając nowe stringi, pamiętaj o wpisach w `i18n/en_US.json` i `i18n/pl_PL.json`.

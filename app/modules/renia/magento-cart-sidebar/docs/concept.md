@@ -13,6 +13,7 @@ Zależności:
 - `renia-module-cart` (stan koszyka; synchronizacja z przeglądarką TTL 1 h w `browserStorage`).
 
 Konwencje:
-- Moduł nie zapisuje niczego w `localStorage`; korzysta z existing storage warstwy koszyka.
+- Moduł nie wykonuje własnych zapytań GraphQL – wszystkie dane pochodzą z cache `renia-module-cart`/`CartManager`.
+- Nie zapisuje niczego bezpośrednio w `localStorage`; korzysta wyłącznie z warstwy storage koszyka.
 - Nie renderuje zawartości po stronie serwera – komponenty są klienckie.
 - Podmiana `cart-link` ma ten sam `id`, by nie dublować wpisów w slocie.

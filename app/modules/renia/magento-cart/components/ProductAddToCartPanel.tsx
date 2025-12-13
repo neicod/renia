@@ -2,6 +2,7 @@
 import React from 'react';
 import type { Product } from 'magento-product/types';
 import { useToast } from 'renia-ui-toast/hooks/useToast';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 import { useCartManager } from '../context/CartManagerContext';
 
 type Props = {
@@ -13,6 +14,7 @@ export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
   const [adding, setAdding] = React.useState(false);
   const toast = useToast();
   const manager = useCartManager();
+  const { t } = useI18n();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -23,16 +25,20 @@ export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
       await manager.addProduct({ sku: product.sku, quantity: qty });
       toast({
         tone: 'success',
-        title: 'Dodano do koszyka',
-        description: `${qty} × ${product.name}`
+        title: t('cart.toast.added.title'),
+        description: t('cart.toast.added.multiple', {
+          qty,
+          name: product.name ?? product.sku
+        })
       });
     } catch (error) {
       console.error('[ProductAddToCartPanel] Failed to add product', error);
-      const message = error instanceof Error ? error.message : 'Spróbuj ponownie.';
+      const fallbackDesc = t('cart.toast.error.generic');
+      const message = error instanceof Error ? error.message : fallbackDesc;
       toast({
         tone: 'error',
-        title: 'Nie udało się dodać produktu',
-        description: message
+        title: t('cart.toast.error.title'),
+        description: message ?? fallbackDesc
       });
     } finally {
       setAdding(false);
@@ -42,7 +48,7 @@ export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
       <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        Ilość
+        {t('cart.form.quantity')}
         <input
           type="number"
           min={1}
@@ -64,7 +70,7 @@ export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
           cursor: adding ? 'not-allowed' : 'pointer'
         }}
       >
-        {adding ? 'Dodawanie...' : 'Dodaj do koszyka'}
+        {adding ? t('cart.action.adding') : t('cart.action.add')}
       </button>
     </form>
   );

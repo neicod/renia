@@ -19,6 +19,15 @@
 
   "cart.info.removed": "Removed from cart",
 
+  "cart.action.add": "Add to cart",
+  "cart.action.adding": "Adding...",
+  "cart.form.quantity": "Quantity",
+  "cart.toast.added.title": "Added to cart",
+  "cart.toast.added.single": ":name",
+  "cart.toast.added.multiple": ":qty × :name",
+  "cart.toast.error.title": "Could not add product",
+  "cart.toast.error.generic": "Please try again.",
+
   "cart.undo": "Undo",
   "cart.remove": "Remove",
   "cart.qty": "Qty",

@@ -33,14 +33,7 @@ export const ProductList: React.FC<ProductListProps> = ({
       {error && (
         <div style={{ color: '#b91c1c', marginBottom: '0.5rem' }}>Błąd: {error}</div>
       )}
-      <div
-        data-loading={loading ? 'true' : 'false'}
-        style={{
-          display: 'grid',
-          gap: '1rem',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))'
-        }}
-      >
+      <div className="product-grid" data-loading={loading ? 'true' : 'false'}>
         {products.map((p) => (
           <ProductTile key={p.id} product={p} />
         ))}

@@ -1,0 +1,36 @@
+{
+  "cart.title": "Koszyk",
+  "cart.empty": "Koszyk jest pusty",
+  "cart.summary": ":count pozycji · :total",
+  "cart.refresh.action": "Odśwież koszyk",
+  "cart.refresh.loading": "Odświeżanie...",
+  "cart.loading": "Ładowanie koszyka...",
+
+  "cart.link": "Koszyk",
+
+  "cart.error.refresh": "Nie udało się odświeżyć koszyka",
+  "cart.error.noRemoteId": "Brak identyfikatora pozycji",
+  "cart.error.updateQty": "Nie udało się zmienić ilości",
+  "cart.error.removeItem": "Nie udało się usunąć produktu",
+  "cart.error.restore": "Nie udało się przywrócić produktu",
+
+  "cart.success.qtyUpdated": "Zaktualizowano ilość",
+  "cart.success.restored": "Przywrócono produkt",
+
+  "cart.info.removed": "Usunięto z koszyka",
+
+  "cart.action.add": "Dodaj do koszyka",
+  "cart.action.adding": "Dodawanie...",
+  "cart.form.quantity": "Ilość",
+  "cart.toast.added.title": "Dodano do koszyka",
+  "cart.toast.added.single": ":name",
+  "cart.toast.added.multiple": ":qty × :name",
+  "cart.toast.error.title": "Nie udało się dodać produktu",
+  "cart.toast.error.generic": "Spróbuj ponownie.",
+
+  "cart.undo": "Cofnij",
+  "cart.remove": "Usuń",
+  "cart.qty": "Ilość",
+  "cart.total": "Razem",
+  "cart.goto": "Przejdź do koszyka"
+}

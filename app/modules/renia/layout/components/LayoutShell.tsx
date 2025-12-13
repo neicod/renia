@@ -98,16 +98,47 @@ export const LayoutShell: React.FC<Props> = ({
     resolveComponent,
     routeMeta
   );
+  const heroSection = (
+    <section className="hero-banner">
+      <div className="hero-banner__content">
+        <p className="hero-eyebrow">Nowości · {storeLabel}</p>
+        <h1 className="hero-title">Nowoczesny sklep internetowy dla wymagających klientów</h1>
+        <p className="hero-desc">
+          Znajdziesz tu bestsellerowe kolekcje, szybkie dostawy i personalizowane doświadczenie zakupowe.
+          Wszystko w jednym miejscu – w Twoim ulubionym sklepie.
+        </p>
+        <div className="hero-actions">
+          <Link className="button button--primary" to="/category/what-is-new">
+            Zobacz nowości
+          </Link>
+          <Link className="button button--ghost" to="/category/sale">
+            Promocje
+          </Link>
+          <span className="tag-badge">Waluta: {currencyLabel}</span>
+        </div>
+      </div>
+      <div className="hero-stats">
+        <div className="hero-stats__card">
+          <span className="hero-stats__value">4.9/5</span>
+          <span>Średnia ocena klientów</span>
+        </div>
+        <div className="hero-stats__card">
+          <span className="hero-stats__value">24h</span>
+          <span>Dostawy ekspresowe</span>
+        </div>
+        <div className="hero-stats__card">
+          <span className="hero-stats__value">{currencyLabel}</span>
+          <span>Waluta sklepu</span>
+        </div>
+      </div>
+    </section>
+  );
 
   const rendered =
     layout === '2column-left' ? (
       <div className="app-shell">
         <header className="header">
           <div className="header__inner">
-            <div className="nav">
-              <Link to="/">Start</Link>
-              <Link to="/about">O projekcie</Link>
-            </div>
             <div className="slot-stack">{controlMenu}</div>
           </div>
           <div className="header__menu">{header}</div>
@@ -137,15 +168,12 @@ export const LayoutShell: React.FC<Props> = ({
                 Waluta: {currencyLabel}
               </p>
             </div>
-            <div className="nav">
-              <Link to="/">Start</Link>
-              <Link to="/about">O projekcie</Link>
-            </div>
             <div className="slot-stack">{controlMenu}</div>
           </div>
           <div className="header__menu">{header}</div>
         </header>
         <main className="main">
+          {heroSection}
           {contentSlot}
           {main}
         </main>

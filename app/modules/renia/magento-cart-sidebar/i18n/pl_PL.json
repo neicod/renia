@@ -1,0 +1,10 @@
+{
+  "cartSidebar.title": "Twój koszyk",
+  "cartSidebar.count": ":count pozycji",
+  "cartSidebar.qty.label": "Ilość",
+  "cartSidebar.qty.decrease": "Zmniejsz ilość",
+  "cartSidebar.qty.increase": "Zwiększ ilość",
+  "cartSidebar.remove.action": "Usuń",
+  "cartSidebar.remove.loading": "Usuwanie...",
+  "cartSidebar.close": "Zamknij koszyk"
+}

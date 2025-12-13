@@ -1,0 +1,10 @@
+{
+  "cartSidebar.title": "Your cart",
+  "cartSidebar.count": ":count items",
+  "cartSidebar.qty.label": "Quantity",
+  "cartSidebar.qty.decrease": "Decrease quantity",
+  "cartSidebar.qty.increase": "Increase quantity",
+  "cartSidebar.remove.action": "Remove",
+  "cartSidebar.remove.loading": "Removing...",
+  "cartSidebar.close": "Close cart"
+}

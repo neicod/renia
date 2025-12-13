@@ -15,6 +15,7 @@ type Props = {
 
 export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: initialListingProp }) => {
   const category = React.useMemo(() => (meta as any)?.category, [meta]);
+  const categoryLabel = typeof category?.label === 'string' ? category.label : undefined;
   const categoryUid = typeof category?.id === 'string' ? category.id : undefined;
   const initialListing = React.useMemo(
     () => initialListingProp ?? (meta as any)?.categoryProductListing,
@@ -37,6 +38,7 @@ export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: ini
 
   return (
     <div>
+      <h2 className="section-title">{categoryLabel ?? t('catalog.listing.title')}</h2>
       <ProductListingToolbar
         sortOptions={sortOptions}
         selectedSort={sort}

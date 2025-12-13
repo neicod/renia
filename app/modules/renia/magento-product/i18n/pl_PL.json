@@ -1,0 +1,10 @@
+{
+  "product.loading": "Ładowanie produktu...",
+  "product.error": "Nie udało się wczytać produktu.",
+  "product.error.generic": "Nie udało się wczytać produktu.",
+  "product.error.noEndpoint": "Brak endpointu Magento",
+  "product.error.noUrlKey": "Brak identyfikatora produktu",
+  "product.price.inCart": "Cena dostępna w koszyku",
+  "product.description.placeholder": "Opis produktu zostanie uzupełniony po integracji z Magento (placeholder).",
+  "product.cta.view": "Zobacz produkt"
+}

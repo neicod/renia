@@ -1,0 +1,10 @@
+{
+  "product.loading": "Loading product...",
+  "product.error": "Could not load product.",
+  "product.error.generic": "Could not load product.",
+  "product.error.noEndpoint": "Magento endpoint is missing",
+  "product.error.noUrlKey": "Product identifier is missing",
+  "product.price.inCart": "Price available in cart",
+  "product.description.placeholder": "Product description will be populated from Magento (placeholder).",
+  "product.cta.view": "View product"
+}

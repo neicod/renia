@@ -2,6 +2,7 @@
 import React from 'react';
 import type { Product } from 'magento-product/types';
 import { useToast } from 'renia-ui-toast/hooks/useToast';
+import { useI18n } from 'renia-i18n/hooks/useI18n';
 import { useCartManager } from '../context/CartManagerContext';
 
 type Props = {
@@ -12,6 +13,7 @@ export const AddToCartButton: React.FC<Props> = ({ product }) => {
   const [adding, setAdding] = React.useState(false);
   const toast = useToast();
   const manager = useCartManager();
+  const { t } = useI18n();
 
   const handleAdd = React.useCallback(async () => {
     if (!product || !product.sku) return;
@@ -20,21 +22,22 @@ export const AddToCartButton: React.FC<Props> = ({ product }) => {
       await manager.addProduct({ sku: product.sku, quantity: 1 });
       toast({
         tone: 'success',
-        title: 'Dodano do koszyka',
-        description: product.name
+        title: t('cart.toast.added.title'),
+        description: t('cart.toast.added.single', { name: product.name ?? product.sku })
       });
     } catch (error) {
       console.error('[AddToCartButton] Failed to add product', error);
-      const message = error instanceof Error ? error.message : 'Spróbuj ponownie.';
+      const fallbackDesc = t('cart.toast.error.generic');
+      const message = error instanceof Error ? error.message : fallbackDesc;
       toast({
         tone: 'error',
-        title: 'Nie udało się dodać produktu',
-        description: message
+        title: t('cart.toast.error.title'),
+        description: message ?? fallbackDesc
       });
     } finally {
       setAdding(false);
     }
-  }, [product, toast, manager]);
+  }, [product, toast, manager, t]);
 
   return (
     <button
@@ -53,7 +56,7 @@ export const AddToCartButton: React.FC<Props> = ({ product }) => {
         transition: 'opacity 120ms ease'
       }}
     >
-      {adding ? 'Dodawanie...' : 'Dodaj do koszyka'}
+      {adding ? t('cart.action.adding') : t('cart.action.add')}
     </button>
   );
 };
