@@ -18,6 +18,7 @@ export type ModuleRecord = {
 
 export type RegistryOptions = {
   modulesDir?: string;
+  extraModulesDirs?: string[];
   nodeModulesDir?: string;
   configPath?: string;
   includeNodeModules?: boolean;
@@ -143,17 +144,35 @@ const collectPackages = async (
     seen.add(name);
   };
 
-  for (const entry of entries) {
-    if (entry.name.startsWith('@') && entry.isDirectory() && source === 'node_modules') {
-      const scopeDir = path.join(rootDir, entry.name);
-      const scopedEntries = await fs.promises.readdir(scopeDir, { withFileTypes: true });
-      for (const scopedEntry of scopedEntries) {
-        await pushRecord(scopedEntry as DirEntry, scopeDir, `${entry.name}/${scopedEntry.name}`);
-      }
-      continue;
+  const processEntry = async (entry: DirEntry, baseDir: string, scopePrefix?: string) => {
+    if (!entry.isDirectory()) return;
+    const dirPath = path.join(baseDir, entry.name);
+    const pkgPath = path.join(dirPath, 'package.json');
+
+    if (fs.existsSync(pkgPath)) {
+      const overrideName = scopePrefix ? `${scopePrefix}/${entry.name}` : undefined;
+      await pushRecord(entry as DirEntry, baseDir, overrideName);
+      return;
     }
 
-    await pushRecord(entry as DirEntry, rootDir);
+    let nextScopePrefix = scopePrefix;
+    if (source === 'node_modules' && entry.name.startsWith('@')) {
+      nextScopePrefix = entry.name;
+    }
+
+    let childEntries: fs.Dirent[] = [];
+    try {
+      childEntries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const child of childEntries) {
+      await processEntry(child as DirEntry, dirPath, nextScopePrefix);
+    }
+  };
+
+  for (const entry of entries) {
+    await processEntry(entry as DirEntry, rootDir);
   }
 
   return records;
@@ -203,6 +222,8 @@ const topologicalSort = (records: ModuleRecord[]): ModuleRecord[] => {
 
 export const loadModuleRegistry = async (options: RegistryOptions = {}): Promise<ModuleRecord[]> => {
   const modulesDir = options.modulesDir ?? path.resolve(process.cwd(), 'modules');
+  const appModulesDir = path.resolve(process.cwd(), 'app/modules');
+  const extraModulesDirs = options.extraModulesDirs ?? [];
   const nodeModulesDir = options.nodeModulesDir ?? path.resolve(process.cwd(), 'node_modules');
   const includeNodeModules = options.includeNodeModules !== false;
   const statusMap = options.statusMap ?? {};
@@ -216,7 +237,22 @@ export const loadModuleRegistry = async (options: RegistryOptions = {}): Promise
   };
 
   const seen = new Set<string>();
-  const fromModules = await collectPackages(modulesDir, 'modules', statusLookup, seen);
+  const moduleDirs = [modulesDir];
+  if (fs.existsSync(appModulesDir)) {
+    moduleDirs.push(appModulesDir);
+  }
+  for (const extra of extraModulesDirs) {
+    const resolved = path.resolve(extra);
+    if (fs.existsSync(resolved)) {
+      moduleDirs.push(resolved);
+    }
+  }
+
+  const fromModules: ModuleRecord[] = [];
+  for (const dir of moduleDirs) {
+    const records = await collectPackages(dir, 'modules', statusLookup, seen);
+    fromModules.push(...records);
+  }
   const fromNodeModules = includeNodeModules
     ? await collectPackages(nodeModulesDir, 'node_modules', statusLookup, seen)
     : [];

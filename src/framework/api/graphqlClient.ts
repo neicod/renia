@@ -21,8 +21,11 @@ export type GraphQLQueryAugmenter = (
   }
 ) => GraphQLQueryAugmentResult;
 
+export type GraphQLAuthErrorHandler = (error: Error, context: { request: GraphQLRequest }) => void;
+
 const globalHeaderAugmenters = new Set<GraphQLHeaderAugmenter>();
 const globalQueryAugmenters = new Set<GraphQLQueryAugmenter>();
+const authErrorHandlers = new Set<GraphQLAuthErrorHandler>();
 
 export const registerGraphQLHeaderAugmenter = (augmenter: GraphQLHeaderAugmenter) => {
   if (typeof augmenter !== 'function') return;
@@ -41,6 +44,24 @@ export const registerGraphQLQueryAugmenter = (augmenter: GraphQLQueryAugmenter) 
 export const getRegisteredGraphQLQueryAugmenters = (): GraphQLQueryAugmenter[] => [
   ...globalQueryAugmenters
 ];
+
+export const registerGraphQLAuthErrorHandler = (handler: GraphQLAuthErrorHandler) => {
+  if (typeof handler !== 'function') return;
+  authErrorHandlers.add(handler);
+};
+
+const notifyAuthErrorHandlers = (error: Error, request: GraphQLRequest) => {
+  authErrorHandlers.forEach((handler) => {
+    try {
+      handler(error, { request });
+    } catch (notifyError) {
+      console.error('[GraphQL][auth] handler failed', notifyError);
+    }
+  });
+};
+
+const isAuthError = (error: unknown): error is Error =>
+  error instanceof Error && error.message?.startsWith('Auth error:');
 
 const applyHeaderAugmenters = (
   headers: Record<string, string> | undefined,
@@ -124,11 +145,19 @@ export const executeGraphQLRequest = async (
     request
   );
 
-  return executeRequest({ ...request, headers, variables, payload });
+  try {
+    return await executeRequest({ ...request, headers, variables, payload });
+  } catch (error) {
+    if (isAuthError(error)) {
+      notifyAuthErrorHandlers(error, request);
+    }
+    throw error;
+  }
 };
 
 export default {
   registerGraphQLHeaderAugmenter,
   registerGraphQLQueryAugmenter,
+  registerGraphQLAuthErrorHandler,
   executeGraphQLRequest
 };

@@ -7,10 +7,12 @@ Centralna dokumentacja aplikacji znajdującej się w katalogu `frontend`. Zawier
 2. [Kontekst aplikacji i konfiguracja sklepu](#kontekst-aplikacji-i-konfiguracja-sklepu)
 3. [Warstwa GraphQL i augmentery](#warstwa-graphql-i-augmentery)
 4. [System modułów, slotów i interceptorów](#system-modułów-slotów-i-interceptorów)
-5. [Listing produktów i wyszukiwarka](#listing-produktów-i-wyszukiwarka)
-6. [Środowiska, build i testy](#środowiska-build-i-testy)
-7. [Debugowanie i logowanie](#debugowanie-i-logowanie)
-8. [Moduły – opis szczegółowy](#moduły--opis-szczegółowy)
+5. [Przechowywanie danych w przeglądarce](#przechowywanie-danych-w-przeglądarce)
+6. [Koszyk i CartManager](#koszyk-i-cartmanager)
+7. [Listing produktów i wyszukiwarka](#listing-produktów-i-wyszukiwarka)
+8. [Środowiska, build i testy](#środowiska-build-i-testy)
+9. [Debugowanie i logowanie](#debugowanie-i-logowanie)
+10. [Moduły – opis szczegółowy](#moduły--opis-szczegółowy)
 
 ---
 
@@ -64,6 +66,7 @@ Centralna dokumentacja aplikacji znajdującej się w katalogu `frontend`. Zawier
 ## System modułów, slotów i interceptorów
 
 - **Struktura modułu:** `package.json`, `registration.ts`, ewentualnie `routes.ts`, `layout.ts`, `interceptors/*`, `registerComponents.ts`, assets.
+- **Lokalizacja modułów:** nadal wspieramy historyczny katalog `modules/`, ale własne moduły najlepiej umieszczać w `app/modules/<vendor>/<module>` i instalować je ręcznie przez `npm install <nazwa>@file:app/modules/<vendor>/<module>`. Dzięki temu importy działają jak przy zwykłych paczkach npm, a loader SSR automatycznie wczytuje rejestracje z obu lokalizacji.
 - **Rejestr komponentów:** `registerComponent(s)` w `registerComponents.ts`; nazwy komponentów podaj jako stringi (bare specifiers), bo pliki ładowane są zarówno na SSR, jak i w bundlu klienta.
 - **Interceptory:** eksportują funkcję wywoływaną z API `slots.add` / `subslots.add`. Przy ich pomocy moduł może np. wstrzyknąć listing produktów na stronę kategorii.
 - **Zależności modułów:** zadeklaruj w `registration.ts` (`dependencies`), by loader wiedział, że moduł wymaga innych paczek.
@@ -75,7 +78,7 @@ Interceptory to preferowana metoda rozszerzania UI poza „własnym” modułem.
 - potrzebujesz reakcji na kontekst trasy (np. tylko dla `/category/*`, `/search`, `/product/:urlKey`),
 - chcesz zarejestrować SSR-owe dane (np. przekazać `initialListing` do slotu).
 
-Przykład interceptora w module katalogu (`modules/renia-magento-catalog/interceptors/category.ts`):
+Przykład interceptora w module katalogu (`app/modules/renia/magento-catalog/interceptors/category.ts`):
 
 ```ts
 // @env: mixed
@@ -166,6 +169,20 @@ registerComponent('renia-magento-catalog-search/components/SearchProductList', S
   });
   ```
 - Sloty działają na SSR i w kliencie; kolejność kontrolujesz `priority`, a wyłączenie następuje przez `enabled: false`.
+
+## Przechowywanie danych w przeglądarce
+
+1. **Centralny serwis `browserStorage`.** Wszystkie interakcje z `localStorage` przechodzą przez `@framework/storage/browserStorage`. Dzięki temu mamy 1) bezpieczny fallback poza przeglądarką, 2) statystyki odczytów/zapisów (`getUsageSnapshot()`).
+2. **Zasada projektu.** Nie importuj `window.localStorage` ani `sessionStorage` bezpośrednio w modułach – zamiast tego korzystaj z metod `browserStorage.getItem/setItem/removeItem`. Ułatwia to audyt użyć i wymusza jednolitą obsługę błędów.
+3. **Cache + TTL.** Moduły, które cache’ują dane (np. `renia-module-cart`), muszą przechowywać w strukturze `updatedAt` i usuwać przeterminowane wpisy (koszyk: 1 h). Dzięki temu UI nie będzie pokazywał nieaktualnych danych po powrocie użytkownika.
+4. **Hydratacja vs. SSR.** Dane zależne od użytkownika (np. liczba elementów koszyka) nie są renderowane na SSR – dopiero klient odczytuje je z `browserStorage`. To podejście jest bezpieczne przy użyciu cache’ów HTTP/Varnisha.
+
+## Koszyk i CartManager
+
+1. **Warstwy odpowiedzialności.** `renia-magento-cart` ma rozbitą logikę na repozytorium (`services/cartRepository.ts`), mapper (`cartMapper.ts`), synchronizator stanu (`cartStateSync.ts`) oraz menedżera (`services/cartManager.ts`). Dzięki temu łatwo wymienić pojedyncze warstwy w testach lub innych implementacjach.
+2. **`CartManagerProvider`.** Moduł eksportuje `CartManagerProvider` i hook `useCartManager()` (`import { CartManagerProvider, useCartManager } from 'renia-magento-cart'`). Domyślnie komponenty korzystają z globalnej instancji, ale można w testach opakować fragment drzewa własną implementacją menedżera.
+3. **Aktualizowanie liczby produktów.** `renia-module-cart` publikuje skrócone podsumowanie (`readCartQuantitySummary()` + `subscribeToCartQuantity()`), z którego korzysta m.in. `CartControlLink`. Dzięki temu licznik jest widoczny natychmiast po hydratacji, a każda operacja koszyka odświeża cache w `browserStorage`.
+4. **Obsługa błędów.** `registerCartErrorHandler()` pozwala innym modułom (np. `renia-magento-customer`) reagować na błędy koszyka – np. automatycznie odświeżyć sesję. Korzystaj z tego API zamiast ręcznie opakowywać każdą operację.
 
 ## Listing produktów i wyszukiwarka
 

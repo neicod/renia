@@ -13,6 +13,8 @@ import 'renia-magento-catalog/registerComponents';
 import 'renia-magento-catalog-search/registerComponents';
 import 'magento-product/registerComponents';
 import 'renia-layout/registerComponents';
+import 'renia-magento-cart-sidebar/registerComponents';
+import 'renia-magento-customer/registerComponents';
 
 const HomePage: React.FC = () => (
   <section className="card">

@@ -24,6 +24,7 @@ const app = express();
 const staticDir = path.resolve(process.cwd(), 'dist/public');
 const clientEntry = path.resolve(process.cwd(), 'src/client/index.tsx');
 const clientOutFile = path.join(staticDir, 'index.js');
+const assetVersionFile = path.join(staticDir, '.asset-version');
 
 let clientBundleReady = false;
 const ensureClientBundle = async () => {
@@ -56,6 +57,34 @@ await ensureClientBundle();
 
 app.use('/static', express.static(staticDir, { index: false }));
 app.use(express.json({ limit: '1mb' }));
+
+let cachedAssetVersion: { value: string | null; mtimeMs: number } | null = null;
+
+const readAssetVersion = () => {
+  try {
+    const stats = fs.statSync(assetVersionFile);
+    const version =
+      cachedAssetVersion && cachedAssetVersion.mtimeMs === stats.mtimeMs
+        ? cachedAssetVersion.value
+        : fs.readFileSync(assetVersionFile, 'utf8').trim() || null;
+    cachedAssetVersion = { value: version, mtimeMs: stats.mtimeMs };
+    return version;
+  } catch {
+    cachedAssetVersion = null;
+    return null;
+  }
+};
+
+const resolveClientAssetPath = () => {
+  const version = readAssetVersion();
+  if (version) {
+    return `/static/index.js?v=${encodeURIComponent(version)}`;
+  }
+  if (process.env.NODE_ENV !== 'production') {
+    return `/static/index.js?v=${Date.now()}`;
+  }
+  return '/static/index.js';
+};
 
 const sortByPriority = <T extends { priority?: number }>(entries: T[]) =>
   entries.slice().sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
@@ -145,6 +174,18 @@ app.post('/api/magento/graphql', async (req, res) => {
     console.error('Błąd proxy GraphQL:', error);
     res.status(502).json({ error: 'Proxy GraphQL nieosiągalne', details: String(error) });
   }
+});
+
+app.get('/favicon.ico', (req, res) => {
+  const faviconPath = path.join(staticDir, 'favicon.ico');
+  if (fs.existsSync(faviconPath)) {
+    return res.sendFile(faviconPath);
+  }
+  res.status(204).end();
+});
+
+app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
+  res.status(204).end();
 });
 
 app.get('*', async (req, res) => {
@@ -333,7 +374,7 @@ app.get('*', async (req, res) => {
     const html = htmlTemplate({
       appHtml,
       title: 'React SSR starter',
-      assetPath: '/static/index.js',
+      assetPath: resolveClientAssetPath(),
       bootstrap
     });
 
