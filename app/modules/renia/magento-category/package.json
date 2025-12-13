@@ -1,0 +1,13 @@
+{
+  "name": "renia-magento-category",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./index.ts",
+  "dependencies": {
+    "react": "^18.2.0",
+    "renia-layout": "file:../renia-layout",
+    "renia-graphql-client": "file:../renia-graphql-client",
+    "renia-magento-graphql-client": "file:../renia-magento-graphql-client",
+    "renia-menu": "file:../renia-menu"
+  }
+}

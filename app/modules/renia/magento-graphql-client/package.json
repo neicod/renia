@@ -1,0 +1,9 @@
+{
+  "name": "renia-magento-graphql-client",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "index.ts",
+  "dependencies": {
+    "renia-graphql-client": "file:../renia-graphql-client"
+  }
+}
