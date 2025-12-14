@@ -22,16 +22,8 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
   const toast = useToast();
   const manager = useCartManager();
 
-  logger.debug('ConfigurableAddToCartPanel', 'Rendering', {
-    sku: product.sku,
-    typename: (product as any).__typename
-  });
-
   // Only render for configurable products
   if (!isConfigurableProduct(product)) {
-    logger.debug('ConfigurableAddToCartPanel', 'Not a configurable product, returning null', {
-      sku: product.sku
-    });
     return null;
   }
 
@@ -58,22 +50,10 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
       return;
     }
 
-    logger.debug('ConfigurableAddToCartPanel', 'Adding to cart', {
-      productSku: product.sku,
-      variantSku: currentVariant.product.sku,
-      quantity: qty
-    });
-
     setAdding(true);
     try {
       await manager.addProduct({
         sku: currentVariant.product.sku,
-        quantity: qty
-      });
-
-      logger.info('ConfigurableAddToCartPanel', 'Added to cart successfully', {
-        productSku: product.sku,
-        variantSku: currentVariant.product.sku,
         quantity: qty
       });
 

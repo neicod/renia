@@ -17,10 +17,6 @@ export const DropdownSelector: React.FC<Props> = ({ values, selectedValue, onSel
     const val = e.target.value;
     if (val) {
       const valueIndex = Number(val);
-      logger.debug('DropdownSelector', 'Selected value', {
-        valueIndex,
-        label: values.find(v => v.valueIndex === valueIndex)?.label
-      });
       onSelect(valueIndex);
     }
   };

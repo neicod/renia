@@ -7,18 +7,6 @@ import type { StoreConfig } from 'renia-magento-store';
 import LayoutShell from 'renia-layout/components/LayoutShell';
 import type { SlotEntry as LayoutSlotEntry } from 'renia-layout/types';
 import { I18nProvider } from 'renia-i18n/context/I18nProvider';
-import 'renia-magento-cart/registerComponents';
-import 'renia-magento-wishlist/registerComponents';
-import 'renia-magento-configurable-product/registerComponents';
-import 'renia-magento-category/registerComponents';
-import 'renia-magento-catalog/registerComponents';
-import 'renia-magento-catalog-search/registerComponents';
-import 'magento-product/registerComponents';
-import 'renia-layout/registerComponents';
-import 'renia-magento-cart-sidebar/registerComponents';
-import 'renia-i18n/registerComponents';
-import 'renia-ui-toast/registerComponents';
-import 'renia-magento-customer/registerComponents';
 
 const HomePage: React.FC = () => (
   <section className="card">

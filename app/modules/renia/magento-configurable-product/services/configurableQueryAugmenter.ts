@@ -87,7 +87,13 @@ const CONFIGURABLE_PRODUCT_SELECTION: SelectionNode[] = [
 ];
 
 registerGraphQLQueryAugmenter((payload, ctx) => {
-    if (!ctx?.operationId?.startsWith('magentoProduct')) {
+    // Apply augmenter to product-related operations
+    const operationId = ctx?.operationId;
+    const isProductOperation =
+        operationId?.startsWith('magentoProduct') ||  // Product search, detail
+        operationId === 'magentoCatalog.categoryProducts';  // Category listing
+
+    if (!isProductOperation) {
         return;
     }
 

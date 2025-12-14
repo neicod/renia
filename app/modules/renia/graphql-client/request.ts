@@ -1,6 +1,9 @@
 // @env: mixed
 import type { AuthOption, GraphQLRequest, GraphQLPayload } from './types';
 import { QueryBuilder } from './builder';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 const getEnv = (key: string) =>
   typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
@@ -62,11 +65,13 @@ export const executeRequest = async (req: GraphQLRequest) => {
   try {
     const bodyContent = buildBody(req.payload, req.variables);
     if (getEnv('GRAPHQL_LOG_REQUEST') !== '0') {
-      console.info(
-        `[GraphQL][request] ${method} ${req.endpoint}\n` +
-          `vars: ${pretty(bodyContent.variables)}\n` +
-          `query:\n${truncate(bodyContent.query)}`
-      );
+
+      let reqLog = {
+        payload: req.payload instanceof QueryBuilder? req.payload.toString() : req.payload,
+        variables: req.variables,
+      };
+
+      logger.info('renia-graphql-client', `REQUEST: ${method} ${req.operationId || 'query'}`, reqLog);
     }
 
     const fetchOptions: RequestInit = {
@@ -78,7 +83,9 @@ export const executeRequest = async (req: GraphQLRequest) => {
     if (method === 'GET') {
       const params = new URLSearchParams();
       params.set('query', bodyContent.query);
-      if (bodyContent.variables) params.set('variables', JSON.stringify(bodyContent.variables));
+      if (bodyContent.variables) {
+        params.set('variables', JSON.stringify(bodyContent.variables));
+      }
       req.endpoint += (req.endpoint.includes('?') ? '&' : '?') + params.toString();
     } else {
       fetchOptions.body = JSON.stringify(bodyContent);
@@ -95,11 +102,17 @@ export const executeRequest = async (req: GraphQLRequest) => {
     }
 
     if (getEnv('GRAPHQL_LOG_RESPONSE') !== '0') {
-      console.info(
-        `[GraphQL][response] ${response.status} ${req.endpoint} (${duration}ms)\n` +
-          `errors: ${parsed.errors ? pretty(parsed.errors) : 'none'}\n` +
-          `data: ${parsed.data ? truncate(pretty(parsed.data), 800) : 'none'}`
-      );
+      if (parsed.errors) {
+        logger.warn('executeRequest', 'GraphQL response has errors', {
+          status: response.status,
+          endpoint: req.endpoint,
+          duration,
+          errorCount: parsed.errors.length,
+          operationId: req.operationId
+        });
+      } else {
+        logger.info('RESPONSE: renia-graphql-client', `${method} ${req.operationId || 'query'}`, response);
+      }
     }
 
     if (response.status === 401 || response.status === 403) {
@@ -114,9 +127,14 @@ export const executeRequest = async (req: GraphQLRequest) => {
     };
   } catch (error) {
     const duration = Date.now() - started;
-    console.error(
-      `[GraphQL][error] ${method} ${req.endpoint} (${duration}ms): ${(error as Error)?.message}`
-    );
+    logger.error('executeRequest', 'GraphQL request failed', {
+      method,
+      endpoint: req.endpoint,
+      duration,
+      operationId: req.operationId,
+      errorMessage: (error as Error)?.message,
+      errorName: (error as any)?.name
+    });
     if ((error as any)?.name === 'AbortError') {
       throw new Error(`GraphQL request timed out after ${timeout}ms`);
     }

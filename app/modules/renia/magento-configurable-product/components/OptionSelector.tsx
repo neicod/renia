@@ -3,9 +3,6 @@ import React from 'react';
 import type { ConfigurableOption } from '../types';
 import { SwatchButton } from './SwatchButton';
 import { DropdownSelector } from './DropdownSelector';
-import { getLogger } from 'renia-logger';
-
-const logger = getLogger();
 
 type Props = {
   option: ConfigurableOption;
@@ -22,16 +19,6 @@ export const OptionSelector: React.FC<Props> = ({
 }) => {
   const hasSwatches = option.values.some(v => v.swatchData);
   const selectedLabel = selectedValue !== undefined ? option.values.find(v => v.valueIndex === selectedValue)?.label : undefined;
-
-  React.useEffect(() => {
-    logger.debug('OptionSelector', 'Rendering option', {
-      optionCode: option.attributeCode,
-      selectedValue,
-      selectedLabel,
-      valuesCount: option.values.length,
-      hasSwatches
-    });
-  }, [option.attributeCode, selectedValue, selectedLabel, option.values.length, hasSwatches]);
 
   return (
     <div style={{ display: 'grid', gap: '0.5rem' }}>

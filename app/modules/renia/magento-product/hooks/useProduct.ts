@@ -20,21 +20,17 @@ export const useProduct = ({ urlKey }: UseProductOptions) => {
     let cancelled = false;
     const run = async () => {
       if (!urlKey) return;
-      logger.info('useProduct', 'Loading product', { urlKey });
       setStatus('loading');
       try {
         const data = await fetchProduct({ urlKey });
-        logger.info('useProduct', 'Product fetched', { found: !!data });
         if (!cancelled) {
           setProduct(data);
           setStatus('ready');
-          logger.debug('useProduct', 'Product state updated', { status: 'ready' });
         }
       } catch (err) {
         logger.error('useProduct', 'Error fetching product', { urlKey, error: err instanceof Error ? err.message : String(err) });
         if (!cancelled) {
           setStatus('error');
-          logger.info('useProduct', 'Status set to error');
         }
       }
     };

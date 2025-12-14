@@ -1,13 +1,9 @@
 // @env: mixed
 import { registerComponents } from '@framework/registry/componentRegistry';
-import { getLogger } from 'renia-logger';
 
 // Load augmenter and mapper
 import './services/configurableQueryAugmenter';
 import './services/configurableMapper';
-
-const logger = getLogger();
-logger.info('registerComponents', 'magento-configurable-product: Components registered');
 
 import { ConfigurableProductOptions } from './components/ConfigurableProductOptions';
 import { ConfigurableAddToCartPanel } from './components/ConfigurableAddToCartPanel';

@@ -27,6 +27,3 @@ export { SwatchButton } from './components/SwatchButton';
 export { DropdownSelector } from './components/DropdownSelector';
 export { SelectedVariantSummary } from './components/SelectedVariantSummary';
 export { ConfigurableProductListingWrapper } from './components/ConfigurableProductListingWrapper';
-
-
-logger.info('magento-configurable-product/index.ts', 'Module index loaded');

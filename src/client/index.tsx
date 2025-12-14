@@ -7,6 +7,20 @@ import { hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoot from '@framework/runtime/AppRoot';
 
+// Załaduj registerComponents wszystkich enabled modułów z app/etc/config.json
+// (moduły mają zdefiniowane zależności więc kolejność jest ważna)
+import 'renia-magento-cart/registerComponents';
+import 'renia-magento-wishlist/registerComponents';
+import 'renia-layout/registerComponents';
+import 'renia-magento-category/registerComponents';
+import 'magento-product/registerComponents';
+import 'renia-magento-catalog/registerComponents';
+import 'renia-magento-catalog-search/registerComponents';
+import 'renia-ui-toast/registerComponents';
+import 'renia-magento-cart-sidebar/registerComponents';
+import 'renia-magento-configurable-product/registerComponents';
+import 'renia-i18n/registerComponents';
+
 declare global {
   interface Window {
     __APP_BOOTSTRAP__?: any;

@@ -2,9 +2,6 @@
 import React from 'react';
 import type { ConfigurableProduct, ConfigurableVariant } from '../types';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
-import { getLogger } from 'renia-logger';
-
-const logger = getLogger();
 
 type Props = {
   product: ConfigurableProduct;
@@ -16,10 +13,6 @@ export const ConfigurableProductPrice: React.FC<Props> = ({ product, currentVari
 
   const displayPrice = React.useMemo(() => {
     if (currentVariant?.product.price) {
-      logger.debug('ConfigurableProductPrice', 'Using variant price', {
-        price: currentVariant.product.price.value,
-        currency: currentVariant.product.price.currency
-      });
       return {
         value: currentVariant.product.price.value,
         currency: currentVariant.product.price.currency,
@@ -43,10 +36,6 @@ export const ConfigurableProductPrice: React.FC<Props> = ({ product, currentVari
 
     // If all variants have the same price, treat as single price not range
     if (min === max) {
-      logger.debug('ConfigurableProductPrice', 'All variants same price', {
-        price: min,
-        currency
-      });
       return {
         value: min,
         currency,
@@ -54,12 +43,6 @@ export const ConfigurableProductPrice: React.FC<Props> = ({ product, currentVari
       };
     }
 
-    logger.debug('ConfigurableProductPrice', 'Price range calculated', {
-      min,
-      max,
-      currency,
-      variantCount: product.variants.length
-    });
     return {
       min,
       max,

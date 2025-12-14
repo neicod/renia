@@ -55,7 +55,6 @@ export const WishlistHeart: React.FC<Props> = ({product, variant = 'listing'}) =
 
     // Track hydration to avoid SSR/CSR mismatches
     React.useEffect(() => {
-        logger.debug('WishlistHeart', 'Component hydrated', {sku: product?.sku});
         setIsHydrated(true);
     }, []);
 
@@ -97,7 +96,6 @@ export const WishlistHeart: React.FC<Props> = ({product, variant = 'listing'}) =
         }
         setBusy(true);
         try {
-            logger.debug('WishlistHeart', 'Toggle wishlist', {sku: product.sku});
             const result = toggle(product);
             logger.info('WishlistHeart', 'Toggle completed', {
                 sku: product.sku,

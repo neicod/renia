@@ -1,6 +1,6 @@
 // @env: mixed
-import type { ProductInterface, ProductMedia, ProductPrice } from 'magento-product/types';
-import { getLogger } from 'renia-logger';
+import type {ProductInterface, ProductMedia, ProductPrice} from 'magento-product/types';
+import {getLogger} from 'renia-logger';
 
 const logger = getLogger();
 
@@ -50,17 +50,6 @@ export type ConfigurableProduct = ProductInterface & {
 
 export const isConfigurableProduct = (product: ProductInterface): product is ConfigurableProduct => {
   // Check if product has configurable product fields
-  const result =
-    product.__typename === 'ConfigurableProduct' ||
-    (Array.isArray((product as any).configurableOptions) && Array.isArray((product as any).variants));
-
-  logger.debug('isConfigurableProduct', 'Check result', {
-    sku: product.sku,
-    typename: product.__typename,
-    result,
-    hasConfigurableOptions: Array.isArray((product as any).configurableOptions),
-    hasVariants: Array.isArray((product as any).variants)
-  });
-
-  return result;
+  return product.__typename === 'ConfigurableProduct' ||
+      (Array.isArray((product as any).configurableOptions) && Array.isArray((product as any).variants));
 };

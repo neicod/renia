@@ -1,6 +1,7 @@
 // @env: mixed
 import { executeGraphQLRequest } from '@framework/api/graphqlClient';
-import type { Product } from 'magento-product/types';
+import type { ProductInterface } from 'magento-product/types';
+import { mapProduct } from 'magento-product/services/productMapper';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 import { buildCategoryProductsQuery } from './queries';
 
@@ -14,29 +15,6 @@ export type FetchCategoryProductsOptions = {
   headers?: Record<string, string>;
   timeoutMs?: number;
 };
-
-const mapProduct = (item: any): Product => ({
-  id: String(item?.id ?? item?.sku ?? Math.random()),
-  sku: item?.sku ?? '',
-  name: item?.name ?? '',
-  urlKey: item?.url_key ?? undefined,
-  urlPath: item?.url_path ?? undefined,
-  thumbnail: item?.small_image?.url
-    ? { url: item.small_image.url, label: item.small_image?.label }
-    : undefined,
-  price: item?.price_range?.minimum_price?.final_price
-    ? {
-        value: item.price_range.minimum_price.final_price.value,
-        currency: item.price_range.minimum_price.final_price.currency
-      }
-    : undefined,
-  priceOriginal: item?.price_range?.minimum_price?.regular_price
-    ? {
-        value: item.price_range.minimum_price.regular_price.value,
-        currency: item.price_range.minimum_price.regular_price.currency
-      }
-    : undefined
-});
 
 const buildFilter = (opts: FetchCategoryProductsOptions) => {
   const filters: string[] = [];
@@ -54,7 +32,7 @@ const buildFilter = (opts: FetchCategoryProductsOptions) => {
 
 export const fetchCategoryProducts = async (
   opts: FetchCategoryProductsOptions
-): Promise<{ items: Product[]; total: number; page: number; pageSize: number }> => {
+): Promise<{ items: ProductInterface[]; total: number; page: number; pageSize: number }> => {
   const page = opts.page ?? 1;
   const pageSize = opts.pageSize ?? 12;
   const filterString = buildFilter(opts);

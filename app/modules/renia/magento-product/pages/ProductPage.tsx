@@ -19,14 +19,10 @@ export const ProductPage: React.FC = () => {
 
     // Log state changes (useEffect to avoid render phase side effects)
     React.useEffect(() => {
-        if (product) {
-            logger.debug('ProductPage', 'Rendering ProductDetails', {urlKey, status, productId: product.id});
-        } else if (status === 'error') {
+        if (status === 'error') {
             logger.error('ProductPage', 'Error loading product', {status, urlKey});
-        } else if (status === 'ready') {
+        } else if (status === 'ready' && !product) {
             logger.warn('ProductPage', 'Product not found after successful load', {urlKey});
-        } else {
-            logger.debug('ProductPage', 'Waiting for product data', {status, urlKey});
         }
     }, [product, status, urlKey]);
 

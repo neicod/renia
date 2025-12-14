@@ -9,20 +9,9 @@ import type {
 } from '../types';
 import type { ProductMedia, ProductPrice, ProductMapperInterface } from 'magento-product/types';
 import { registerProductMapper } from 'magento-product/services/productMapper';
-import { getLogger } from 'renia-logger';
-
-const logger = getLogger();
 
 const configurableProductMapper: ProductMapperInterface = {
   map(item: any): ConfigurableProduct {
-    logger.debug('configurableProductMapper', 'Mapping configurable product', {
-      sku: item?.sku,
-      hasConfigurableOptions: !!item?.configurable_options,
-      hasVariants: !!item?.variants,
-      configurableOptionsCount: item?.configurable_options?.length ?? 0,
-      variantsCount: item?.variants?.length ?? 0
-    });
-
     const mapped = {
       id: String(item?.id ?? item?.sku ?? Math.random()),
       sku: item?.sku ?? '',
@@ -48,12 +37,6 @@ const configurableProductMapper: ProductMapperInterface = {
       configurableOptions: mapConfigurableOptions(item.configurable_options ?? []),
       variants: mapVariants(item.variants ?? [])
     };
-
-    logger.debug('configurableProductMapper', 'Mapped successfully', {
-      sku: mapped.sku,
-      mappedConfigurableOptionsCount: mapped.configurableOptions.length,
-      mappedVariantsCount: mapped.variants.length
-    });
 
     return mapped;
   }
