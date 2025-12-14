@@ -29,6 +29,7 @@ export const mapProductSearchResponse = (
   criteria: SearchCriteria
 ): ProductSearchResults => {
   const data: GraphQLProductsPayload = payload?.products ?? payload ?? {};
+
   const items = Array.isArray(data.items) ? data.items.map(mapProduct) : [];
   const total =
     typeof data.total_count === 'number' && Number.isFinite(data.total_count)

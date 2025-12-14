@@ -1,0 +1,15 @@
+{
+  "wishlist.link": "Wishlist",
+  "wishlist.toast.added": "Added to wishlist",
+  "wishlist.toast.removed": "Removed from wishlist",
+  "wishlist.heart.label.add": "Add to wishlist",
+  "wishlist.heart.label.remove": "Remove from wishlist",
+  "wishlist.page.title": "Wishlist",
+  "wishlist.page.subtitle": "Products you saved for later",
+  "wishlist.page.empty": "Your wishlist is empty.",
+  "wishlist.page.refresh": "Refresh products",
+  "wishlist.page.refreshing": "Refreshing…",
+  "wishlist.error.refresh": "Could not refresh wishlist data.",
+  "wishlist.price.pending": "Price available soon",
+  "wishlist.action.remove": "Remove"
+}

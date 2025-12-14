@@ -134,7 +134,7 @@ Layout opisuje, jakie komponenty domyślnie trafiają do slotów w danym module.
 // @env: mixed
 export default [
   { slot: 'control-menu', component: 'renia-magento-cart/components/CartControlLink', priority: 90 },
-  { slot: 'control-menu', component: 'magento-wishlist/components/WishlistControlLink', priority: 80 }
+  { slot: 'control-menu', component: 'renia-magento-wishlist/components/WishlistControlLink', priority: 80 }
 ];
 ```
 

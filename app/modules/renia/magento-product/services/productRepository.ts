@@ -6,12 +6,15 @@ import { fetchProduct } from './product';
 import { createProductSearchRequest } from './productSearchRequest';
 import { mapProductSearchResponse } from './productSearchResponse';
 import type { ProductSearchResults } from './productSearchResults';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 const getByUrlKey = async (urlKey: string): Promise<Product | null> => {
   try {
     return await fetchProduct({ urlKey });
   } catch (error) {
-    console.error('Error fetching product by urlKey', error);
+    logger.error('productRepository.getByUrlKey', 'Error fetching product', { urlKey, error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 };

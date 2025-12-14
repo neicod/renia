@@ -1,11 +1,11 @@
 // @env: mixed
 import React from 'react';
 import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
-import type { Product } from '../../types';
+import type { ProductInterface } from '../../types';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
 
 type Props = {
-  product: Product;
+  product: ProductInterface;
 };
 
 export const ProductDetails: React.FC<Props> = ({ product }) => {
@@ -13,6 +13,8 @@ export const ProductDetails: React.FC<Props> = ({ product }) => {
   const price = product.price
     ? `${product.price.value.toFixed(2)} ${product.price.currency}`
     : t('product.price.inCart');
+
+
 
   const originalDiffers =
     product.priceOriginal && product.price && product.priceOriginal.value !== product.price.value;

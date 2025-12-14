@@ -1,0 +1,15 @@
+{
+  "wishlist.link": "Wishlist",
+  "wishlist.toast.added": "Dodano do wishlisty",
+  "wishlist.toast.removed": "Usunięto z wishlisty",
+  "wishlist.heart.label.add": "Dodaj do wishlisty",
+  "wishlist.heart.label.remove": "Usuń z wishlisty",
+  "wishlist.page.title": "Wishlist",
+  "wishlist.page.subtitle": "Produkty zapisane na później",
+  "wishlist.page.empty": "Twoja lista życzeń jest pusta.",
+  "wishlist.page.refresh": "Odśwież produkty",
+  "wishlist.page.refreshing": "Odświeżanie…",
+  "wishlist.error.refresh": "Nie udało się odświeżyć danych wishlisty.",
+  "wishlist.price.pending": "Cena wkrótce dostępna",
+  "wishlist.action.remove": "Usuń"
+}

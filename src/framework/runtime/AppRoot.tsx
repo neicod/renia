@@ -8,7 +8,7 @@ import LayoutShell from 'renia-layout/components/LayoutShell';
 import type { SlotEntry as LayoutSlotEntry } from 'renia-layout/types';
 import { I18nProvider } from 'renia-i18n/context/I18nProvider';
 import 'renia-magento-cart/registerComponents';
-import 'magento-wishlist/registerComponents';
+import 'renia-magento-wishlist/registerComponents';
 import 'renia-magento-category/registerComponents';
 import 'renia-magento-catalog/registerComponents';
 import 'renia-magento-catalog-search/registerComponents';

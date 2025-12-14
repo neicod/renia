@@ -1,16 +1,22 @@
 // @env: mixed
 import React from 'react';
 import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
-import type { Product } from '../types';
+import type { ProductInterface } from '../types';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
+import { isConfigurableProduct, ConfigurableProductOptions, ConfigurableProductPrice, useConfigurableSelection } from 'renia-magento-configurable-product';
 
 type ProductTileProps = {
-  product: Product;
+  product: ProductInterface;
 };
 
 export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
   const link = `/product/${product.urlKey ?? product.sku}`;
   const { t } = useI18n();
+  const isConfigurable = isConfigurableProduct(product);
+
+  // Track variant selection for configurable products
+  const { currentVariant } = isConfigurable ? useConfigurableSelection(product) : { currentVariant: null };
+
   return (
     <article
       style={{
@@ -55,7 +61,11 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
         >
           {product.name}
         </a>
-        {product.price ? (
+
+        {/* Price Display */}
+        {isConfigurable ? (
+          <ConfigurableProductPrice product={product} currentVariant={currentVariant} />
+        ) : product.price ? (
           <div
             style={{
               display: 'inline-flex',
@@ -75,33 +85,21 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
         ) : (
           <div style={{ color: '#94a3b8', fontWeight: 600 }}>{t('product.price.inCart')}</div>
         )}
-        <a
-          href={link}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            padding: '0.4rem 0.75rem',
-            borderRadius: '999px',
-            border: '1px solid #dbe4ff',
-            color: '#1e3a8a',
-            fontSize: '0.9rem',
-            width: 'fit-content',
-            fontWeight: 600
+
+        {/* Configurable Product Options */}
+        {isConfigurable && (
+          <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <ConfigurableProductOptions product={product} />
+          </div>
+        )}
+
+        <SlotRenderer
+          name="product-listing-actions"
+          props={{
+            product,
+            variantSku: currentVariant?.product.sku
           }}
-        >
-          {t('product.cta.view')}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M5 12h14M13 6l6 6-6 6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </a>
-        <SlotRenderer name="product-listing-actions" props={{ product }} />
+        />
       </div>
     </article>
   );

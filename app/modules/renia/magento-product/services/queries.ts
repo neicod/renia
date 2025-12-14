@@ -8,6 +8,7 @@ const PRODUCT_IN_LIST_SELECTION: SelectionNode[] = [
   { name: 'name' },
   { name: 'url_key' },
   { name: 'url_path' },
+  { name: '__typename'},
   {
     name: 'small_image',
     children: [
@@ -97,6 +98,8 @@ export const buildProductDetailQuery = (filters: string): QueryBuilder => {
 
   builder.addField(['products'], 'items');
   builder.spreadFragment(['products', 'items'], 'ProductInList');
+
+
 
   return builder;
 };

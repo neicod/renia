@@ -1,8 +1,8 @@
 // @env: mixed
 import type { SearchResults } from '@framework/api';
-import type { Product, ProductSortOption } from '../types';
+import type { Product, ProductInterface, ProductSortOption } from '../types';
 
-export type ProductSearchResults = SearchResults<Product> & {
+export type ProductSearchResults = SearchResults<ProductInterface> & {
   sortOptions?: ProductSortOption[];
   defaultSort?: string;
 };

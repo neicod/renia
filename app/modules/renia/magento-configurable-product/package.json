@@ -1,0 +1,15 @@
+{
+  "name": "renia-magento-configurable-product",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./index.ts",
+  "dependencies": {
+    "react": "^18.2.0",
+    "magento-product": "file:../magento-product",
+    "renia-graphql-client": "file:../renia-graphql-client",
+    "renia-magento-graphql-client": "file:../renia-magento-graphql-client",
+    "renia-magento-cart": "file:../renia-magento-cart",
+    "renia-ui-toast": "file:../renia-ui-toast",
+    "renia-i18n": "file:../renia-i18n"
+  }
+}

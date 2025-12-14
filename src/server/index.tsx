@@ -19,7 +19,6 @@ import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { getStoreConfig } from 'renia-magento-store';
 import { loadMessages as loadI18nMessages } from 'renia-i18n/services/loader';
-import { loadMessages as loadI18nMessages } from 'renia-i18n/services/loader';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();

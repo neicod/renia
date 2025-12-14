@@ -1,0 +1,13 @@
+{
+  "configurableProduct.price.range": "Price range",
+  "configurableProduct.form.quantity": "Quantity",
+  "configurableProduct.action.add": "Add to Cart",
+  "configurableProduct.action.adding": "Adding...",
+  "configurableProduct.cart.pleaseSelectOptions": "Please select all options to add to cart",
+  "configurableProduct.cart.error.noVariant.title": "Selection Required",
+  "configurableProduct.cart.error.noVariant.description": "Please select all product options before adding to cart",
+  "configurableProduct.cart.error.title": "Error",
+  "configurableProduct.cart.error.generic": "Failed to add product to cart",
+  "configurableProduct.cart.success.title": "Added to Cart",
+  "configurableProduct.cart.success.description": "Added :qty× :name to your cart"
+}

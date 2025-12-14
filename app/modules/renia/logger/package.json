@@ -1,0 +1,13 @@
+{
+  "name": "renia-logger",
+  "version": "1.0.0",
+  "description": "Centralized logging system with level-based filtering for Renia",
+  "main": "index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

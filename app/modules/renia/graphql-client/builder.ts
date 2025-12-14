@@ -118,6 +118,7 @@ export class QueryBuilder {
 
   inlineFragment(path: string[], onType: string, selection: SelectionNode[]) {
     const node = this.ensurePath(path);
+
     const inlineNode: SelectionNode = { name: '__inline', inline: onType, children: selection };
     node.children = node.children ?? [];
     node.children.push(inlineNode);

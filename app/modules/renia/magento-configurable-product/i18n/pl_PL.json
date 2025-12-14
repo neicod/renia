@@ -1,0 +1,13 @@
+{
+  "configurableProduct.price.range": "Zakres cen",
+  "configurableProduct.form.quantity": "Ilość",
+  "configurableProduct.action.add": "Dodaj do koszyka",
+  "configurableProduct.action.adding": "Dodawanie...",
+  "configurableProduct.cart.pleaseSelectOptions": "Wybierz wszystkie opcje, aby dodać do koszyka",
+  "configurableProduct.cart.error.noVariant.title": "Wymagany wybór",
+  "configurableProduct.cart.error.noVariant.description": "Wybierz wszystkie opcje produktu, zanim dodasz go do koszyka",
+  "configurableProduct.cart.error.title": "Błąd",
+  "configurableProduct.cart.error.generic": "Nie udało się dodać produktu do koszyka",
+  "configurableProduct.cart.success.title": "Dodano do koszyka",
+  "configurableProduct.cart.success.description": "Dodano :qty× :name do koszyka"
+}

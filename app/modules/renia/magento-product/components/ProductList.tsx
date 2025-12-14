@@ -1,10 +1,10 @@
 // @env: mixed
 import React from 'react';
-import type { Product } from '../types';
+import type { ProductInterface } from '../types';
 import { ProductTile } from './ProductTile';
 
 type ProductListProps = {
-  products: Product[];
+  products: ProductInterface[];
   loading?: boolean;
   initialLoading?: boolean;
   error?: string | null;

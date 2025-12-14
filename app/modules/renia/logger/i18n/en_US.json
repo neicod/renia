@@ -1,0 +1,6 @@
+{
+  "logger.level.debug": "DEBUG",
+  "logger.level.info": "INFO",
+  "logger.level.warn": "WARN",
+  "logger.level.error": "ERROR"
+}
