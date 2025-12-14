@@ -4,6 +4,9 @@ import type { ConfigurableProduct } from '../types';
 import { useConfigurableSelection } from '../hooks/useConfigurableSelection';
 import { OptionSelector } from './OptionSelector';
 import { SelectedVariantSummary } from './SelectedVariantSummary';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 type Props = {
   product: ConfigurableProduct;
@@ -15,8 +18,19 @@ export const ConfigurableProductOptions: React.FC<Props> = ({ product, onVariant
     useConfigurableSelection(product);
 
   React.useEffect(() => {
+    logger.debug('ConfigurableProductOptions', 'Variant changed', {
+      productSku: product.sku,
+      currentVariantSku: currentVariant?.product.sku ?? null,
+      selectedOptions
+    });
     onVariantChange?.(currentVariant?.product.sku ?? null);
-  }, [currentVariant, onVariantChange]);
+  }, [currentVariant, onVariantChange, product.sku]);
+
+  logger.debug('ConfigurableProductOptions', 'Rendering', {
+    productSku: product.sku,
+    optionsCount: product.configurableOptions.length,
+    currentVariantSku: currentVariant?.product.sku ?? null
+  });
 
   return (
     <div style={{ display: 'grid', gap: '1rem' }}>

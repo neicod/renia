@@ -3,11 +3,12 @@ export default {
   version: '0.1.0',
   type: 'module',
   dependencies: [
-    'magento-product',
+    'renia-magento-catalog',
     'renia-graphql-client',
     'renia-magento-graphql-client',
     'renia-magento-cart',
     'renia-ui-toast',
-    'renia-i18n'
+    'renia-i18n',
+    'renia-interceptors'
   ]
 };

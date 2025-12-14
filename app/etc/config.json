@@ -17,6 +17,7 @@
     "renia-magento-cart-sidebar": 1,
     "renia-magento-configurable-product": 1,
     "renia-magento-customer": 0,
-    "renia-i18n": 1
+    "renia-i18n": 1,
+    "renia-logger": 1
   }
 }

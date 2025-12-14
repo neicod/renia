@@ -2,6 +2,9 @@
 import {registerGraphQLQueryAugmenter} from '@framework/api/graphqlClient';
 import {QueryBuilder} from 'renia-graphql-client/builder';
 import type {SelectionNode} from 'renia-graphql-client/types';
+import {getLogger} from 'renia-logger';
+
+const logger = getLogger();
 
 const CONFIGURABLE_PRODUCT_SELECTION: SelectionNode[] = [
     {name: '__typename'},
@@ -84,8 +87,7 @@ const CONFIGURABLE_PRODUCT_SELECTION: SelectionNode[] = [
 ];
 
 registerGraphQLQueryAugmenter((payload, ctx) => {
-
-    if (!ctx.operationId.startsWith('magentoProduct')) {
+    if (!ctx?.operationId?.startsWith('magentoProduct')) {
         return;
     }
 
@@ -96,8 +98,3 @@ registerGraphQLQueryAugmenter((payload, ctx) => {
     payload.inlineFragment(['products', 'items'], 'ConfigurableProduct', CONFIGURABLE_PRODUCT_SELECTION);
 });
 
-export const registerConfigurableAugmenter = () => {
-    // Augmenter is already registered at module load time
-};
-
-export default {registerConfigurableAugmenter};

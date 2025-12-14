@@ -1,6 +1,9 @@
 // @env: mixed
 import React from 'react';
 import type { ConfigurableProduct, ConfigurableVariant } from '../types';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 type SelectedOptions = Record<string, number>; // attributeCode -> valueIndex
 
@@ -16,16 +19,29 @@ export type UseConfigurableSelectionResult = {
 export const useConfigurableSelection = (product: ConfigurableProduct): UseConfigurableSelectionResult => {
   const [selectedOptions, setSelectedOptions] = React.useState<SelectedOptions>({});
 
+  React.useEffect(() => {
+    logger.debug('useConfigurableSelection', 'Hook initialized', {
+      productSku: product.sku,
+      optionsCount: product.configurableOptions?.length ?? 0,
+      variantsCount: product.variants?.length ?? 0
+    });
+  }, [product.sku]);
+
   // Normalize product data (handle both camelCase typed and snake_case raw API data)
   const options = React.useMemo(() => {
     if (!product.configurableOptions) return [];
-    return (product.configurableOptions as any[]).map(opt => ({
+    const normalized = (product.configurableOptions as any[]).map(opt => ({
       attributeCode: opt.attribute_code ?? opt.attributeCode ?? '',
       values: (opt.values ?? []).map((v: any) => ({
         valueIndex: v.value_index ?? v.valueIndex ?? 0,
         label: v.label ?? ''
       }))
     }));
+    logger.debug('useConfigurableSelection', 'Options normalized', {
+      optionsCount: normalized.length,
+      optionCodes: normalized.map(o => o.attributeCode)
+    });
+    return normalized;
   }, [product.configurableOptions]);
 
   const variants = React.useMemo(() => {
@@ -46,7 +62,18 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
     const requiredAttributes = options.map(opt => opt.attributeCode);
     const allSelected = requiredAttributes.every(code => selectedOptions[code] !== undefined);
 
-    if (!allSelected) return null;
+    logger.debug('useConfigurableSelection', 'Finding variant', {
+      requiredAttributes,
+      selectedOptions,
+      allSelected
+    });
+
+    if (!allSelected) {
+      logger.debug('useConfigurableSelection', 'Not all attributes selected', {
+        missing: requiredAttributes.filter(code => selectedOptions[code] === undefined)
+      });
+      return null;
+    }
 
     const found = variants.find(variant =>
       variant.attributes.every(attr => selectedOptions[attr.code] === attr.valueIndex)
@@ -54,8 +81,16 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
 
     // Return in ConfigurableVariant format expected by UI
     if (found) {
+      logger.debug('useConfigurableSelection', 'Variant found', {
+        variantSku: found.product.sku,
+        selectedOptions
+      });
       return found as any as ConfigurableVariant;
     }
+    logger.warn('useConfigurableSelection', 'No matching variant found', {
+      selectedOptions,
+      variantsCount: variants.length
+    });
     return null;
   }, [options, variants, selectedOptions]);
 
@@ -97,10 +132,18 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
   }, [options, variants, selectedOptions]);
 
   const selectOption = React.useCallback((attributeCode: string, valueIndex: number) => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [attributeCode]: valueIndex
-    }));
+    logger.debug('useConfigurableSelection', 'Selecting option', {
+      attributeCode,
+      valueIndex
+    });
+    setSelectedOptions(prev => {
+      const updated = {
+        ...prev,
+        [attributeCode]: valueIndex
+      };
+      logger.debug('useConfigurableSelection', 'Selected options updated', { updated });
+      return updated;
+    });
   }, []);
 
   const isOptionDisabled = React.useCallback(

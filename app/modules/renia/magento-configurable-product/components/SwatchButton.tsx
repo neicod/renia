@@ -1,6 +1,9 @@
 // @env: mixed
 import React from 'react';
 import type { ConfigurableOptionValue } from '../types';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 type Props = {
   value: ConfigurableOptionValue;
@@ -10,6 +13,17 @@ type Props = {
 };
 
 export const SwatchButton: React.FC<Props> = ({ value, selected, disabled, onClick }) => {
+  const handleClick = () => {
+    if (!disabled) {
+      logger.debug('SwatchButton', 'Clicked', {
+        valueIndex: value.valueIndex,
+        label: value.label,
+        swatchType: value.swatchData?.type
+      });
+      onClick();
+    }
+  };
+
   const getSwatchColor = (): string | undefined => {
     if (value.swatchData?.type === 'COLOR') {
       return value.swatchData.value;
@@ -42,7 +56,7 @@ export const SwatchButton: React.FC<Props> = ({ value, selected, disabled, onCli
     return (
       <button
         type="button"
-        onClick={onClick}
+        onClick={handleClick}
         disabled={disabled}
         aria-pressed={selected}
         title={value.label}
@@ -59,7 +73,7 @@ export const SwatchButton: React.FC<Props> = ({ value, selected, disabled, onCli
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       aria-pressed={selected}
       title={value.label}

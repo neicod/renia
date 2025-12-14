@@ -7,7 +7,6 @@ import { useCartManager } from '../context/CartManagerContext';
 
 type Props = {
   product: ProductInterface;
-  variantSku?: string; // For configurable products - SKU of selected variant
 };
 
 const cartButtonStyles = {
@@ -39,20 +38,17 @@ const CartIcon: React.FC<{ loading?: boolean }> = ({ loading }) => (
   </svg>
 );
 
-export const AddToCartButton: React.FC<Props> = ({ product, variantSku }) => {
+export const AddToCartButton: React.FC<Props> = ({ product }) => {
   const [adding, setAdding] = React.useState(false);
   const toast = useToast();
   const manager = useCartManager();
   const { t } = useI18n();
 
-  // Use variant SKU if provided (for configurable products), otherwise use product SKU
-  const skuToAdd = variantSku || product.sku;
-
   const handleAdd = React.useCallback(async () => {
-    if (!product || !skuToAdd) return;
+    if (!product || !product.sku) return;
     setAdding(true);
     try {
-      await manager.addProduct({ sku: skuToAdd, quantity: 1 });
+      await manager.addProduct({ sku: product.sku, quantity: 1 });
       toast({
         tone: 'success',
         title: t('cart.toast.added.title'),
@@ -70,7 +66,7 @@ export const AddToCartButton: React.FC<Props> = ({ product, variantSku }) => {
     } finally {
       setAdding(false);
     }
-  }, [product, skuToAdd, toast, manager, t]);
+  }, [product, toast, manager, t]);
 
   return (
     <button

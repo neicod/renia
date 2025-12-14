@@ -9,34 +9,53 @@ import type {
 } from '../types';
 import type { ProductMedia, ProductPrice, ProductMapperInterface } from 'magento-product/types';
 import { registerProductMapper } from 'magento-product/services/productMapper';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 const configurableProductMapper: ProductMapperInterface = {
   map(item: any): ConfigurableProduct {
-    return {
-    id: String(item?.id ?? item?.sku ?? Math.random()),
-    sku: item?.sku ?? '',
-    name: item?.name ?? '',
-    urlKey: item?.url_key ?? undefined,
-    urlPath: item?.url_path ?? undefined,
-    thumbnail: item?.small_image?.url
-      ? { url: item.small_image.url, label: item.small_image?.label }
-      : undefined,
-    price: item?.price_range?.minimum_price?.final_price
-      ? {
-          value: item.price_range.minimum_price.final_price.value,
-          currency: item.price_range.minimum_price.final_price.currency
-        }
-      : undefined,
-    priceOriginal: item?.price_range?.minimum_price?.regular_price
-      ? {
-          value: item.price_range.minimum_price.regular_price.value,
-          currency: item.price_range.minimum_price.regular_price.currency
-        }
-      : undefined,
-    __typename: 'ConfigurableProduct',
-    configurableOptions: mapConfigurableOptions(item.configurable_options ?? []),
-    variants: mapVariants(item.variants ?? [])
+    logger.debug('configurableProductMapper', 'Mapping configurable product', {
+      sku: item?.sku,
+      hasConfigurableOptions: !!item?.configurable_options,
+      hasVariants: !!item?.variants,
+      configurableOptionsCount: item?.configurable_options?.length ?? 0,
+      variantsCount: item?.variants?.length ?? 0
+    });
+
+    const mapped = {
+      id: String(item?.id ?? item?.sku ?? Math.random()),
+      sku: item?.sku ?? '',
+      name: item?.name ?? '',
+      urlKey: item?.url_key ?? undefined,
+      urlPath: item?.url_path ?? undefined,
+      thumbnail: item?.small_image?.url
+        ? { url: item.small_image.url, label: item.small_image?.label }
+        : undefined,
+      price: item?.price_range?.minimum_price?.final_price
+        ? {
+            value: item.price_range.minimum_price.final_price.value,
+            currency: item.price_range.minimum_price.final_price.currency
+          }
+        : undefined,
+      priceOriginal: item?.price_range?.minimum_price?.regular_price
+        ? {
+            value: item.price_range.minimum_price.regular_price.value,
+            currency: item.price_range.minimum_price.regular_price.currency
+          }
+        : undefined,
+      __typename: 'ConfigurableProduct',
+      configurableOptions: mapConfigurableOptions(item.configurable_options ?? []),
+      variants: mapVariants(item.variants ?? [])
     };
+
+    logger.debug('configurableProductMapper', 'Mapped successfully', {
+      sku: mapped.sku,
+      mappedConfigurableOptionsCount: mapped.configurableOptions.length,
+      mappedVariantsCount: mapped.variants.length
+    });
+
+    return mapped;
   }
 };
 

@@ -19,9 +19,6 @@ export interface ProductInterface {
   price?: ProductPrice;
   priceOriginal?: ProductPrice;
   __typename: string;
-  // Optional configurable product fields
-  configurableOptions?: any[];
-  variants?: any[];
 }
 
 export type Product = ProductInterface & {

@@ -99,7 +99,5 @@ export const buildProductDetailQuery = (filters: string): QueryBuilder => {
   builder.addField(['products'], 'items');
   builder.spreadFragment(['products', 'items'], 'ProductInList');
 
-
-
   return builder;
 };

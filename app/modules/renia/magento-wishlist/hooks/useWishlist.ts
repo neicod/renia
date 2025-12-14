@@ -12,9 +12,22 @@ export type UseWishlistResult = {
 };
 
 export const useWishlist = (): UseWishlistResult => {
-  const [items, setItems] = React.useState<WishlistSnapshot[]>(() => wishlistStore.getItems());
+  // Initialize with empty array on both SSR and CSR to ensure hydration match
+  // The effect below will load from store on CSR only
+  const [items, setItems] = React.useState<WishlistSnapshot[]>([]);
 
-  React.useEffect(() => wishlistStore.subscribe(setItems), []);
+  React.useEffect(() => {
+    // Only load from store and subscribe on CSR (client-side)
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    // Load initial items from store
+    setItems(wishlistStore.getItems());
+
+    // Subscribe to store updates
+    return wishlistStore.subscribe(setItems);
+  }, []);
 
   return React.useMemo(
     () => ({

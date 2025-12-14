@@ -1,6 +1,9 @@
 // @env: mixed
 import React from 'react';
 import type { ConfigurableOptionValue } from '../types';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 type Props = {
   values: ConfigurableOptionValue[];
@@ -10,13 +13,22 @@ type Props = {
 };
 
 export const DropdownSelector: React.FC<Props> = ({ values, selectedValue, onSelect, isValueDisabled }) => {
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val) {
+      const valueIndex = Number(val);
+      logger.debug('DropdownSelector', 'Selected value', {
+        valueIndex,
+        label: values.find(v => v.valueIndex === valueIndex)?.label
+      });
+      onSelect(valueIndex);
+    }
+  };
+
   return (
     <select
       value={selectedValue ?? ''}
-      onChange={e => {
-        const val = e.target.value;
-        if (val) onSelect(Number(val));
-      }}
+      onChange={handleChange}
       style={{
         padding: '0.5rem 0.75rem',
         borderRadius: '0.5rem',

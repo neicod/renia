@@ -1,6 +1,7 @@
 # Instrukcje dla agentów
 
 1. Odpowiadaj po polsku i zwięźle.
+1. **[KRYTYCZNE] Modułowe rozszerzenia:** Moduł A nigdy nie modyfikuje kodu modułu B. Rozszerzenia implementuj poprzez interceptory, sloty, augmentacje GraphQL lub publiczne API modułu docelowego. Każdy moduł musi być wyłączalny w `config.json` bez wpływu na działanie innych. Nowa funkcjonalność = nowy moduł, który rozszerza istniejące moduły, nie modyfikuje ich.
 1. Zanim zaczniesz, zerknij do `README.md` (przegląd architektury), `docs/MODULES.md` (opis modułów) **oraz `docs/concept.md` w obrębie modułu**, żeby znać jego kontrakty; aktualizuj dokumentację i koncepty, jeśli dokładasz nowe możliwości.
 1. Nigdy nie używaj `window.localStorage` bezpośrednio – zawsze korzystaj z serwisu `@framework/storage/browserStorage`, aby centralnie śledzić operacje.
 1. Pliki tłumaczeń modułów trzymaj w `app/modules/<vendor>/<module>/i18n/<lang>.json` (wewnątrz katalogu `frontend`). Override’y higher-level trafiają do `app/i18n`. Nie zostawiaj kopii w innych miejscach.
@@ -41,3 +42,8 @@
 1. Rejestr komponentów: używaj `src/framework/registry/componentRegistry.ts`. `registerComponents.ts` w module służy tylko do rejestracji.
 1. Są dwa rejestry komponentów (`componentRegistryServer` i `componentRegistryClient`); importuj właściwy, jeśli potrzebujesz specyficznego środowiska.
 1. Pliki `registerComponents.*` są automatycznie ładowane przez `src/framework/registry/loadModuleComponents`; nie dodawaj w nich efektów ubocznych innych niż rejestracja.
+1. Struktura katalogów modułów: w głównym folderze modułu trzymaj tylko `package.json`, `registration.js`, `index.ts`, `types.ts` (i18n, docs jeśli istnieją). Kod umieszczaj w podkatalogach: `components/`, `hooks/`, `services/`, `interceptors/`, `pages/`, `utils/`. Nie twórz dodatkowych katalogów w główce modułu.
+1. Śledzenie postępu: przy złożonych zadaniach (3+ kroki, wiele zmian) używaj `TodoWrite` do zarządzania listą zadań; zaznaczaj status (`pending`/`in_progress`/`completed`) i aktualizuj po każdym kroku.
+1. Logowanie: zawsze używaj `getLogger()` z modułu `renia-logger` zamiast `console.log/warn/error`. Tworz loggera na poziomie modułu: `const logger = getLogger();` i używaj: `logger.debug()`, `logger.info()`, `logger.warn()`, `logger.error()` z nazwą modułu jako pierwszy argument.
+1. Kontrakt produktu: wszystkie typy produktów muszą implementować `ProductInterface` z wspólnymi polami (`id`, `sku`, `name`, `urlKey`, `thumbnail`, `price`, `__typename`). Do dyskryminacji typów używaj type guard'ów (np. `isConfigurableProduct(product): product is ConfigurableProduct`) zamiast casów po `__typename`.
+1. Polimorfizm typów: dla produktów stosuj wzorzec `ProductInterface & { __typename: 'SpecificType' }` – komponenty przyjmują `ProductInterface` i wykorzystują type guardy do renderowania specyficznego UI dla każdego typu.

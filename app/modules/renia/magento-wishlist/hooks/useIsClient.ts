@@ -2,13 +2,13 @@
 import React from 'react';
 
 export const useIsClient = () => {
-  const [isClient, setIsClient] = React.useState(() => typeof window !== 'undefined');
+  // Always initialize with false on both SSR and CSR to ensure hydration match
+  // The effect will set it to true on CSR after hydration is complete
+  const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
-    if (!isClient) {
-      setIsClient(true);
-    }
-  }, [isClient]);
+    setIsClient(true);
+  }, []);
 
   return isClient;
 };

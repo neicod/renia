@@ -9,6 +9,9 @@ import { ConfigurableProductPrice } from './ConfigurableProductPrice';
 import { useCartManager } from 'renia-magento-cart/context/CartManagerContext';
 import { useToast } from 'renia-ui-toast/hooks/useToast';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
 
 type Props = {
   product: ProductInterface;
@@ -18,9 +21,17 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
   const { t } = useI18n();
   const toast = useToast();
   const manager = useCartManager();
-console.log(product);
+
+  logger.debug('ConfigurableAddToCartPanel', 'Rendering', {
+    sku: product.sku,
+    typename: (product as any).__typename
+  });
+
   // Only render for configurable products
   if (!isConfigurableProduct(product)) {
+    logger.debug('ConfigurableAddToCartPanel', 'Not a configurable product, returning null', {
+      sku: product.sku
+    });
     return null;
   }
 
@@ -36,6 +47,9 @@ console.log(product);
     event.preventDefault();
 
     if (!currentVariant) {
+      logger.warn('ConfigurableAddToCartPanel', 'Submit blocked - no variant selected', {
+        sku: product.sku
+      });
       toast({
         tone: 'warning',
         title: t('configurableProduct.cart.error.noVariant.title'),
@@ -44,10 +58,22 @@ console.log(product);
       return;
     }
 
+    logger.debug('ConfigurableAddToCartPanel', 'Adding to cart', {
+      productSku: product.sku,
+      variantSku: currentVariant.product.sku,
+      quantity: qty
+    });
+
     setAdding(true);
     try {
       await manager.addProduct({
         sku: currentVariant.product.sku,
+        quantity: qty
+      });
+
+      logger.info('ConfigurableAddToCartPanel', 'Added to cart successfully', {
+        productSku: product.sku,
+        variantSku: currentVariant.product.sku,
         quantity: qty
       });
 
@@ -60,7 +86,12 @@ console.log(product);
         })
       });
     } catch (error) {
-      console.error('[ConfigurableAddToCartPanel] Failed to add product', error);
+      logger.error('ConfigurableAddToCartPanel', 'Failed to add product to cart', {
+        productSku: product.sku,
+        variantSku: currentVariant.product.sku,
+        quantity: qty,
+        error: error instanceof Error ? error.message : String(error)
+      });
       const fallbackDesc = t('configurableProduct.cart.error.generic');
       const message = error instanceof Error ? error.message : fallbackDesc;
       toast({

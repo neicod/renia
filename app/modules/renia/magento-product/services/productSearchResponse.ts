@@ -3,6 +3,19 @@ import type { SearchCriteria } from '@framework/api';
 import type { ProductSortOption } from '../types';
 import type { ProductSearchResults } from './productSearchResults';
 import { mapProduct } from './productMapper';
+import { getLogger } from 'renia-logger';
+
+const logger = getLogger();
+
+// Ensure configurable product augmenter is loaded on client-side
+// This runs before any GraphQL queries are executed
+import('renia-magento-configurable-product/services/configurableQueryAugmenter').then(() => {
+  logger.debug('productSearchResponse', 'Configurable product augmenter loaded successfully');
+}).catch((error) => {
+  logger.warn('productSearchResponse', 'Configurable product augmenter not available - configurable products may not render options', {
+    error: error instanceof Error ? error.message : String(error)
+  });
+});
 
 type GraphQLProductsPayload = {
   items?: any[];

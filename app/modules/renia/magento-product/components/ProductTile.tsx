@@ -3,7 +3,6 @@ import React from 'react';
 import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
 import type { ProductInterface } from '../types';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
-import { isConfigurableProduct, ConfigurableProductOptions, ConfigurableProductPrice, useConfigurableSelection } from 'renia-magento-configurable-product';
 
 type ProductTileProps = {
   product: ProductInterface;
@@ -12,10 +11,6 @@ type ProductTileProps = {
 export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
   const link = `/product/${product.urlKey ?? product.sku}`;
   const { t } = useI18n();
-  const isConfigurable = isConfigurableProduct(product);
-
-  // Track variant selection for configurable products
-  const { currentVariant } = isConfigurable ? useConfigurableSelection(product) : { currentVariant: null };
 
   return (
     <article
@@ -63,9 +58,7 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
         </a>
 
         {/* Price Display */}
-        {isConfigurable ? (
-          <ConfigurableProductPrice product={product} currentVariant={currentVariant} />
-        ) : product.price ? (
+        {product.price ? (
           <div
             style={{
               display: 'inline-flex',
@@ -86,18 +79,10 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
           <div style={{ color: '#94a3b8', fontWeight: 600 }}>{t('product.price.inCart')}</div>
         )}
 
-        {/* Configurable Product Options */}
-        {isConfigurable && (
-          <div style={{ display: 'grid', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <ConfigurableProductOptions product={product} />
-          </div>
-        )}
-
         <SlotRenderer
           name="product-listing-actions"
           props={{
-            product,
-            variantSku: currentVariant?.product.sku
+            product
           }}
         />
       </div>
