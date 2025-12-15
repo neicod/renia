@@ -7,27 +7,8 @@ type Props = {
 };
 
 export const SelectedVariantSummary: React.FC<Props> = ({ variant }) => {
-  return (
-    <div
-      style={{
-        padding: '0.75rem 1rem',
-        borderRadius: '0.5rem',
-        background: '#f0f9ff',
-        border: '1px solid #bfdbfe'
-      }}
-    >
-      {variant.product.price && (
-        <div style={{ fontSize: '0.875rem', color: '#1e40af', marginTop: '0.25rem' }}>
-          Price: {variant.product.price.value.toFixed(2)} {variant.product.price.currency}
-        </div>
-      )}
-      {variant.product.stockStatus === 'OUT_OF_STOCK' && (
-        <div style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '0.25rem' }}>
-          Out of stock
-        </div>
-      )}
-    </div>
-  );
+  // Don't render anything - variant info is shown in options selector
+  return null;
 };
 
 export default SelectedVariantSummary;
