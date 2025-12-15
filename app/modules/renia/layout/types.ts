@@ -4,6 +4,7 @@ export type SlotDefinition = {
   component?: string;
   componentPath?: string;
   priority?: number;
+  category?: string;
   props?: Record<string, unknown>;
   meta?: Record<string, unknown>;
 };
