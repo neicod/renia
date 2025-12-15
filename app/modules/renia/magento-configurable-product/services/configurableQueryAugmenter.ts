@@ -2,9 +2,6 @@
 import {registerGraphQLQueryAugmenter} from '@framework/api/graphqlClient';
 import {QueryBuilder} from 'renia-graphql-client/builder';
 import type {SelectionNode} from 'renia-graphql-client/types';
-import {getLogger} from 'renia-logger';
-
-const logger = getLogger();
 
 // Import product base selection to include in configurable product
 import { PRODUCT_IN_LIST_SELECTION } from 'magento-product/services/queries';
@@ -105,8 +102,6 @@ registerGraphQLQueryAugmenter((payload, ctx) => {
     if (!(payload instanceof QueryBuilder)) {
         return;
     }
-
-    logger.debug('configurableQueryAugmenter', 'Adding inline fragment for ConfigurableProduct', { operationId });
 
     // Add inline fragment for ConfigurableProduct type with all fields
     payload.inlineFragment(['products', 'items'], 'ConfigurableProduct', CONFIGURABLE_PRODUCT_SELECTION);

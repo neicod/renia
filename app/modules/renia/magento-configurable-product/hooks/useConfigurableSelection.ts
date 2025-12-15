@@ -33,10 +33,6 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
         label: v.label ?? ''
       }))
     }));
-    logger.debug('useConfigurableSelection', 'Normalized options', {
-      optionsCount: normalized.length,
-      options: normalized
-    });
     return normalized;
   }, [product.configurableOptions]);
 
@@ -54,13 +50,6 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
         valueIndex: a.value_index ?? a.valueIndex ?? 0
       }))
     }));
-    logger.debug('useConfigurableSelection', 'Loaded variants', {
-      variantsCount: mapped.length,
-      samples: mapped.slice(0, 2).map(v => ({
-        sku: v.product.sku,
-        attributes: v.attributes
-      }))
-    });
     return mapped;
   }, [product.variants]);
 
@@ -73,22 +62,8 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
       return null;
     }
 
-    logger.debug('useConfigurableSelection', 'Searching for variant', {
-      selectedOptions,
-      requiredAttributes,
-      variantsCount: variants.length,
-      variants: variants.slice(0, 3) // Log first 3 variants for debugging
-    });
-
     const found = variants.find(variant => {
       const match = variant.attributes.every(attr => selectedOptions[attr.code] === attr.valueIndex);
-      if (!match) {
-        logger.debug('useConfigurableSelection', 'Variant mismatch', {
-          variantAttributes: variant.attributes,
-          selectedOptions,
-          sku: variant.product.sku
-        });
-      }
       return match;
     }) ?? null;
 
