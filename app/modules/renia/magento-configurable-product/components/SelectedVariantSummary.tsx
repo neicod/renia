@@ -16,9 +16,6 @@ export const SelectedVariantSummary: React.FC<Props> = ({ variant }) => {
         border: '1px solid #bfdbfe'
       }}
     >
-      <div style={{ fontSize: '0.875rem', color: '#1e40af', fontWeight: 500 }}>
-        {variant.attributes.map(a => a.label).join(', ')}
-      </div>
       {variant.product.price && (
         <div style={{ fontSize: '0.875rem', color: '#1e40af', marginTop: '0.25rem' }}>
           Price: {variant.product.price.value.toFixed(2)} {variant.product.price.currency}
