@@ -34,13 +34,22 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
   const configurableProduct = product as ConfigurableProduct;
 
   const [adding, setAdding] = React.useState(false);
+  const [showError, setShowError] = React.useState(false);
 
   const { currentVariant, selectedOptions, selectOption, isOptionDisabled } = useConfigurableSelection(configurableProduct);
+
+  // Ukryj błąd gdy wariant zostanie wybrany
+  React.useEffect(() => {
+    if (currentVariant && showError) {
+      setShowError(false);
+    }
+  }, [currentVariant, showError]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!currentVariant) {
+      setShowError(true);
       logger.warn('ConfigurableAddToCartPanel', 'Submit blocked - no variant selected', {
         sku: product.sku
       });
@@ -51,6 +60,8 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
       });
       return;
     }
+
+    setShowError(false);
 
     // Generate base64-encoded selected options for Magento GraphQL
     const encodedOptions = generateSelectedOptions(
@@ -125,7 +136,7 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
           🛒
         </button>
 
-        {!currentVariant && (
+        {showError && (
           <div
             style={{
               color: '#92400e',
