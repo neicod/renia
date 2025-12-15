@@ -7,15 +7,28 @@ import {ProductDetails} from './components/ProductDetails';
 import {ProductStatus} from './components/ProductStatus';
 import {useI18n} from 'renia-i18n/hooks/useI18n';
 import {getLogger} from 'renia-logger';
+import type { ProductInterface } from '../types';
 
 const logger = getLogger();
 
-export const ProductPage: React.FC = () => {
+type ProductPageProps = {
+  meta?: Record<string, unknown>;
+};
+
+export const ProductPage: React.FC<ProductPageProps> = ({ meta }) => {
     const params = useParams();
     const urlKey = params.urlKey ?? params['*'];
     const endpoint = React.useMemo(() => readEndpoint(), []);
     const {t} = useI18n();
-    const {product, status} = useProduct({urlKey});
+
+    // Use preloaded product from SSR route handler if available
+    const preloadedProduct = React.useMemo(
+      () => (meta as any)?.product as ProductInterface | undefined,
+      [meta]
+    );
+
+    const {product: fetchedProduct, status} = useProduct({urlKey: preloadedProduct ? null : urlKey});
+    const product = preloadedProduct ?? fetchedProduct;
 
     // Log state changes (useEffect to avoid render phase side effects)
     React.useEffect(() => {

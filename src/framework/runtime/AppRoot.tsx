@@ -96,7 +96,7 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
                   element={
                     <LayoutShell
                       layout={layout}
-                      main={<Comp />}
+                      main={<Comp meta={route.meta} />}
                       resolveComponent={resolveComponent}
                       slots={bootstrap.slots}
                       layoutSlots={bootstrap.layoutSlots}
