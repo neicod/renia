@@ -5,3 +5,4 @@ export { ConfigurableAddToCartPanel } from './components/ConfigurableAddToCartPa
 export { ConfigurableProductListingWrapper } from './components/ConfigurableProductListingWrapper';
 
 export { generateSelectedOptions, encodeConfigurableOption } from './services/optionsEncoder';
+export { registerStrategies } from './registerStrategies';
