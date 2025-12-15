@@ -1,6 +1,7 @@
 // @env: mixed
 import React from 'react';
 import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
+import { ProductAddToCartResolver } from '@framework/layout/ProductAddToCartResolver';
 import type { ProductInterface } from '../types';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
 
@@ -16,12 +17,12 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
     <article
       style={{
         display: 'grid',
-        gap: '0.75rem',
-        borderRadius: '14px',
-        padding: '1.1rem',
+        gap: '0.5rem',
+        borderRadius: '8px',
+        padding: '0.75rem',
         background: '#ffffff',
-        border: '1px solid #e4eaf5',
-        boxShadow: '0 10px 25px rgba(15, 23, 42, 0.08)',
+        border: '1px solid #e5e5e5',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)',
         transition: 'transform 160ms ease, box-shadow 160ms ease'
       }}
     >
@@ -30,11 +31,11 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
           href={link}
           style={{
             display: 'block',
-            aspectRatio: '4 / 5',
+            aspectRatio: '3 / 4',
             overflow: 'hidden',
-            borderRadius: '12px',
-            background: '#f4f6fb',
-            border: '1px solid #edf1fb'
+            borderRadius: '6px',
+            background: '#f5f5f5',
+            border: '1px solid #f0f0f0'
           }}
         >
           <img
@@ -44,14 +45,14 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
           />
         </a>
       ) : null}
-      <div style={{ display: 'grid', gap: '0.4rem' }}>
+      <div style={{ display: 'grid', gap: '0.3rem' }}>
         <a
           href={link}
           style={{
-            fontWeight: 700,
-            color: '#0f172a',
-            fontSize: '1rem',
-            lineHeight: 1.35
+            fontWeight: 600,
+            color: '#1a1a1a',
+            fontSize: '0.95rem',
+            lineHeight: 1.3
           }}
         >
           {product.name}
@@ -64,27 +65,31 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.3rem',
-              padding: '0.25rem 0.65rem',
-              borderRadius: '999px',
-              background: 'rgba(76, 110, 245, 0.12)',
-              color: '#364fc7',
-              fontWeight: 600,
-              fontSize: '0.95rem',
+              padding: '0',
+              borderRadius: '0',
+              background: 'transparent',
+              color: '#1a1a1a',
+              fontWeight: 700,
+              fontSize: '1rem',
               width: 'fit-content'
             }}
           >
             {product.price.value.toFixed(2)} {product.price.currency}
           </div>
         ) : (
-          <div style={{ color: '#94a3b8', fontWeight: 600 }}>{t('product.price.inCart')}</div>
+          <div style={{ color: '#757575', fontWeight: 600, fontSize: '0.9rem' }}>{t('product.price.inCart')}</div>
         )}
 
+        {/* Universal slot - Wishlist, Share, itd */}
         <SlotRenderer
-          name="product-listing-actions"
+          name="product-listing-actions-universal"
           props={{
             product
           }}
         />
+
+        {/* Type-specific component - Add to Cart per product type */}
+        <ProductAddToCartResolver product={product} />
       </div>
     </article>
   );

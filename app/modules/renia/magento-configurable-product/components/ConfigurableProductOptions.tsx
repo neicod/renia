@@ -2,17 +2,34 @@
 import React from 'react';
 import type { ConfigurableProduct } from '../types';
 import { useConfigurableSelection } from '../hooks/useConfigurableSelection';
+import type { UseConfigurableSelectionResult } from '../hooks/useConfigurableSelection';
 import { OptionSelector } from './OptionSelector';
 import { SelectedVariantSummary } from './SelectedVariantSummary';
 
 type Props = {
   product: ConfigurableProduct;
   onVariantChange?: (variantSku: string | null) => void;
+  // Optional: if parent provides selection state, use it instead of hook
+  selectedOptions?: Record<string, number>;
+  selectOption?: (attributeCode: string, valueIndex: number) => void;
+  isOptionDisabled?: (attributeCode: string, valueIndex: number) => boolean;
+  currentVariant?: UseConfigurableSelectionResult['currentVariant'];
 };
 
-export const ConfigurableProductOptions: React.FC<Props> = ({ product, onVariantChange }) => {
-  const { selectedOptions, currentVariant, selectOption, isOptionDisabled } =
-    useConfigurableSelection(product);
+export const ConfigurableProductOptions: React.FC<Props> = ({
+  product,
+  onVariantChange,
+  selectedOptions: propsSelectedOptions,
+  selectOption: propsSelectOption,
+  isOptionDisabled: propsIsOptionDisabled,
+  currentVariant: propsCurrentVariant
+}) => {
+  // Use provided state from parent, or fall back to hook if not provided
+  const hookResult = useConfigurableSelection(product);
+  const selectedOptions = propsSelectedOptions ?? hookResult.selectedOptions;
+  const selectOption = propsSelectOption ?? hookResult.selectOption;
+  const isOptionDisabled = propsIsOptionDisabled ?? hookResult.isOptionDisabled;
+  const currentVariant = propsCurrentVariant ?? hookResult.currentVariant;
 
   React.useEffect(() => {
     onVariantChange?.(currentVariant?.product.sku ?? null);

@@ -25,6 +25,9 @@ import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { getStoreConfig } from 'renia-magento-store';
 import { loadMessages as loadI18nMessages } from 'renia-i18n/services/loader';
+// Załaduj strategie produktów (per type)
+import { registerStrategies as registerCartStrategies } from 'renia-magento-cart/registerStrategies';
+import { registerStrategies as registerConfigurableStrategies } from 'renia-magento-configurable-product-cart/registerStrategies';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -197,6 +200,10 @@ app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
 
 app.get('*', async (req, res) => {
   try {
+    // Zarejestruj strategie produktów na starcie każdego request'u
+    registerCartStrategies();
+    registerConfigurableStrategies();
+
     const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
     await loadComponentRegistrations({ configPath });
     const routes = await loadRoutesRegistry({ configPath });

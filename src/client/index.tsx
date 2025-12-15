@@ -19,7 +19,15 @@ import 'renia-magento-catalog-search/registerComponents';
 import 'renia-ui-toast/registerComponents';
 import 'renia-magento-cart-sidebar/registerComponents';
 import 'renia-magento-configurable-product/registerComponents';
+import 'renia-magento-configurable-product-cart/registerComponents';
 import 'renia-i18n/registerComponents';
+
+// Załaduj strategie produktów (per type)
+import { registerStrategies as registerCartStrategies } from 'renia-magento-cart/registerStrategies';
+import { registerStrategies as registerConfigurableStrategies } from 'renia-magento-configurable-product-cart/registerStrategies';
+
+registerCartStrategies();
+registerConfigurableStrategies();
 
 declare global {
   interface Window {
