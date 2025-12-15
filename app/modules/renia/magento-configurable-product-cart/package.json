@@ -1,0 +1,13 @@
+{
+  "name": "renia-magento-configurable-product-cart",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.ts",
+  "dependencies": {
+    "renia-magento-configurable-product": "file:../magento-configurable-product",
+    "renia-magento-cart": "file:../magento-cart",
+    "renia-ui-toast": "file:../ui-toast",
+    "renia-i18n": "file:../i18n",
+    "renia-logger": "file:../logger"
+  }
+}

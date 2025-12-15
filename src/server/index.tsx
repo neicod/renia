@@ -15,6 +15,12 @@ import { loadInterceptors } from 'renia-interceptors';
 import { loadLayoutRegistry } from 'renia-layout';
 import AppRoot from '@framework/runtime/AppRoot';
 import { htmlTemplate } from './template';
+import {
+  isGlobalSlot,
+  extensionToSlotEntry,
+  extensionToSubslotEntry,
+  type ExtensionPoint
+} from '@framework/layout/extensionPoints';
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { getStoreConfig } from 'renia-magento-store';
@@ -249,14 +255,22 @@ app.get('*', async (req, res) => {
     const slotEntries: SlotEntry[] = [];
     const subslotEntries: SubslotEntry[] = [];
     const api = {
-      slots: {
-        add: (entry: SlotEntry) => {
-          if (entry?.slot && (entry?.component || entry?.componentPath)) slotEntries.push(entry);
-        }
-      },
-      subslots: {
-        add: (entry: SubslotEntry) => {
-          if (entry?.slot && (entry?.component || entry?.componentPath)) subslotEntries.push(entry);
+      extension: (name: string, config: Omit<ExtensionPoint, 'name'> = {}) => {
+        const ext: ExtensionPoint = { name, ...config };
+
+        // Automatically determine if this is a global slot or nested subslot
+        if (isGlobalSlot(name)) {
+          // Global slots (header, footer, content, etc.)
+          const slotEntry = extensionToSlotEntry(ext);
+          if (slotEntry?.slot && (slotEntry?.component || slotEntry?.componentPath)) {
+            slotEntries.push(slotEntry);
+          }
+        } else {
+          // Nested subslots (product-listing-actions, etc.)
+          const subslotEntry = extensionToSubslotEntry(ext);
+          if (subslotEntry?.slot && (subslotEntry?.component || subslotEntry?.componentPath)) {
+            subslotEntries.push(subslotEntry);
+          }
         }
       }
     };

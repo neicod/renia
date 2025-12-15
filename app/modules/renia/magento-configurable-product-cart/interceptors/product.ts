@@ -2,8 +2,8 @@
 export default function productInterceptor(api: any = {}) {
   if (api?.extension) {
     api.extension('product-view-actions', {
-      componentPath: 'renia-magento-cart/components/ProductAddToCartPanel',
-      priority: 20,
+      componentPath: 'renia-magento-configurable-product-cart/components/ConfigurableAddToCartPanel',
+      priority: 25,
       props: {}
     });
   }

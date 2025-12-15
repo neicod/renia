@@ -1,6 +1,9 @@
 // @env: mixed
 import React from 'react';
+import { getLogger } from 'renia-logger';
 import type { ConfigurableProduct, ConfigurableVariant } from '../types';
+
+const logger = getLogger();
 
 type SelectedOptions = Record<string, number>; // attributeCode -> valueIndex
 
@@ -19,7 +22,10 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
 
   // Normalize product data (handle both camelCase typed and snake_case raw API data)
   const options = React.useMemo(() => {
-    if (!product.configurableOptions) return [];
+    if (!product.configurableOptions) {
+      logger.warn('useConfigurableSelection', 'No configurableOptions in product', { sku: product.sku });
+      return [];
+    }
     const normalized = (product.configurableOptions as any[]).map(opt => ({
       attributeCode: opt.attribute_code ?? opt.attributeCode ?? '',
       values: (opt.values ?? []).map((v: any) => ({
@@ -27,12 +33,19 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
         label: v.label ?? ''
       }))
     }));
+    logger.debug('useConfigurableSelection', 'Normalized options', {
+      optionsCount: normalized.length,
+      options: normalized
+    });
     return normalized;
   }, [product.configurableOptions]);
 
   const variants = React.useMemo(() => {
-    if (!product.variants) return [];
-    return (product.variants as any[]).map(v => ({
+    if (!product.variants) {
+      logger.warn('useConfigurableSelection', 'No variants in product', { sku: product.sku });
+      return [];
+    }
+    const mapped = (product.variants as any[]).map(v => ({
       product: {
         sku: v.product?.sku ?? ''
       },
@@ -41,6 +54,14 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
         valueIndex: a.value_index ?? a.valueIndex ?? 0
       }))
     }));
+    logger.debug('useConfigurableSelection', 'Loaded variants', {
+      variantsCount: mapped.length,
+      samples: mapped.slice(0, 2).map(v => ({
+        sku: v.product.sku,
+        attributes: v.attributes
+      }))
+    });
+    return mapped;
   }, [product.variants]);
 
   // Find matching variant based on selected options
@@ -52,12 +73,35 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
       return null;
     }
 
-    const found = variants.find(variant =>
-      variant.attributes.every(attr => selectedOptions[attr.code] === attr.valueIndex)
-    ) ?? null;
+    logger.debug('useConfigurableSelection', 'Searching for variant', {
+      selectedOptions,
+      requiredAttributes,
+      variantsCount: variants.length,
+      variants: variants.slice(0, 3) // Log first 3 variants for debugging
+    });
+
+    const found = variants.find(variant => {
+      const match = variant.attributes.every(attr => selectedOptions[attr.code] === attr.valueIndex);
+      if (!match) {
+        logger.debug('useConfigurableSelection', 'Variant mismatch', {
+          variantAttributes: variant.attributes,
+          selectedOptions,
+          sku: variant.product.sku
+        });
+      }
+      return match;
+    }) ?? null;
+
+    if (!found) {
+      logger.warn('useConfigurableSelection', 'No variant found for selection', {
+        selectedOptions,
+        variantsCount: variants.length
+      });
+    }
 
     // Return in ConfigurableVariant format expected by UI
     if (found) {
+      logger.info('useConfigurableSelection', 'Variant found', { sku: found.product.sku });
       return found as any as ConfigurableVariant;
     }
     return null;
@@ -102,11 +146,17 @@ export const useConfigurableSelection = (product: ConfigurableProduct): UseConfi
 
   const selectOption = React.useCallback((attributeCode: string, valueIndex: number) => {
     setSelectedOptions(prev => {
-      const updated = {
+      // If clicking same value, toggle it off (deselect)
+      if (prev[attributeCode] === valueIndex) {
+        const updated = { ...prev };
+        delete updated[attributeCode];
+        return updated;
+      }
+      // Otherwise, select the new value
+      return {
         ...prev,
         [attributeCode]: valueIndex
       };
-      return updated;
     });
   }, []);
 
