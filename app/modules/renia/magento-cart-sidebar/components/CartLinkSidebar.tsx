@@ -33,27 +33,25 @@ const CartLinkSidebar: React.FC = () => {
       aria-label="Koszyk"
     >
       Koszyk
-      {totalQty > 0 && (
-        <span
-          style={{
-            marginLeft: '0.35rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '22px',
-            height: '22px',
-            padding: '0 6px',
-            borderRadius: '999px',
-            background: '#2563eb',
-            color: '#fff',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            lineHeight: 1
-          }}
-        >
-          {totalQty}
-        </span>
-      )}
+      <span
+        style={{
+          marginLeft: '0.35rem',
+          display: totalQty > 0 ? 'inline-flex' : 'none',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minWidth: '22px',
+          height: '22px',
+          padding: '0 6px',
+          borderRadius: '999px',
+          background: '#2563eb',
+          color: '#fff',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          lineHeight: 1
+        }}
+      >
+        {totalQty}
+      </span>
     </a>
   );
 };
