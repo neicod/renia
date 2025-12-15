@@ -88,11 +88,8 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
           }}
         />
 
-        {/* Type-specific component - Add to Cart Icon per product type (dla listingu) */}
-        <ProductAddToCartResolver
-          product={product}
-          slot="add-to-cart-product-listing"
-        />
+        {/* Type-specific component - Add to Cart per product type */}
+        <ProductAddToCartResolver product={product} />
       </div>
     </article>
   );

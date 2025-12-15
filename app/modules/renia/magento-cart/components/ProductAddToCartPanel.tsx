@@ -60,17 +60,18 @@ export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
       <button
         type="submit"
         disabled={adding}
+        title={t('cart.action.add')}
         style={{
-          padding: '0.5rem 1rem',
-          borderRadius: '999px',
+          background: 'none',
           border: 'none',
-          background: adding ? '#94a3b8' : '#2563eb',
-          color: '#fff',
-          fontWeight: 600,
-          cursor: adding ? 'not-allowed' : 'pointer'
+          cursor: adding ? 'not-allowed' : 'pointer',
+          fontSize: '1.2rem',
+          opacity: adding ? 0.5 : 1,
+          transition: 'opacity 120ms ease',
+          padding: '0.5rem'
         }}
       >
-        {adding ? t('cart.action.adding') : t('cart.action.add')}
+        🛒
       </button>
     </form>
   );
