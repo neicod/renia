@@ -39,6 +39,11 @@ const CartIcon: React.FC<{ loading?: boolean }> = ({ loading }) => (
 );
 
 export const AddToCartButton: React.FC<Props> = ({ product }) => {
+  // Don't render for configurable products - they have their own handler
+  if (product.__typename === 'ConfigurableProduct') {
+    return null;
+  }
+
   const [adding, setAdding] = React.useState(false);
   const toast = useToast();
   const manager = useCartManager();
