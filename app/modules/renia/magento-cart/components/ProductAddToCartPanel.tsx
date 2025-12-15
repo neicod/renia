@@ -10,7 +10,6 @@ type Props = {
 };
 
 export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
-  const [qty, setQty] = React.useState(1);
   const [adding, setAdding] = React.useState(false);
   const toast = useToast();
   const manager = useCartManager();
@@ -18,16 +17,14 @@ export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!qty || qty < 1) return;
     if (!product?.sku) return;
     setAdding(true);
     try {
-      await manager.addProduct({ sku: product.sku, quantity: qty });
+      await manager.addProduct({ sku: product.sku, quantity: 1 });
       toast({
         tone: 'success',
         title: t('cart.toast.added.title'),
-        description: t('cart.toast.added.multiple', {
-          qty,
+        description: t('cart.toast.added.single', {
           name: product.name ?? product.sku
         })
       });
@@ -46,17 +43,7 @@ export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-      <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        {t('cart.form.quantity')}
-        <input
-          type="number"
-          min={1}
-          value={qty}
-          onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-          style={{ padding: '0.4rem 0.6rem', borderRadius: '0.5rem', border: '1px solid #cbd5f5', width: '80px' }}
-        />
-      </label>
+    <form onSubmit={handleSubmit}>
       <button
         type="submit"
         disabled={adding}
