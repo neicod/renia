@@ -46,7 +46,7 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
         sku: product.sku
       });
       toast({
-        tone: 'info',
+        tone: 'warning',
         title: t('configurableProduct.cart.error.noVariant.title'),
         description: t('configurableProduct.cart.error.noVariant.description')
       });
