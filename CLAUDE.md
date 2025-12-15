@@ -65,11 +65,31 @@ make docker-shell      # Interactive shell in container
 - Slot entries sorted by `priority` (higher = rendered first)
 - Product-specific slots: `product-listing-actions`, `product-view-actions`
 
+### Product Strategy Pattern
+Products use strategy pattern for context-aware "Add to Cart" UI:
+- **Listing** (`add-to-cart-product-listing`): Minimal UI
+  - Simple: Icon 🛒 only (qty=1)
+  - Configurable: Options selector + Icon 🛒 (qty=1)
+- **Product Page** (`add-to-cart-product-page`): Full forms
+  - Simple: Icon 🛒 only (qty=1)
+  - Configurable: Options selector + Icon 🛒 (qty=1)
+
+Flow:
+1. `ProductAddToCartResolver` (in `ProductTile` for listing, or `product-view-actions` slot) receives product
+2. Resolver queries `productStrategies` registry by `product.__typename` and `slot`
+3. Registry returns component for that type+slot combo
+4. Component renders with full product object
+
+Adding new product types:
+1. Create `registerStrategies()` function in your module
+2. Call `registerProductStrategy({ type: 'YourType', components: { 'add-to-cart-product-page': Panel, 'add-to-cart-product-listing': Icon } })`
+3. Call `registerProductStrategy()` in both `src/server/index.tsx` and `src/client/index.tsx`
+
 ### Interceptors
 - Files in `interceptors/default.ts` (global) or `interceptors/<context>.ts` (category, search, product, etc.)
-- API: `api.slots.add({ slot, componentPath, id, priority, enabled })`
-- Disable slot entry: same `id` with `enabled: false`
-- Subslots: `api.subslots.add({ slot, componentPath, priority })`
+- API: `api.extension(name, { componentPath, priority, props })`
+- For product pages: Use `ProductAddToCartResolver` with `slot: 'add-to-cart-product-page'` to auto-select component by product type
+- Disable slot entry: same `componentPath` with lower priority or `enabled: false`
 
 ### GraphQL Layer
 - `renia-graphql-client`: QueryBuilder, executeRequest
