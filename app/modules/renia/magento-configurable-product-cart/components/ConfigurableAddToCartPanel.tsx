@@ -33,7 +33,6 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
   // After type guard, cast to ConfigurableProduct
   const configurableProduct = product as ConfigurableProduct;
 
-  const [qty, setQty] = React.useState(1);
   const [adding, setAdding] = React.useState(false);
 
   const { currentVariant, selectedOptions, selectOption, isOptionDisabled } = useConfigurableSelection(configurableProduct);
@@ -64,7 +63,7 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
       // Pass parent SKU + encoded selected options (Magento GraphQL API format)
       const cartItem: ConfigurableCartItemInput = {
         sku: product.sku,
-        quantity: qty,
+        quantity: 1,
         selected_options: encodedOptions
       };
       await manager.addProduct(cartItem);
@@ -74,14 +73,13 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
         title: t('configurableProduct.cart.success.title'),
         description: t('configurableProduct.cart.success.description', {
           name: currentVariant.product.name,
-          qty: qty.toString()
+          qty: '1'
         })
       });
     } catch (error) {
       logger.error('ConfigurableAddToCartPanel', 'Failed to add product to cart', {
         productSku: product.sku,
         variantSku: currentVariant.product.sku,
-        quantity: qty,
         error: error instanceof Error ? error.message : String(error)
       });
       const fallbackDesc = t('configurableProduct.cart.error.generic');
@@ -109,44 +107,23 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
       />
 
       <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
-          <label style={{ display: 'grid', gap: '0.35rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1e293b' }}>
-              {t('configurableProduct.form.quantity')}
-            </span>
-            <input
-              type="number"
-              min={1}
-              value={qty}
-              onChange={e => setQty(Math.max(1, Number(e.target.value) || 1))}
-              style={{
-                padding: '0.4rem 0.6rem',
-                borderRadius: '0.5rem',
-                border: '1px solid #cbd5f5',
-                width: '80px',
-                fontSize: '0.95rem',
-                fontFamily: 'inherit'
-              }}
-            />
-          </label>
-
-          <button
-            type="submit"
-            disabled={adding || !currentVariant}
-            title={t('configurableProduct.action.add')}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: adding || !currentVariant ? 'not-allowed' : 'pointer',
-              fontSize: '1.2rem',
-              opacity: adding || !currentVariant ? 0.5 : 1,
-              transition: 'opacity 120ms ease',
-              padding: '0.5rem'
-            }}
-          >
-            🛒
-          </button>
-        </div>
+        <button
+          type="submit"
+          disabled={adding || !currentVariant}
+          title={t('configurableProduct.action.add')}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: adding || !currentVariant ? 'not-allowed' : 'pointer',
+            fontSize: '1.2rem',
+            opacity: adding || !currentVariant ? 0.5 : 1,
+            transition: 'opacity 120ms ease',
+            padding: '0.5rem',
+            width: 'fit-content'
+          }}
+        >
+          🛒
+        </button>
 
         {!currentVariant && (
           <div
