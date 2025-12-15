@@ -198,11 +198,12 @@ app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
   res.status(204).end();
 });
 
+// Zarejestruj strategie produktów raz na starcie serwera
+registerCartStrategies();
+registerConfigurableStrategies();
+
 app.get('*', async (req, res) => {
   try {
-    // Zarejestruj strategie produktów na starcie każdego request'u
-    registerCartStrategies();
-    registerConfigurableStrategies();
 
     const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
     await loadComponentRegistrations({ configPath });
