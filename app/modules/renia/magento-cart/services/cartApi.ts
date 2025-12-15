@@ -3,6 +3,15 @@ import { QueryBuilder } from 'renia-graphql-client/builder';
 import { executeGraphQLRequest } from '@framework/api/graphqlClient';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 
+/**
+ * Base interface for cart items
+ * Modules can extend this interface to add custom fields (e.g., selected_options for configurable products)
+ */
+export interface CartItemInput {
+  sku: string;
+  quantity: number;
+}
+
 type MagentoMoney = {
   value?: number | null;
   currency?: string | null;
@@ -185,17 +194,14 @@ export const createEmptyCart = async (): Promise<string> => {
 
 export const addProductsToCart = async (
   cartId: string,
-  items: { sku: string; quantity: number }[]
+  items: CartItemInput[]
 ): Promise<MagentoCart> => {
   const request = MagentoGraphQLRequestFactory.create({
     method: 'POST',
     payload: buildAddProductsMutation(),
     variables: {
       cartId,
-      items: items.map((item) => ({
-        sku: item.sku,
-        quantity: item.quantity
-      }))
+      items  // Pass items directly - modules can extend CartItemInput with custom fields
     },
     operationId: 'magentoCart.addProducts'
   });

@@ -1,6 +1,9 @@
 // @env: mixed
 import { getLogger } from 'renia-logger';
 
+// Register GraphQL query augmenter globally on module load
+import './services/configurableQueryAugmenter';
+
 const logger = getLogger();
 
 
@@ -20,10 +23,8 @@ export type { UseConfigurableSelectionResult } from './hooks/useConfigurableSele
 
 export { mapConfigurableProduct } from './services/configurableMapper';
 export { ConfigurableProductOptions } from './components/ConfigurableProductOptions';
-export { ConfigurableAddToCartPanel } from './components/ConfigurableAddToCartPanel';
 export { ConfigurableProductPrice } from './components/ConfigurableProductPrice';
 export { OptionSelector } from './components/OptionSelector';
 export { SwatchButton } from './components/SwatchButton';
 export { DropdownSelector } from './components/DropdownSelector';
 export { SelectedVariantSummary } from './components/SelectedVariantSummary';
-export { ConfigurableProductListingWrapper } from './components/ConfigurableProductListingWrapper';

@@ -2,7 +2,7 @@
 import { QueryBuilder } from 'renia-graphql-client/builder';
 import type { SelectionNode } from 'renia-graphql-client/types';
 
-const PRODUCT_IN_LIST_SELECTION: SelectionNode[] = [
+export const PRODUCT_IN_LIST_SELECTION: SelectionNode[] = [
   { name: 'id' },
   { name: 'sku' },
   { name: 'name' },

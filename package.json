@@ -35,6 +35,7 @@
     "renia-magento-catalog-search": "file:app/modules/renia/magento-catalog-search",
     "renia-magento-category": "file:app/modules/renia/magento-category",
     "renia-magento-configurable-product": "file:app/modules/renia/magento-configurable-product",
+    "renia-magento-configurable-product-cart": "file:app/modules/renia/magento-configurable-product-cart",
     "renia-magento-customer": "file:app/modules/renia/magento-customer",
     "renia-magento-graphql-client": "file:app/modules/renia/magento-graphql-client",
     "renia-magento-store": "file:app/modules/renia/magento-store",

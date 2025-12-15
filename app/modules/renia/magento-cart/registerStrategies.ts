@@ -1,5 +1,5 @@
 // @env: mixed
-import { registerProductStrategy } from '@framework/layout/productStrategies';
+import { registerProductStrategy } from 'magento-product/services/productStrategies';
 import { ProductAddToCartPanel } from './components/ProductAddToCartPanel';
 
 export const registerStrategies = () => {

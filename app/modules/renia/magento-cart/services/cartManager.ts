@@ -1,6 +1,6 @@
 // @env: mixed
 import type { CartItem } from 'renia-module-cart';
-import type { MagentoCart } from './cartApi';
+import type { MagentoCart, CartItemInput } from './cartApi';
 import { cartRepository, type CartRepository } from './cartRepository';
 import { cartStateSync, type CartStateSync } from './cartStateSync';
 import { cartIdStorage, type CartIdStorage } from './cartIdStorage';
@@ -78,7 +78,7 @@ export class CartManager {
     return this.stateSync.replaceWith(cart);
   }
 
-  async addProduct(options: { sku: string; quantity: number }) {
+  async addProduct(options: CartItemInput) {
     const cartId = await this.ensureCartId();
     try {
       const cart = await this.repository.addItems(cartId, [options]);

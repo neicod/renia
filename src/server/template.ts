@@ -16,27 +16,27 @@ export const htmlTemplate = ({
 }: TemplateOptions): string => {
   const styles = `
     :root {
-      --bg: #f4f6fb;
-      --bg-gradient-start: #fdf7ff;
-      --bg-gradient-end: #f0f7ff;
+      --bg: #fafafa;
+      --bg-gradient-start: #ffffff;
+      --bg-gradient-end: #f5f5f5;
       --surface: #ffffff;
-      --surface-muted: #f8f9ff;
-      --border: #dfe4f2;
-      --text: #0f1f3d;
-      --muted: #6c7a99;
-      --accent: #2563eb;
-      --accent-2: #7c3aed;
-      --accent-3: #22d3ee;
-      --radius: 18px;
-      --shadow: 0 25px 50px rgba(15, 31, 61, 0.08);
+      --surface-muted: #f9f9f9;
+      --border: #e5e5e5;
+      --text: #1a1a1a;
+      --muted: #757575;
+      --accent: #000000;
+      --accent-2: #262626;
+      --accent-3: #f5f5f5;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
       color: var(--text);
-      background: radial-gradient(circle at top, var(--bg-gradient-start), var(--bg-gradient-end)) fixed;
+      background: var(--bg);
       padding: 0 1rem 3rem;
     }
     a { color: inherit; text-decoration: none; transition: color 160ms ease, opacity 160ms ease; }
@@ -53,9 +53,9 @@ export const htmlTemplate = ({
       grid-template-columns: auto 1fr;
       gap: 1rem;
       align-items: center;
-      padding: 1.25rem 1.5rem;
-      background: linear-gradient(90deg, rgba(37, 99, 235, 0.06), rgba(124, 58, 237, 0.06));
-      border: 1px solid rgba(37, 99, 235, 0.15);
+      padding: 1rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
@@ -65,15 +65,16 @@ export const htmlTemplate = ({
       gap: 0.35rem;
     }
     .brand-logo {
-      font-weight: 800;
-      font-size: 1.35rem;
-      letter-spacing: 0.03em;
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: 0;
       color: var(--text);
     }
     .brand-tagline {
       margin: 0;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--muted);
+      font-weight: 400;
     }
     .slot-stack {
       display: flex;
@@ -86,24 +87,24 @@ export const htmlTemplate = ({
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.55rem 1.05rem;
-      border-radius: 999px;
+      padding: 0.5rem 0.95rem;
+      border-radius: 4px;
       background: var(--surface);
-      border: 1px solid rgba(37, 99, 235, 0.15);
+      border: 1px solid var(--border);
       color: var(--text);
-      font-size: 0.9rem;
-      font-weight: 600;
-      box-shadow: 0 10px 18px rgba(15, 31, 61, 0.07);
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: none;
     }
     .search-bar {
       display: flex;
       align-items: center;
       gap: 0.4rem;
       padding: 0.4rem 0.5rem 0.4rem 0.9rem;
-      border-radius: 999px;
-      background: #fff;
-      border: 1px solid rgba(37, 99, 235, 0.25);
-      box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.08);
+      border-radius: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: none;
     }
     .search-input {
       border: none;
@@ -117,16 +118,16 @@ export const htmlTemplate = ({
     }
     .search-button {
       border: none;
-      border-radius: 999px;
+      border-radius: 4px;
       padding: 0.45rem 0.95rem;
-      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      background: var(--accent);
       color: #fff;
       font-weight: 600;
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
       cursor: pointer;
-      box-shadow: 0 15px 30px rgba(37, 99, 235, 0.25);
+      box-shadow: none;
     }
     .search-button svg {
       width: 16px;
@@ -134,9 +135,9 @@ export const htmlTemplate = ({
     }
     .header__menu {
       margin-top: 0.95rem;
-      border: 1px solid rgba(15, 31, 61, 0.07);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 0.85rem 1.1rem;
+      padding: 0.75rem 1rem;
       background: var(--surface);
       box-shadow: var(--shadow);
     }
@@ -168,16 +169,17 @@ export const htmlTemplate = ({
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
-      padding: 0.45rem 0.85rem;
-      font-weight: 600;
+      padding: 0.4rem 0.75rem;
+      font-weight: 500;
       color: var(--text);
-      border-radius: 12px;
+      border-radius: 4px;
       transition: background 140ms ease, color 140ms ease;
       white-space: nowrap;
+      font-size: 0.9rem;
     }
     .main-menu__link:hover {
-      background: rgba(37, 99, 235, 0.12);
-      color: var(--accent);
+      background: var(--surface-muted);
+      color: var(--text);
     }
     .main-menu__dropdown {
       display: none;
@@ -187,11 +189,11 @@ export const htmlTemplate = ({
       top: calc(100% + 8px);
       left: 0;
       min-width: 240px;
-      background: #fff;
-      border: 1px solid rgba(15, 31, 61, 0.08);
-      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 0.75rem;
+      padding: 0.5rem;
       list-style: none;
       margin: 0;
       z-index: 30;
@@ -211,15 +213,16 @@ export const htmlTemplate = ({
     }
     .main-menu__dropdown-link {
       display: block;
-      padding: 0.5rem 0.7rem;
-      border-radius: 12px;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
       color: var(--text);
-      font-weight: 500;
+      font-weight: 400;
+      font-size: 0.9rem;
       transition: background 120ms ease, color 120ms ease;
     }
     .main-menu__dropdown-link:hover {
       background: var(--surface-muted);
-      color: var(--accent);
+      color: var(--text);
     }
     .main-menu__dropdown .main-menu__dropdown {
       top: -6px;
@@ -228,11 +231,11 @@ export const htmlTemplate = ({
     }
     .hero-banner {
       margin-top: 1.5rem;
-      border-radius: 28px;
-      padding: 2.5rem 2.75rem;
-      background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(124, 58, 237, 0.95));
+      border-radius: var(--radius);
+      padding: 2rem;
+      background: #1a1a1a;
       color: #fff;
-      box-shadow: 0 35px 60px rgba(37, 99, 235, 0.35);
+      box-shadow: var(--shadow);
       display: grid;
       grid-template-columns: 2fr 1fr;
       gap: 2rem;
@@ -241,10 +244,7 @@ export const htmlTemplate = ({
     }
     .hero-banner::after {
       content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top right, rgba(34, 211, 238, 0.4), transparent 55%);
-      pointer-events: none;
+      display: none;
     }
     .hero-banner__content {
       position: relative;
@@ -260,8 +260,8 @@ export const htmlTemplate = ({
     }
     .hero-title {
       margin: 0;
-      font-size: clamp(2rem, 4vw, 2.8rem);
-      font-weight: 800;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 700;
       line-height: 1.2;
     }
     .hero-desc {
@@ -313,47 +313,48 @@ export const htmlTemplate = ({
       align-items: center;
       justify-content: center;
       gap: 0.4rem;
-      border-radius: 999px;
-      padding: 0.55rem 1.2rem;
+      border-radius: 4px;
+      padding: 0.5rem 1.1rem;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+      border: none;
+      cursor: pointer;
     }
     .button--primary {
       color: #fff;
-      background: linear-gradient(120deg, #22d3ee, #2563eb);
-      box-shadow: 0 18px 32px rgba(34, 211, 238, 0.35);
+      background: #000;
+      box-shadow: none;
     }
     .button--ghost {
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.6);
       background: transparent;
     }
     .button:hover {
-      transform: translateY(-1px);
+      opacity: 0.9;
     }
     .main {
       padding: 0 0 2.5rem;
     }
     .section-title {
-      margin: 0 0 1rem;
-      font-size: 1.25rem;
-      font-weight: 700;
+      margin: 0 0 1.25rem;
+      font-size: 1.5rem;
+      font-weight: 400;
       color: var(--text);
       display: flex;
       align-items: center;
       gap: 0.6rem;
+      letter-spacing: -0.01em;
     }
     .section-title::after {
       content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, var(--accent), transparent);
+      display: none;
     }
     .product-grid {
       display: grid;
-      gap: 1.4rem;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.5rem;
+      grid-template-columns: repeat(4, 1fr);
       align-items: stretch;
     }
     .product-grid[data-loading='true'] {
@@ -362,19 +363,20 @@ export const htmlTemplate = ({
     }
     .card {
       background: var(--surface);
-      border: 1px solid rgba(15, 31, 61, 0.08);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 1.5rem 1.65rem;
-      margin-bottom: 1.25rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
     }
     .footer {
       margin-top: 2.5rem;
-      padding: 1.5rem;
+      padding: 1.25rem;
       text-align: center;
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       border-radius: var(--radius);
+      border-top: 1px solid var(--border);
     }
     @media (max-width: 1024px) {
       .hero-banner {
@@ -386,6 +388,16 @@ export const htmlTemplate = ({
       }
       .slot-stack {
         justify-content: flex-start;
+      }
+    }
+    @media (max-width: 1024px) {
+      .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .product-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
     @media (max-width: 640px) {
@@ -400,7 +412,7 @@ export const htmlTemplate = ({
         align-items: stretch;
       }
       .product-grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: 1fr;
       }
     }
   `;

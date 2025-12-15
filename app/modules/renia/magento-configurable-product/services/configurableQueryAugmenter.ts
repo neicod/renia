@@ -6,8 +6,13 @@ import {getLogger} from 'renia-logger';
 
 const logger = getLogger();
 
+// Import product base selection to include in configurable product
+import { PRODUCT_IN_LIST_SELECTION } from 'magento-product/services/queries';
+
 const CONFIGURABLE_PRODUCT_SELECTION: SelectionNode[] = [
-    {name: '__typename'},
+    // First include all base product fields
+    ...PRODUCT_IN_LIST_SELECTION,
+    // Then add configurable-specific fields
     {
         name: 'configurable_options',
         children: [
@@ -101,6 +106,9 @@ registerGraphQLQueryAugmenter((payload, ctx) => {
         return;
     }
 
+    logger.debug('configurableQueryAugmenter', 'Adding inline fragment for ConfigurableProduct', { operationId });
+
+    // Add inline fragment for ConfigurableProduct type with all fields
     payload.inlineFragment(['products', 'items'], 'ConfigurableProduct', CONFIGURABLE_PRODUCT_SELECTION);
 });
 
