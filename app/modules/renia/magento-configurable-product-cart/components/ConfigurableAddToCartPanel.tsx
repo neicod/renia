@@ -46,7 +46,7 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
         sku: product.sku
       });
       toast({
-        tone: 'warning',
+        tone: 'info',
         title: t('configurableProduct.cart.error.noVariant.title'),
         description: t('configurableProduct.cart.error.noVariant.description')
       });
@@ -133,19 +133,18 @@ export const ConfigurableAddToCartPanel: React.FC<Props> = ({ product }) => {
           <button
             type="submit"
             disabled={adding || !currentVariant}
+            title={t('configurableProduct.action.add')}
             style={{
-              padding: '0.5rem 1.5rem',
-              borderRadius: '999px',
+              background: 'none',
               border: 'none',
-              background: adding || !currentVariant ? '#94a3b8' : '#2563eb',
-              color: '#fff',
-              fontWeight: 600,
               cursor: adding || !currentVariant ? 'not-allowed' : 'pointer',
-              fontSize: '0.95rem',
-              transition: 'all 120ms ease'
+              fontSize: '1.2rem',
+              opacity: adding || !currentVariant ? 0.5 : 1,
+              transition: 'opacity 120ms ease',
+              padding: '0.5rem'
             }}
           >
-            {adding ? t('configurableProduct.action.adding') : t('configurableProduct.action.add')}
+            🛒
           </button>
         </div>
 
