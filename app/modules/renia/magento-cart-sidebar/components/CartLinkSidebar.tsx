@@ -34,6 +34,7 @@ const CartLinkSidebar: React.FC = () => {
     >
       Koszyk
       <span
+        suppressHydrationWarning
         style={{
           marginLeft: '0.35rem',
           display: totalQty > 0 ? 'inline-flex' : 'none',
