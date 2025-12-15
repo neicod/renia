@@ -14,11 +14,11 @@ type Props = {
  *
  * @param product - Produkt do renderowania
  * @param slot - Typ slotu ('add-to-cart-product-page' dla strony, 'add-to-cart-product-listing' dla listingu)
- *              Domyślnie: 'add-to-cart-product-listing'
+ *              Domyślnie: 'add-to-cart-product-page'
  */
 export const ProductAddToCartResolver: React.FC<Props> = ({
   product,
-  slot = 'add-to-cart-product-listing'
+  slot = 'add-to-cart-product-page'
 }) => {
   if (!product || !product.__typename) {
     return null;
