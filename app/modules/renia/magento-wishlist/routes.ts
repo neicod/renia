@@ -6,7 +6,7 @@ export default [
     priority: 80,
     contexts: ['wishlist'],
     meta: {
-      layout: 'renia-layout/layouts/1column'
+      layout: '@framework/layout/layouts/Layout1Column'
     }
   }
 ];

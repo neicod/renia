@@ -2,12 +2,12 @@
 export default [
   {
     path: '/search',
-    componentPath: 'renia-layout/pages/LayoutPage',
+    componentPath: '@framework/layout/pages/LayoutPage',
     handler: 'renia-magento-catalog-search/routeHandler',
     priority: 45,
     contexts: ['search'],
     meta: {
-      layout: 'renia-layout/layouts/2columns-left',
+      layout: '@framework/layout/layouts/Layout2ColumnsLeft',
       type: 'search'
     }
   }

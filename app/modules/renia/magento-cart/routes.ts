@@ -6,7 +6,7 @@ export default [
     priority: 100,
     contexts: ['cart'],
     meta: {
-      layout: 'renia-layout/layouts/1column'
+      layout: '@framework/layout/layouts/Layout1Column'
     }
   }
 ];

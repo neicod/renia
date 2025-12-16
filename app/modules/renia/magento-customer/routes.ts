@@ -6,7 +6,7 @@ export default [
     priority: 30,
     contexts: ['login'],
     meta: {
-      layout: 'renia-layout/layouts/1column',
+      layout: '@framework/layout/layouts/Layout1Column',
       type: 'auth'
     }
   },
@@ -16,7 +16,7 @@ export default [
     priority: 30,
     contexts: ['register'],
     meta: {
-      layout: 'renia-layout/layouts/1column',
+      layout: '@framework/layout/layouts/Layout1Column',
       type: 'auth'
     }
   }

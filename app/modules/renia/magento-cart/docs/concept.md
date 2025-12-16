@@ -17,7 +17,7 @@ Prezentacja:
 - Sloty `product-listing-actions`/`product-view-actions` dostają przyciski dodawania do koszyka tylko na kliencie; SSR nie renderuje wrażliwej liczby sztuk.
 
 Zależności:
-- Deklarowane w `registration.js`: `renia-interceptors`, `renia-layout`.
+- Deklarowane w `registration.js`: `renia-interceptors`
 - Stan koszyka: `renia-module-cart` (browserStorage TTL 1 h).
 - Identyfikator koszyka: `cartIdStorage` (TTL 7 dni, zapis w `browserStorage` albo pamięć in-memory na SSR).
 

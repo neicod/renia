@@ -7,7 +7,7 @@ export default [
     priority: 50,
     contexts: ['category'],
     meta: {
-      layout: 'renia-layout/layouts/2columns-left',
+      layout: '@framework/layout/layouts/Layout2ColumnsLeft',
       type: 'category',
       passUrlPath: true
     }

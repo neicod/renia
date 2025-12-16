@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import { SlotRenderer } from 'renia-layout/components/SlotRenderer';
+import { SlotRenderer } from '@framework/layout';
 import { ProductAddToCartResolver } from 'renia-magento-cart/components/ProductAddToCartResolver';
 import type { ProductInterface } from '../types';
 import { useI18n } from 'renia-i18n/hooks/useI18n';

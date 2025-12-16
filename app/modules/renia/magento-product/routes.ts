@@ -7,7 +7,7 @@ export default [
     priority: 40,
     contexts: ['product'],
     meta: {
-      layout: 'renia-layout/layouts/2columns-left'
+      layout: '@framework/layout/layouts/Layout2ColumnsLeft'
     }
   }
 ];

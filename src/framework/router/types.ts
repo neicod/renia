@@ -8,6 +8,7 @@ export type RouteDefinition = {
   redirect?: string;
   status?: number;
   priority?: number;
+  contexts?: string[];
   guards?: string[];
   meta?: Record<string, unknown>;
 };

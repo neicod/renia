@@ -2,7 +2,6 @@
   "modules": {
     "renia-magento-cart": 1,
     "renia-magento-wishlist": 1,
-    "renia-layout": 1,
     "renia-interceptors": 1,
     "renia-graphql-client": 1,
     "renia-magento-graphql-client": 1,

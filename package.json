@@ -30,7 +30,6 @@
     "renia-graphql-client": "file:app/modules/renia/graphql-client",
     "renia-i18n": "file:app/modules/renia/i18n",
     "renia-interceptors": "file:app/modules/renia/interceptors",
-    "renia-layout": "file:app/modules/renia/layout",
     "renia-magento-cart": "file:app/modules/renia/magento-cart",
     "renia-magento-cart-sidebar": "file:app/modules/renia/magento-cart-sidebar",
     "renia-magento-catalog": "file:app/modules/renia/magento-catalog",

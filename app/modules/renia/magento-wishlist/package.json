@@ -4,7 +4,6 @@
   "type": "module",
   "main": "./index.tsx",
   "dependencies": {
-    "react": "^18.2.0",
-    "renia-layout": "file:../renia-layout"
+    "react": "^18.2.0"
   }
 }

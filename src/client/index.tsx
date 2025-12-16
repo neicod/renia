@@ -9,6 +9,7 @@ import AppRoot from '@framework/runtime/AppRoot';
 import { loadInterceptorsClient } from '@framework/interceptors/loadInterceptorsClient';
 import { registerProductTypeComponentStrategy } from 'magento-product/services/productStrategies';
 import { registerComponents } from '@framework/registry/componentRegistry';
+import { Layout1Column, Layout2ColumnsLeft, LayoutEmpty } from '@framework/layout';
 
 declare global {
   interface Window {
@@ -18,6 +19,13 @@ declare global {
 
 const rootElement = document.getElementById('root');
 const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], slots: {}, contexts: [], enabledModules: [] };
+
+// Register framework layout components
+registerComponents({
+  '@framework/layout/layouts/Layout1Column': Layout1Column,
+  '@framework/layout/layouts/Layout2ColumnsLeft': Layout2ColumnsLeft,
+  '@framework/layout/layouts/LayoutEmpty': LayoutEmpty
+});
 
 // Bootstrap zawiera konteksty strony (category, product, search, etc)
 // loadInterceptorsClient zawsze ładuje default, plus specified kontekst

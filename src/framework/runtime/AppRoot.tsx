@@ -4,8 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import { registerComponents, resolveComponentEntry } from '../registry/componentRegistry';
 import { AppEnvironmentProvider, type AppRuntime } from './AppEnvContext';
 import type { StoreConfig } from 'renia-magento-store';
-import LayoutShell from 'renia-layout/components/LayoutShell';
-import type { SlotEntry as LayoutSlotEntry } from 'renia-layout/types';
+import { LayoutShell, type SlotEntry as LayoutSlotEntry } from '@framework/layout';
 import { I18nProvider } from 'renia-i18n/context/I18nProvider';
 
 const HomePage: React.FC = () => (
@@ -86,7 +85,7 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
           <Routes>
             {routes.map((route) => {
               const Comp = resolveComponent(route);
-              const layout = (route.meta as any)?.layout ?? (route as any).layout ?? 'renia-layout/layouts/1column';
+              const layout = (route.meta as any)?.layout ?? (route as any).layout ?? '@framework/layout/layouts/Layout1Column';
               return (
                 <Route
                   key={route.path}

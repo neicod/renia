@@ -14,7 +14,7 @@ import { matchPath } from 'react-router-dom';
 import { loadInterceptors } from 'renia-interceptors';
 import AppRoot from '@framework/runtime/AppRoot';
 import { htmlTemplate } from './template';
-import { LayoutTreeBuilder, type LayoutNode } from 'renia-layout';
+import { LayoutTreeBuilder, type LayoutNode, Layout1Column, Layout2ColumnsLeft, LayoutEmpty } from '@framework/layout';
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { registerComponents } from '@framework/registry/componentRegistry';
@@ -199,6 +199,14 @@ app.get('*', async (req, res) => {
       .map(([name]) => name);
 
     await loadComponentRegistrations({ configPath });
+
+    // Register framework layout components
+    registerComponents({
+      '@framework/layout/layouts/Layout1Column': Layout1Column,
+      '@framework/layout/layouts/Layout2ColumnsLeft': Layout2ColumnsLeft,
+      '@framework/layout/layouts/LayoutEmpty': LayoutEmpty
+    });
+
     const routes = await loadRoutesRegistry({ configPath });
 
     let preloadedCategoryMenu: MenuItem[] | undefined;
@@ -417,7 +425,7 @@ app.get('*', async (req, res) => {
         path: r.path,
         component: r.component,
         componentPath: r.componentPath,
-        layout: (r.meta as any)?.layout ?? 'renia-layout/layouts/1column',
+        layout: (r.meta as any)?.layout ?? '@framework/layout/layouts/Layout1Column',
         meta: r.path === match?.path ? routeMeta : r.meta ?? {}
       })),
       slots,
