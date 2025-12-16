@@ -147,7 +147,7 @@ export default routes;
 
 ### Template-Based Layout Components
 
-Zamiast globalnego systemu layoutów w `layout.ts`, każdy layout to niezależny komponent React w `app/modules/renia/layout/layouts/`:
+Każdy layout to niezależny komponent React w `src/framework/layout/layouts/`:
 
 ```tsx
 // @env: mixed

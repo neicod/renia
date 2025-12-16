@@ -34,7 +34,6 @@ modules/<moduł>/
 ├── registration.ts       # metadata modułu, dependencies
 ├── registerComponents.ts # rejestracja komponentów
 ├── routes.ts             # (opcjonalnie) dodatkowe trasy
-├── layout.ts             # (opcjonalnie) sloty layoutu
 ├── interceptors/         # (opcjonalnie) interceptory
 ├── services/             # logika biznesowa / API
 ├── components/           # komponenty React
@@ -52,6 +51,6 @@ modules/<moduł>/
 1. Utwórz katalog w `modules`, dodaj `package.json` z unikalną nazwą (prefiks projektu).
 2. Dodaj `registration.ts` z danymi modułu (min. `name`, `version`, opcjonalnie `dependencies`).
 3. Zarejestruj komponenty w `registerComponents.ts`.
-4. Jeśli moduł ma wpływać na layout/sloty – dodaj `layout.ts` i/lub interceptory.
+4. Jeśli moduł ma wpływać na layout/sloty – użyj interceptorów.
 5. Włącz moduł w `app/etc/config.json` (`modules["twoj-modul"] = 1`).
 6. (Opcjonalnie) dodaj dokumentację modułu w `modules/<nazwa>/README.md` i uzupełnij tę tabelę.

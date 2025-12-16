@@ -50,7 +50,7 @@ make docker-shell      # Interactive shell in container
 - Modules in `frontend/app/modules/<vendor>/<module>/` (preferred) or `frontend/modules/`
 - Enabled/disabled in `app/etc/config.json` (`modules.<name> = 1/0`)
 - Modules resolved via `NODE_PATH=./modules` and npm file dependencies
-- Each module can provide: `routes.ts`, `layout.ts`, `interceptors/`, `registerComponents.ts`
+- Each module can provide: `routes.ts`, `interceptors/`, `registerComponents.ts`
 
 ### Framework Structure (`src/framework/`)
 - `api/` - GraphQL client with augmenters (`registerGraphQLHeaderAugmenter`, `registerGraphQLQueryAugmenter`)
@@ -60,8 +60,9 @@ make docker-shell      # Interactive shell in container
 - `runtime/` - `AppEnvironment` context (runtime mode, storeCode, storeConfig)
 
 ### Layout & Slots
-- `LayoutShell` renders slots: `header`, `control-menu`, `content`, `left`, `footer`, `global-overlay`
-- Modules inject components via `layout.ts` or interceptors
+- Layout system: `src/framework/layout/` contains core components (`LayoutShell`, `SlotRenderer`) and templates (`Layout1Column`, `Layout2ColumnsLeft`, `LayoutEmpty`)
+- Slots available: `header`, `control-menu`, `content`, `left`, `footer`, `global-overlay`
+- Modules inject components via interceptors
 - Slot entries sorted by `priority` (higher = rendered first)
 - Product-specific slots: `product-listing-actions`, `product-view-actions`
 
