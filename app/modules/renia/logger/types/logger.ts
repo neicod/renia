@@ -1,3 +1,5 @@
+// @env: mixed
+
 /**
  * Hierarchical log levels from lowest to highest priority
  */

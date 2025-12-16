@@ -1,3 +1,5 @@
+// @env: mixed
+
 import type { Logger, LogLevel } from '../types/logger';
 import { getLoggerConfig, shouldLog } from './loggerConfig';
 import { formatLogMessage } from '../utils/formatters';

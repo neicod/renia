@@ -1,3 +1,5 @@
+// @env: mixed
+
 import { getLogger } from '../services/logger';
 import type { Logger } from '../types/logger';
 

@@ -1,3 +1,5 @@
+// @env: mixed
+
 import type { LoggerConfig, LogLevel } from '../types/logger';
 
 /**

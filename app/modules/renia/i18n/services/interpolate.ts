@@ -1,3 +1,5 @@
+// @env: mixed
+
 const namedPattern = /(?<!\\):([a-zA-Z0-9_]+)/g; // :name
 const positionalPattern = /(?<!%)%(\d+)/g; // %1, %2 ... (1-based)
 

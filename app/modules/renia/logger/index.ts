@@ -1,3 +1,5 @@
+// @env: mixed
+
 /**
  * renia-logger - Centralized logging system with level-based filtering
  *

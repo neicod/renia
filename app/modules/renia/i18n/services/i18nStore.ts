@@ -1,3 +1,5 @@
+// @env: mixed
+
 import deepEqual from 'fast-deep-equal';
 import { formatMessage } from './interpolate';
 import type { Messages } from './types';
