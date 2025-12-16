@@ -21,11 +21,15 @@ Centralna dokumentacja aplikacji znajdującej się w katalogu `frontend`. Zawier
 1. **SSR + hydratacja.** Serwer (`src/server/index.tsx`) renderuje `AppRoot`, wstrzykuje wynik do `htmlTemplate`, a klient (`src/client/index.tsx`) hydratyzuję markup poprzez `BrowserRouter`. Statyczne zasoby serwowane są z `dist/public` pod `/static`.
 2. **Rejestr modułów.** Framework automatycznie ładuje aktywne moduły z `frontend/modules` (statusy w `app/etc/config.json`). Każdy moduł może dostarczać:
    - trasy (`routes.ts`),
-   - layouty / sloty (`layout.*`),
    - interceptory (`interceptors/<kontekst>.ts`),
+   - page komponenty (dla modułów z trasami),
    - komponenty (`registerComponents.ts`).
-3. **Layout + sloty.** `LayoutShell` renderuje sloty `header`, `control-menu`, `content`, `left`, `footer` i wstrzykuje do nich komponenty z modułów. Slots entry sortowane są wg `priority`.
-4. **Router i interceptory.** Podczas SSR router identyfikuje trasę, uruchamia odpowiednie interceptory (globalne `default`, kontekstowe np. `control-menu`, `category`) i pozwala modułom na wstrzykiwanie komponentów do slotów.
+3. **Template-Based Layout System.** Zamiast globalnego `LayoutShell` z hardcoded HTML, każdy route wybiera konkretny layout component:
+   - Layout to pełny komponent React (np. `1column.tsx`, `2columns-left.tsx`), którym developerowie mogą zarządzać
+   - Layout components znajdują się w `app/modules/renia/layout/layouts/` i są zarejestrowane w interceptorach
+   - Sloty (`header`, `control-menu`, `content`, `left`, `footer`, `global-overlay`) są renderowane do `React.ReactNode` i przekazane do layout komponenty
+   - `LayoutShell` orchestruje renderowanie slotów i ładowanie layout komponenty
+4. **Router i interceptory.** Podczas SSR router identyfikuje trasę i jej layout, uruchamia odpowiednie interceptory (globalne `default`, kontekstowe np. `category`) i pozwala modułom na wstrzykiwanie komponentów do slotów.
 
 ## Kontekst aplikacji i konfiguracja sklepu
 
@@ -67,11 +71,12 @@ Centralna dokumentacja aplikacji znajdującej się w katalogu `frontend`. Zawier
 
 ## System modułów, slotów i interceptorów
 
-- **Struktura modułu:** `package.json`, `registration.ts`, ewentualnie `routes.ts`, `layout.ts`, `interceptors/*`, `registerComponents.ts`, assets.
+- **Struktura modułu:** `package.json`, `registration.ts`, ewentualnie `routes.ts`, `interceptors/*`, `registerComponents.ts`, page komponenty (jeśli moduł ma `routes.ts`), assets.
 - **Lokalizacja modułów:** nadal wspieramy historyczny katalog `modules/`, ale własne moduły najlepiej umieszczać w `app/modules/<vendor>/<module>` i instalować je ręcznie przez `npm install <nazwa>@file:app/modules/<vendor>/<module>`. Dzięki temu importy działają jak przy zwykłych paczkach npm, a loader SSR automatycznie wczytuje rejestracje z obu lokalizacji.
-- **Rejestr komponentów:** `registerComponent(s)` w `registerComponents.ts`; nazwy komponentów podaj jako stringi (bare specifiers), bo pliki ładowane są zarówno na SSR, jak i w bundlu klienta.
-- **Interceptory:** eksportują funkcję wywoływaną z API `slots.add` / `subslots.add`. Przy ich pomocy moduł może np. wstrzyknąć listing produktów na stronę kategorii.
+- **Rejestr komponentów:** Komponenty są rejestrowane w interceptorach (`api.registerComponents({...})`), a nie w osobnym `registerComponents.ts`. Nazwy komponentów podaj jako stringi (bare specifiers), bo pliki ładowane są zarówno na SSR, jak i w bundlu klienta.
+- **Interceptory:** eksportują funkcję wywoływaną z API `api.registerComponents({...})`, `api.extension(...)`, `api.subslots.add(...)`. Przy ich pomocy moduł może np. wstrzyknąć listing produktów na stronę kategorii.
 - **Zależności modułów:** zadeklaruj w `registration.ts` (`dependencies`), by loader wiedział, że moduł wymaga innych paczek.
+- **Page komponenty:** Moduły z `routes.ts` muszą mieć page komponenty (np. `WishlistPage.tsx`) w katalogu `pages/`. Route wskazuje na ten komponent przez `componentPath`.
 
 ### Interceptory – kiedy i jak ich używać
 
@@ -112,51 +117,67 @@ import type { RouteEntry } from '@framework/router';
 const routes: RouteEntry[] = [
   {
     path: '/search',
-    componentPath: 'renia-magento-catalog-search/components/SearchProductList',
-    layout: '1column',
+    componentPath: 'renia-magento-catalog-search/pages/SearchPage',
     priority: 50,
-    meta: { type: 'search' }
+    meta: {
+      layout: 'renia-layout/layouts/2columns-left',
+      type: 'search'
+    }
   }
 ];
 
 export default routes;
 ```
 
-- `componentPath` musi wskazywać na komponent zarejestrowany w `registerComponents.ts`.
-- `layout` (domyślnie `1column`) określa, który layout ma być użyty przy renderze.
+- `componentPath` musi wskazywać na page komponent zarejestrowany w interceptorach.
+- **Layout specification:** Umieść `layout` w `meta.layout` i podaj **pełną ścieżkę** do komponentu layoutu (np. `'renia-layout/layouts/2columns-left'`). Layout components znajdują się w `app/modules/renia/layout/layouts/` i są zarejestrowane w interceptorach.
+  - Dostępne layouty: `'renia-layout/layouts/1column'`, `'renia-layout/layouts/2columns-left'`, `'renia-layout/layouts/empty'`
+  - Domyślny: `'renia-layout/layouts/1column'`
 - `priority` ustala kolejność dopasowywania (niższy = później). Używaj gdy trasy mogą się nakładać.
+- `contexts` (tablica) – określa, które interceptory będą załadowane dla tej trasy. Zwykle zawiera nazwę modułu lub typ strony (np. `['category']`, `['search']`).
 
-### Plik `layout.ts`
+### Template-Based Layout Components
 
-Layout opisuje, jakie komponenty domyślnie trafiają do slotów w danym module. Przykład:
+Zamiast globalnego systemu layoutów w `layout.ts`, każdy layout to niezależny komponent React w `app/modules/renia/layout/layouts/`:
 
-```ts
+```tsx
 // @env: mixed
-export default [
-  { slot: 'control-menu', component: 'renia-magento-cart/components/CartControlLink', priority: 90 },
-  { slot: 'control-menu', component: 'renia-magento-wishlist/components/WishlistControlLink', priority: 80 }
-];
+// app/modules/renia/layout/layouts/2columns-left.tsx
+import React from 'react';
+
+type LayoutProps = {
+  slots: Record<string, React.ReactNode>;
+  main: React.ReactNode;
+  routeMeta?: Record<string, unknown>;
+};
+
+export default function Layout2ColumnsLeft({ slots, main }: LayoutProps) {
+  return (
+    <div className="app-shell">
+      <header className="header">
+        <div className="header__controls">{slots['control-menu']}</div>
+        <nav>{slots.header}</nav>
+      </header>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '1.5rem' }}>
+        <aside>{slots.left}</aside>
+        <main className="main">
+          {slots.content}
+          {main}
+        </main>
+      </div>
+
+      <footer>{slots.footer}</footer>
+      {slots['global-overlay']}
+    </div>
+  );
+}
 ```
 
-- `component` przyjmuje bare specifier zarejestrowanego komponentu.
-- `priority` pozwala dowolnym modułom mieszać się w jednym slocie (większy = wyżej).
-- Layouty nie renderują komponentów same – `LayoutShell` wczytuje definicje i decyduje o kolejności.
-- Slot `global-overlay` renderuje się na końcu layoutu (poza strukturą strony) i służy do elementów overlay (np. toastów). Dodawaj wpisy przez `api.slots.add({ slot: 'global-overlay', ... })`.
-
-### `registerComponents.ts`
-
-Każdy moduł powinien rejestrować swoje komponenty w jednym miejscu:
-
-```ts
-// @env: mixed
-import { registerComponent } from '@framework/registry/componentRegistry';
-import SearchProductList from './components/SearchProductList';
-
-registerComponent('renia-magento-catalog-search/components/SearchProductList', SearchProductList);
-```
-
-- Nazwa (`componentPath`) powinna być unikalna i pasować do ścieżek używanych w slotach/trailach.
-- Serwer automatycznie ładuje `registerComponents.ts` wszystkich aktywnych modułów, więc unikaj dodatkowych efektów ubocznych.
+- Layout komponenty są zarządzane jak zwykłe komponenty – zarejestrowane w `interceptors/default.ts` i zrelacjonowane jako `componentPath` w route `meta.layout`.
+- Sloty (`header`, `control-menu`, `content`, `left`, `footer`, `global-overlay`) są już pre-renderowane i przekazane jako `React.ReactNode`.
+- Developer ma pełną kontrolę nad HTML, strukturą i stylami wewnątrz komponentu layoutu.
+- Aby dodać nowy layout, utwórz nowy plik `.tsx` w `layouts/` i zarejestruj go w `interceptors/default.ts`.
 
 ### Sloty wewnętrzne na listingu i karcie produktu
 
