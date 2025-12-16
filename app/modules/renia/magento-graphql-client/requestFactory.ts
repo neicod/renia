@@ -1,16 +1,15 @@
 // @env: mixed
 import type { GraphQLRequest } from 'renia-graphql-client';
+import { GraphQLRequestExecutor, DefaultGraphQLLogger } from 'renia-graphql-client';
 import { readMagentoEndpoint } from './utils/magentoEndpoint';
+import { getMagentoHttpClient, getMagentoGraphQLLogger } from './services';
 import { getLogger } from 'renia-logger';
 
 const logger = getLogger();
 
 type CreateParams = Omit<GraphQLRequest, 'endpoint'>;
 
-const getEnv = (key: string): string | undefined =>
-  typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
-
-const resolveEndpoint = () => {
+const resolveEndpoint = (): string => {
   const endpoint = readMagentoEndpoint();
   if (!endpoint) {
     logger.error('MagentoGraphQLRequestFactory', 'Magento GraphQL endpoint not configured');
@@ -34,7 +33,27 @@ const createRequest = (params: CreateParams): GraphQLRequest => {
   };
 };
 
+/**
+ * Get a pre-configured executor for Magento GraphQL requests.
+ *
+ * This executor uses:
+ * - MagentoHttpClient (Magento-specific HTTP handling)
+ * - MagentoGraphQLLogger (Magento-specific logging)
+ * - Default payload builder and response handler
+ *
+ * @example
+ * const executor = MagentoGraphQLRequestFactory.createExecutor();
+ * const response = await executor.execute(request);
+ */
+const createExecutor = () => {
+  return new GraphQLRequestExecutor({
+    httpClient: getMagentoHttpClient(),
+    logger: getMagentoGraphQLLogger()
+  });
+};
+
 export const MagentoGraphQLRequestFactory = {
   getEndpoint: resolveEndpoint,
-  create: createRequest
+  create: createRequest,
+  createExecutor
 };
