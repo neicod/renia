@@ -129,7 +129,7 @@ const routes: RouteEntry[] = [
     componentPath: 'renia-magento-catalog-search/pages/SearchPage',
     priority: 50,
     meta: {
-      layout: 'renia-layout/layouts/2columns-left',
+      layout: '@framework/layout/layouts/Layout2ColumnsLeft',
       type: 'search'
     }
   }
@@ -139,9 +139,9 @@ export default routes;
 ```
 
 - `componentPath` musi wskazywać na page komponent zarejestrowany w interceptorach.
-- **Layout specification:** Umieść `layout` w `meta.layout` i podaj **pełną ścieżkę** do komponentu layoutu (np. `'renia-layout/layouts/2columns-left'`). Layout components znajdują się w `app/modules/renia/layout/layouts/` i są zarejestrowane w interceptorach.
-  - Dostępne layouty: `'renia-layout/layouts/1column'`, `'renia-layout/layouts/2columns-left'`, `'renia-layout/layouts/empty'`
-  - Domyślny: `'renia-layout/layouts/1column'`
+- **Layout specification:** Umieść `layout` w `meta.layout` i podaj **pełną ścieżkę** do komponentu layoutu (np. `'@framework/layout/layouts/Layout2ColumnsLeft'`). Layout components znajdują się w `src/framework/layout/layouts/` i są zarejestrowane w interceptorach.
+  - Dostępne layouty: `'@framework/layout/layouts/Layout1Column'`, `'@framework/layout/layouts/Layout2ColumnsLeft'`, `'@framework/layout/layouts/LayoutEmpty'`
+  - Domyślny: `'@framework/layout/layouts/Layout1Column'`
 - `priority` ustala kolejność dopasowywania (niższy = później). Używaj gdy trasy mogą się nakładać.
 - `contexts` (tablica) – określa, które interceptory będą załadowane dla tej trasy. Zwykle zawiera nazwę modułu lub typ strony (np. `['category']`, `['search']`).
 
@@ -151,7 +151,7 @@ Każdy layout to niezależny komponent React w `src/framework/layout/layouts/`:
 
 ```tsx
 // @env: mixed
-// app/modules/renia/layout/layouts/2columns-left.tsx
+// src/framework/layout/layouts/Layout2ColumnsLeft.tsx
 import React from 'react';
 
 type LayoutProps = {

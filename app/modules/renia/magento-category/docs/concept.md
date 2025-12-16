@@ -3,7 +3,6 @@
 Cel: moduł kategorii oparty na Magento GraphQL. Dostarcza stronę kategorii, komponenty menu kategorii oraz serwis do pobierania menu (z możliwością modyfikacji requestu przed wysłaniem).
 
 ## Zależności
-- `renia-layout` – sloty/układ (np. header/control-menu/content).
 - `renia-graphql-client` – builder i wykonanie zapytań GraphQL.
 - `renia-menu` – kontrakt struktury menu (MenuItem/MenuTree).
 
@@ -16,7 +15,7 @@ Cel: moduł kategorii oparty na Magento GraphQL. Dostarcza stronę kategorii, ko
 - `CategoryMainMenu` (statyczne/dynamiczne) wstrzykiwane do slotu `header` przez interceptor `interceptors/default.ts`.
 - Sloty są niezależne – layout decyduje, gdzie renderuje `header/control-menu/...`.
 - Wpis slotu może mieć `id`, `priority`, `componentPath`, `enabled` (false wyłącza/ nadpisuje przy tym samym `id`).
-- Trasy kategorii wskazują na uniwersalny komponent layoutu (`renia-layout/pages/LayoutPage`); logika kategorii (menu, listing) wpinana przez sloty/interceptory.
+- Trasy kategorii wskazują na konkretny layout (np. `@framework/layout/layouts/Layout1Column`); logika kategorii (menu, listing) wpinana przez sloty/interceptory.
 
 ## Serwis menu (do wdrożenia)
 - API: `fetchMenu(options)` → zwraca ujednolicone drzewo menu (`MenuItem[]` z `renia-menu`).
