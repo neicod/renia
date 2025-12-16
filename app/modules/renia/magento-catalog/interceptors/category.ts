@@ -1,10 +1,10 @@
-// @env: server
-import { registerComponent } from '@framework/registry/componentRegistryServer';
+// @env: mixed
 import { CategoryProductList } from '../components/CategoryProductList';
 
-
 export default (api: any) => {
-  registerComponent('renia-magento-catalog/components/CategoryProductList', CategoryProductList);
+  api.registerComponents?.({
+    'renia-magento-catalog/components/CategoryProductList': CategoryProductList
+  });
 
   if (api?.extension) {
     api.extension('content', {

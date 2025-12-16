@@ -1,4 +1,4 @@
-// @env: server
+// @env: mixed
 import { SearchProductList } from '../components/SearchProductList';
 
 export default (api: any = {}) => {
