@@ -1,52 +1,6 @@
 // @env: mixed
 import type { ArgValue, FragmentDef, Operation, OperationKind, SelectionNode } from './types';
-
-const argToString = (v: ArgValue): string =>
-  typeof v === 'string' ? v : v === null ? 'null' : JSON.stringify(v);
-
-const renderArgs = (args?: Record<string, ArgValue>): string =>
-  args && Object.keys(args).length
-    ? `(${Object.entries(args)
-        .map(([k, v]) => `${k}: ${argToString(v)}`)
-        .join(', ')})`
-    : '';
-
-const renderSelection = (nodes: SelectionNode[], fragments?: Record<string, FragmentDef>): string => {
-  const lines: string[] = [];
-
-  for (const node of nodes) {
-    if (node.fragment) {
-      lines.push(`...${node.fragment}`);
-      continue;
-    }
-    if (node.inline) {
-      const inner = node.children ? renderSelection(node.children, fragments) : '';
-      lines.push(`... on ${node.inline} ${inner}`);
-      continue;
-    }
-    const args = renderArgs(node.args);
-    const alias = node.alias ? `${node.alias}: ` : '';
-    if (node.children && node.children.length > 0) {
-      const inner = renderSelection(node.children, fragments);
-      lines.push(`${alias}${node.name}${args} ${inner}`);
-    } else {
-      lines.push(`${alias}${node.name}${args}`);
-    }
-  }
-
-  return `{ ${lines.join(' ')} }`;
-};
-
-const renderFragments = (fragments?: Record<string, FragmentDef>): string =>
-  fragments
-    ? Object.values(fragments)
-        .map((f) => {
-          const on = f.on ? ` on ${f.on}` : '';
-          const sel = renderSelection(f.selection, fragments);
-          return `fragment ${f.name}${on} ${sel}`;
-        })
-        .join('\n')
-    : '';
+import { GraphQLRenderer } from './rendering/GraphQLRenderer';
 
 export class QueryBuilder {
   private type: OperationKind;
@@ -162,15 +116,7 @@ export class QueryBuilder {
     if (this.rawSource) {
       return this.rawSource;
     }
-    const vars =
-      this.variables && Object.keys(this.variables).length
-        ? `(${Object.entries(this.variables)
-            .map(([k, v]) => `$${k}: ${v}`)
-            .join(', ')})`
-        : '';
-    const sel = renderSelection(this.selection, this.fragments);
-    const op = `${this.type}${this.name ? ' ' + this.name : ''}${vars} ${sel}`;
-    const frags = renderFragments(this.fragments);
-    return frags ? `${op}\n\n${frags}` : op;
+    const renderer = new GraphQLRenderer();
+    return renderer.render(this.toObject());
   }
 }
