@@ -14,12 +14,7 @@ import { matchPath } from 'react-router-dom';
 import { loadInterceptors } from 'renia-interceptors';
 import AppRoot from '@framework/runtime/AppRoot';
 import { htmlTemplate } from './template';
-import {
-  isGlobalSlot,
-  extensionToSlotEntry,
-  extensionToSubslotEntry,
-  type ExtensionPoint
-} from '@framework/layout/extensionPoints';
+import { LayoutTreeBuilder, type LayoutNode } from 'renia-layout';
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { registerComponents } from '@framework/registry/componentRegistry';
@@ -256,37 +251,13 @@ app.get('*', async (req, res) => {
       }
     }
 
-    const slotEntries: SlotEntry[] = [];
-    const subslotEntries: SubslotEntry[] = [];
+    // Build hierarchical layout tree using new API
+    const layoutTree = new LayoutTreeBuilder();
+
     const api = {
       registerComponents,
       registerProductTypeComponentStrategy,
-      extension: (name: string, config: Omit<ExtensionPoint, 'name'> = {}) => {
-        const ext: ExtensionPoint = { name, ...config };
-
-        // Automatically determine if this is a global slot or nested subslot
-        if (isGlobalSlot(name)) {
-          // Global slots (header, footer, content, etc.)
-          const slotEntry = extensionToSlotEntry(ext);
-          if (slotEntry?.slot && (slotEntry?.component || slotEntry?.componentPath)) {
-            slotEntries.push(slotEntry);
-          }
-        } else {
-          // Nested subslots (product-listing-actions, etc.)
-          const subslotEntry = extensionToSubslotEntry(ext);
-          if (subslotEntry?.slot && (subslotEntry?.component || subslotEntry?.componentPath)) {
-            subslotEntries.push(subslotEntry);
-          }
-        }
-      },
-      subslots: {
-        add: (config: Omit<ExtensionPoint, 'name'>) => {
-          const subslotEntry = extensionToSubslotEntry(config as ExtensionPoint);
-          if (subslotEntry?.slot && (subslotEntry?.component || subslotEntry?.componentPath)) {
-            subslotEntries.push(subslotEntry);
-          }
-        }
-      }
+      layout: layoutTree.get('page') // Root API - start from page
     };
 
     // Build statusMap to filter interceptors by enabled modules
@@ -308,33 +279,84 @@ app.get('*', async (req, res) => {
       }
     }
 
+    // Build the final layout tree and convert to flat slots/subslots for rendering
+    const builtTree = layoutTree.build();
+
+    // Convert hierarchical tree to flat slot/subslot structure for backward compatibility
     const slots: Record<string, SlotEntry[]> = {};
     const subslots: Record<string, SubslotEntry[]> = {};
+
+    const flattenTree = (node: LayoutNode, isRootLevel: boolean = false) => {
+      for (const [nodeId, child] of node.children.entries()) {
+        if (isRootLevel) {
+          // Root level children (direct children of 'page') are always slots, even if they have children
+          const slotName = child.id;
+          if (!slots[slotName]) slots[slotName] = [];
+
+          // Add the node itself if it has a component
+          if (child.component || child.componentPath) {
+            slots[slotName].push({
+              slot: slotName,
+              component: child.component as any,
+              componentPath: child.componentPath,
+              priority: 0,
+              props: child.props,
+              meta: child.meta
+            });
+          }
+
+          // If it has children, add them to the same slot
+          if (child.children.size > 0) {
+            for (const [childId, grandchild] of child.children.entries()) {
+              if (grandchild.component || grandchild.componentPath) {
+                slots[slotName].push({
+                  slot: slotName,
+                  component: grandchild.component as any,
+                  componentPath: grandchild.componentPath,
+                  priority: 0,
+                  id: grandchild.id,
+                  props: grandchild.props,
+                  meta: grandchild.meta
+                });
+              }
+            }
+          }
+        } else {
+          // Non-root node - treat as subslot
+          const slotName = child.path;
+          if (child.component || child.componentPath) {
+            if (!subslots[slotName]) subslots[slotName] = [];
+            subslots[slotName].push({
+              slot: slotName,
+              component: child.component as any,
+              componentPath: child.componentPath,
+              priority: 0,
+              id: child.id,
+              enabled: true,
+              props: child.props,
+              meta: child.meta
+            });
+          }
+          // Recurse into children
+          if (child.children.size > 0) {
+            flattenTree(child, false);
+          }
+        }
+      }
+    };
+
+    flattenTree(builtTree, true);
+
+    // Apply category-specific props if needed
     const categoryPath =
       routeContexts.includes('category')
         ? req.path.replace(/^\/+category\/?/, '').replace(/\/+$/, '')
         : undefined;
-
-    for (const entry of slotEntries) {
-      if (routeContexts.includes('category') && entry.slot === 'content' && categoryPath) {
+    if (categoryPath && slots['content']) {
+      slots['content'].forEach((entry) => {
         entry.props = { ...(entry.props ?? {}), categoryUrlPath: categoryPath };
-      }
-      const list = slots[entry.slot] ?? [];
-      list.push(entry);
-      slots[entry.slot] = list;
+      });
     }
-    Object.keys(slots).forEach((slot) => {
-      slots[slot] = mergeSlots(slots[slot]);
-    });
-
-    for (const entry of subslotEntries) {
-      const list = subslots[entry.slot] ?? [];
-      list.push(entry);
-      subslots[entry.slot] = list;
-    }
-    Object.keys(subslots).forEach((slot) => {
-      subslots[slot] = mergeSlots(subslots[slot]);
-    });
 
     const routeMeta = { ...(match?.meta ?? {}) };
 

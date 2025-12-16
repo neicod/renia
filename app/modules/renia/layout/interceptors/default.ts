@@ -12,11 +12,7 @@ export default (api: any) => {
     'renia-magento-category/components/CategoryMainMenu': CategoryMainMenu
   });
 
-  if (api?.extension) {
-    api.extension('header', {
-      componentPath: 'renia-magento-category/components/CategoryMainMenu',
-      priority: 50,
-      id: 'category-main-menu'
-    });
-  }
+  api.layout.get('header').add('renia-magento-category/components/CategoryMainMenu', 'category-main-menu', {
+    sortOrder: { before: '-' }
+  });
 };

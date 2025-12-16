@@ -80,9 +80,9 @@ export const ProductTile: React.FC<ProductTileProps> = ({ product }) => {
           <div style={{ color: '#757575', fontWeight: 600, fontSize: '0.9rem' }}>{t('product.price.inCart')}</div>
         )}
 
-        {/* Universal slot - Wishlist, Share, itd */}
+        {/* Wishlist, Share, itd */}
         <SlotRenderer
-          name="product-listing-actions-universal"
+          name="product-listing-actions"
           props={{
             product
           }}

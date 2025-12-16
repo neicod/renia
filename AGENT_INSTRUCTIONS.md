@@ -82,70 +82,97 @@ export default function MyNewLayout({ slots, main }: LayoutProps) {
 
 ## Interceptory i sloty
 
-### Główne sloty
+### Hierarchiczny system layoutu
 
-| Slot | Gdzie | Zastosowanie |
-|------|-------|--------------|
-| `header` | W headerze | Menu, wyszukiwarka |
-| `control-menu` | W headera (górna część) | Koszyk, logowanie, wishlist |
-| `content` | Główny kontener | Listy produktów, filtry |
-| `left` | Lewy sidebar | Filtry, kategorie |
-| `footer` | Footer | Copyright, linki |
-| `global-overlay` | Ponad wszystko | Powiadomienia, toast'y |
+Layout jest budowany jako drzewo z root node'em `page`:
 
-### Subsloty (zagnieżdżone)
+```
+page (root)
+├── header
+│   ├── control-menu (koszyk, logowanie, wishlist)
+│   └── main-menu
+├── content (główna zawartość)
+├── left (lewy sidebar)
+├── footer
+└── global-overlay (powiadomienia, toast'y)
+```
 
-| Slot | Właściciel | Zastosowanie |
-|------|-----------|--------------|
-| `product-listing-actions` | ProductTile (lista) | Przyciski akcji na tile'u |
-| `product-view-actions` | ProductDetails (strona) | Przyciski na stronie produktu |
+### Jak dodać komponent do layoutu
 
-### Jak dodać komponent do slotu
+Używaj fluent API `api.layout.get()` aby nawigować po hierarchii:
 
 ```typescript
 // @env: mixed
 // app/modules/<vendor>/<module>/interceptors/default.ts
 
 import { MyComponent } from '../components/MyComponent';
-import type { InterceptorApi } from 'renia-interceptors';
 
-export default (api: InterceptorApi) => {
+export default (api) => {
   // 1. Zarejestruj komponent
   api.registerComponents?.({
     'module-name/components/MyComponent': MyComponent
   });
 
-  // 2. Dodaj do slotu
-  api.extension('content', {
-    componentPath: 'module-name/components/MyComponent',
-    id: 'my-component-id',
-    priority: 20  // wyższa = wcześniej
-  });
+  // 2. Dodaj do layoutu - użyj get() i add()
+  api.layout
+    .get('header')
+    .add('module-name/components/MyComponent', 'my-component-id', {
+      sortOrder: { before: '-' },  // Domyślnie pierwszy element
+      props: { variant: 'dark' }
+    });
 };
 ```
 
-### Jak wyłączyć komponent z innego modułu
+**Ścieżki hierarchii:**
+- `api.layout.get('page.header')` - nagłówek
+- `api.layout.get('page.header.control-menu')` - menu kontrolne
+- `api.layout.get('page.content')` - główna zawartość
+- `api.layout.get('page.left')` - lewy sidebar
+- `api.layout.get('page.footer')` - footer
+- `api.layout.get('page.global-overlay')` - overlay
+
+### Sortowanie elementów
+
+Zamiast `priority`, używaj `sortOrder` z `before` lub `after`:
 
 ```typescript
-api.extension('content', {
-  id: 'unwanted-component-id',
-  enabled: false
-});
+// Domyślnie (pierwszy element)
+{ sortOrder: { before: '-' } }
+
+// Przed konkretnym elementem
+{ sortOrder: { before: 'search-bar' } }
+
+// Po konkretnym elemencie
+{ sortOrder: { after: 'menu' } }
+```
+
+### Subsloty (product-view-actions, product-listing-actions)
+
+Subsloty działają tak samo jak zwykłe sloty:
+
+```typescript
+api.layout
+  .get('product-view-actions')
+  .add('renia-magento-wishlist/components/WishlistHeart', 'wishlist-heart');
 ```
 
 ### Kontekst-specificzny interceptor
 
+Interceptory mogą być załadowane dla konkretnych kontekstów trasy:
+
 ```typescript
 // @env: mixed
 // app/modules/<vendor>/<module>/interceptors/category.ts
+// Ten interceptor ładuje się tylko dla route'ów z contexts: ['category']
 
-export default (api: InterceptorApi) => {
-  // Ten interceptor ładuje się tylko dla route'ów z contexts: ['category']
-  api.extension('left', {
-    componentPath: 'module-name/components/CategoryFilters',
-    id: 'category-filters',
-    priority: 10
+export default (api) => {
+  api.registerComponents?.({
+    'module-name/components/CategoryFilters': CategoryFilters
   });
+
+  api.layout
+    .get('page.left')
+    .add('module-name/components/CategoryFilters', 'category-filters');
 };
 ```
 
@@ -268,14 +295,16 @@ api.registerComponents?.({
 });
 ```
 
-### ❌ "api.extension is not a function" (SSR)
+### ❌ "api.layout is undefined" (SSR)
 
-**Przyczyna:** Interceptor ma `@env: browser`.
+**Przyczyna:** Interceptor ma `@env: browser` lub brakuje api.layout.
 
 **Rozwiązanie:**
 ```typescript
 // @env: mixed  ← Zmień to
-export default (api: InterceptorApi) => { /* ... */ };
+export default (api: InterceptorApi) => {
+  api.layout.get('header').add(MyComponent, 'my-id');
+};
 ```
 
 ### ❌ "Failed to load layout: renia-layout/layouts/custom"
@@ -294,7 +323,7 @@ api.registerComponents?.({
 
 **Sprawdź:**
 1. Komponent zarejestrowany w `api.registerComponents()`?
-2. Dodany do slotu przez `api.extension()`?
+2. Dodany do slotu przez `api.layout.get().add()`?
 3. `@env: mixed`?
 
 ---

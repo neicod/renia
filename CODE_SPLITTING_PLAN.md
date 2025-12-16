@@ -21,7 +21,7 @@ Request: /category/men
 2. matchPath('/category/men') → Znaleźliśmy route: '/category/*'
 3. loadInterceptors('default', api)
 4. loadInterceptors('category', api)  ← Specificzny kontekst!
-5. Komponenty rejestrują się via api.extension()
+5. Komponenty rejestrują się via api.layout.get().add() (hierarchiczny system)
 6. Bootstrap zawiera slots/subslots dla tej ścieżki
 7. HTML serializeduje bootstrap do window.__APP_BOOTSTRAP__
 ```

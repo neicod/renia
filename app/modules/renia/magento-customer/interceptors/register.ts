@@ -6,11 +6,7 @@ export default (api: any = {}) => {
     'renia-magento-customer/pages/RegisterPage': RegisterPage
   });
 
-  if (api?.extension) {
-    api.extension('content', {
-      componentPath: 'renia-magento-customer/pages/RegisterPage',
-      id: 'register-page',
-      priority: 20
-    });
-  }
+  api.layout.get('content').add('renia-magento-customer/pages/RegisterPage', 'register-page', {
+    sortOrder: { before: '-' }
+  });
 };

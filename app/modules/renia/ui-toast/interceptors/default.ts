@@ -6,11 +6,7 @@ export default function toastInterceptor(api: any = {}) {
     'renia-ui-toast/components/ToastViewport': ToastViewport
   });
 
-  if (api?.extension) {
-    api.extension('global-overlay', {
-      componentPath: 'renia-ui-toast/components/ToastViewport',
-      id: 'toast-viewport',
-      priority: 200
-    });
-  }
+  api.layout.get('global-overlay').add('renia-ui-toast/components/ToastViewport', 'toast-viewport', {
+    sortOrder: { before: '-' }
+  });
 }

@@ -1,9 +1,6 @@
-// @env: server
+// @env: mixed
 export default function wishlistCategoryInterceptor(api: any = {}) {
-  if (api?.extension) {
-    api.extension('product-listing-actions-universal', {
-      componentPath: 'renia-magento-wishlist/components/WishlistHeart',
-      priority: 15
-    });
-  }
+  api.layout.get('product-listing-actions').add('renia-magento-wishlist/components/WishlistHeart', 'wishlist-heart', {
+    sortOrder: { before: '-' }
+  });
 }

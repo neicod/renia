@@ -25,11 +25,7 @@ export default (api: any) => {
   });
 
   // 3. Rejestruj komponenty w slotach (per widok)
-  if (api?.extension) {
-    api.extension('control-menu', {
-      componentPath: 'renia-magento-cart/components/CartControlLink',
-      priority: 90,
-      id: 'cart-link'
-    });
-  }
+  api.layout.get('control-menu').add('renia-magento-cart/components/CartControlLink', 'cart-link', {
+    sortOrder: { before: '-' }
+  });
 };

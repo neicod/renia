@@ -87,9 +87,10 @@ Adding new product types:
 
 ### Interceptors
 - Files in `interceptors/default.ts` (global) or `interceptors/<context>.ts` (category, search, product, etc.)
-- API: `api.extension(name, { componentPath, priority, props })`
+- API: `api.layout.get(slotName).add(componentPath, id, { sortOrder, props, meta })`
+- Hierarchical layout tree: `page.header`, `page.content`, `page.footer`, `page.global-overlay`, `page.header.control-menu`
 - For product pages: Use `ProductAddToCartResolver` with `slot: 'add-to-cart-product-page'` to auto-select component by product type
-- Disable slot entry: same `componentPath` with lower priority or `enabled: false`
+- Sort order: Use `{ before: '-' }` for first position, or `{ before: 'id' }` / `{ after: 'id' }` for relative positioning
 
 ### GraphQL Layer
 - `renia-graphql-client`: QueryBuilder, executeRequest
@@ -149,7 +150,7 @@ GRAPHQL_LOG_RESPONSE=0      # Disable response logging
 1. **Read and understand the code** - Look at existing patterns, not just the error
 2. **Check documentation first** - Read CLAUDE.md, AGENT_INSTRUCTIONS.md, and relevant module docs
 3. **Ask if unsure** - Use AskUserQuestion tool when:
-   - API/behavior is unclear (e.g., `api.slots` vs `api.subslots`)
+   - API/behavior is unclear (e.g., hierarchical vs flat layout API)
    - Change affects multiple components
    - Multiple valid approaches exist
 4. **Never guess** - Never assume file structure, API names, or import paths
@@ -162,7 +163,7 @@ GRAPHQL_LOG_RESPONSE=0      # Disable response logging
 5. **Revert bad changes immediately** - Don't persist with wrong approach
 
 ### Changes That Need Verification
-- **API calls** - Verify correct method/property names in framework (e.g., `api.slots` vs `api.subslots`)
+- **API calls** - Verify correct method/property names in framework (e.g., `api.layout.get()` API)
 - **Interceptor changes** - Test that slot entries render correctly
 - **Type changes** - Ensure backward compatibility
 - **Hook logic** - Test with real data, not assumptions

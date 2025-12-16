@@ -10,11 +10,7 @@ export default (api: any) => {
     'renia-magento-wishlist/pages/WishlistPage': WishlistPage
   });
 
-  if (api?.extension) {
-    api.extension('control-menu', {
-      componentPath: 'renia-magento-wishlist/components/WishlistControlLink',
-      priority: 80,
-      id: 'wishlist-link'
-    });
-  }
+  api.layout.get('control-menu').add('renia-magento-wishlist/components/WishlistControlLink', 'wishlist-link', {
+    sortOrder: { before: '-' }
+  });
 };

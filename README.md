@@ -74,7 +74,7 @@ Centralna dokumentacja aplikacji znajdującej się w katalogu `frontend`. Zawier
 - **Struktura modułu:** `package.json`, `registration.ts`, ewentualnie `routes.ts`, `interceptors/*`, `registerComponents.ts`, page komponenty (jeśli moduł ma `routes.ts`), assets.
 - **Lokalizacja modułów:** nadal wspieramy historyczny katalog `modules/`, ale własne moduły najlepiej umieszczać w `app/modules/<vendor>/<module>` i instalować je ręcznie przez `npm install <nazwa>@file:app/modules/<vendor>/<module>`. Dzięki temu importy działają jak przy zwykłych paczkach npm, a loader SSR automatycznie wczytuje rejestracje z obu lokalizacji.
 - **Rejestr komponentów:** Komponenty są rejestrowane w interceptorach (`api.registerComponents({...})`), a nie w osobnym `registerComponents.ts`. Nazwy komponentów podaj jako stringi (bare specifiers), bo pliki ładowane są zarówno na SSR, jak i w bundlu klienta.
-- **Interceptory:** eksportują funkcję wywoływaną z API `api.registerComponents({...})`, `api.extension(...)`, `api.subslots.add(...)`. Przy ich pomocy moduł może np. wstrzyknąć listing produktów na stronę kategorii.
+- **Interceptory:** eksportują funkcję wywoływaną z API `api.registerComponents({...})` i `api.layout.get().add(...)`. Przy ich pomocy moduł może np. wstrzyknąć listing produktów na stronę kategorii.
 - **Zależności modułów:** zadeklaruj w `registration.ts` (`dependencies`), by loader wiedział, że moduł wymaga innych paczek.
 - **Page komponenty:** Moduły z `routes.ts` muszą mieć page komponenty (np. `WishlistPage.tsx`) w katalogu `pages/`. Route wskazuje na ten komponent przez `componentPath`.
 
@@ -89,22 +89,31 @@ Przykład interceptora w module katalogu (`app/modules/renia/magento-catalog/int
 
 ```ts
 // @env: mixed
-import type { InterceptorApi } from 'renia-interceptors';
 
-export default async function categoryInterceptor(api: InterceptorApi) {
-  api.slots.add({
-    slot: 'content',
-    componentPath: 'renia-magento-catalog/components/CategoryProductList',
-    id: 'category-product-list',
-    priority: 20,
-    props: { /* np. categoryUrlPath podany przez route handler */ }
+export default (api) => {
+  api.registerComponents?.({
+    'renia-magento-catalog/components/CategoryProductList': CategoryProductList
   });
+
+  // Dodaj do content slotu (hierarchia: page → content)
+  api.layout
+    .get('content')
+    .add(
+      'renia-magento-catalog/components/CategoryProductList',
+      'category-product-list',
+      { sortOrder: { before: '-' } }
+    );
 }
 ```
 
-- `interceptors/default.ts` działa globalnie dla każdej trasy.
-- Nazwy kontekstów (`control-menu`, `category`, `search` itd.) odpowiadają temu, co serwer przekazuje do loadera interceptorów (`loadInterceptors(context, ...)`).
-- Aby „wyłączyć” element slotu z innego modułu, dodaj wpis z tym samym `id` i `enabled: false`.
+**System hierarchiczny:**
+- Root node to zawsze `'page'`
+- `api.layout.get('header')` → `page.header`
+- `api.layout.get('page.header.control-menu')` → dokładna ścieżka
+- `interceptors/default.ts` – ładuje się globalnie dla każdej trasy
+- `interceptors/category.ts` – ładuje się tylko dla route'ów z `contexts: ['category']`
+- `sortOrder: { before: '-' }` – domyślnie pierwszy element (zamiast `priority`)
+- Aby wyłączyć element z innego modułu, dodaj wpis z tym samym `id` i `enabled: false` (jeśli potrzebne)
 
 ### Plik `routes.ts`
 
@@ -179,19 +188,22 @@ export default function Layout2ColumnsLeft({ slots, main }: LayoutProps) {
 - Developer ma pełną kontrolę nad HTML, strukturą i stylami wewnątrz komponentu layoutu.
 - Aby dodać nowy layout, utwórz nowy plik `.tsx` w `layouts/` i zarejestruj go w `interceptors/default.ts`.
 
-### Sloty wewnętrzne na listingu i karcie produktu
+### Subsloty produktu
 
-- `magento-product/components/ProductTile` emituje slot `product-listing-actions`, przekazując w `props` bieżący `product`.
-- `magento-product/pages/components/ProductDetails` emituje slot `product-view-actions` (również z `product`).
-- Aby dołożyć własną akcję (np. przycisk „Dodaj do koszyka”), dodaj w interceptorze wpis:
+- `magento-product/components/ProductTile` emituje subslot `product-listing-actions`, przekazując w `props` bieżący `product`.
+- `magento-product/pages/components/ProductDetails` emituje subslot `product-view-actions` (również z `product`).
+- Aby dołożyć własną akcję (np. przycisk „Dodaj do koszyka"), dodaj w interceptorze wpis:
   ```ts
-  api.subslots.add({
-    slot: 'product-listing-actions',
-    componentPath: 'renia-magento-cart/components/AddToCartButton',
-    priority: 10
-  });
+  // @env: mixed
+  api.layout
+    .get('product-listing-actions')
+    .add(
+      'renia-magento-cart/components/AddToCartButton',
+      'add-to-cart-button',
+      { sortOrder: { before: '-' } }
+    );
   ```
-- Sloty działają na SSR i w kliencie; kolejność kontrolujesz `priority`, a wyłączenie następuje przez `enabled: false`.
+- Subsloty działają na SSR i w kliencie; kolejność kontrolujesz `sortOrder` (domyślnie `{ before: '-' }` = pierwszy element).
 
 ## System tłumaczeń (i18n)
 

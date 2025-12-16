@@ -8,20 +8,14 @@ export default (api: any = {}) => {
     'renia-magento-catalog-search/components/SearchProductList': SearchProductList
   });
 
-  if (api?.extension) {
-    api.extension('control-menu', {
-      componentPath: 'renia-magento-catalog-search/components/SearchBar',
-      id: 'search-bar',
-      priority: 100
-    });
+  api.layout.get('control-menu').add('renia-magento-catalog-search/components/SearchBar', 'search-bar', {
+    sortOrder: { before: '-' }
+  });
 
-    api.extension('content', {
-      componentPath: 'renia-magento-catalog-search/components/SearchProductList',
-      id: 'search-product-list',
-      priority: 20,
-      meta: {
-        onlyForRouteTypes: ['search']
-      }
-    });
-  }
+  api.layout.get('content').add('renia-magento-catalog-search/components/SearchProductList', 'search-product-list', {
+    sortOrder: { before: '-' },
+    meta: {
+      onlyForRouteTypes: ['search']
+    }
+  });
 };

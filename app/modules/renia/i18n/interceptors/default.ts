@@ -7,11 +7,7 @@ export default function i18nInterceptor(api: any = {}) {
     'renia-i18n/components/I18nBootstrap': I18nBootstrap
   });
 
-  if (api?.extension) {
-    api.extension('global-overlay', {
-      componentPath: 'renia-i18n/components/I18nBootstrap',
-      id: 'i18n-bootstrap',
-      priority: 5
-    });
-  }
+  api.layout.get('global-overlay').add('renia-i18n/components/I18nBootstrap', 'i18n-bootstrap', {
+    sortOrder: { before: '-' }
+  });
 }

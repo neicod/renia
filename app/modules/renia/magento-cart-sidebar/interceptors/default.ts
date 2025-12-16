@@ -8,18 +8,12 @@ export default function cartSidebarInterceptor(api: any = {}) {
     'renia-magento-cart-sidebar/components/CartLinkSidebar': CartLinkSidebar
   });
 
-  if (api?.extension) {
-    api.extension('global-overlay', {
-      componentPath: 'renia-magento-cart-sidebar/components/CartSidebar',
-      id: 'cart-sidebar',
-      priority: 180
-    });
+  api.layout.get('global-overlay').add('renia-magento-cart-sidebar/components/CartSidebar', 'cart-sidebar', {
+    sortOrder: { before: '-' }
+  });
 
-    // Podmień domyślny link koszyka, aby otwierał sidebar (poza stroną /cart)
-    api.extension('control-menu', {
-      componentPath: 'renia-magento-cart-sidebar/components/CartLinkSidebar',
-      id: 'cart-link',
-      priority: 100
-    });
-  }
+  // Podmień domyślny link koszyka, aby otwierał sidebar (poza stroną /cart)
+  api.layout.get('control-menu').add('renia-magento-cart-sidebar/components/CartLinkSidebar', 'cart-link', {
+    sortOrder: { before: '-' }
+  });
 }

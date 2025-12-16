@@ -11,10 +11,7 @@ export default function productInterceptor(api: any = {}) {
   });
 
   // 2. Rejestruj resolver w slocie
-  if (api?.extension) {
-    api.extension('product-view-actions', {
-      componentPath: 'renia-magento-cart/components/ProductAddToCartResolver',
-      priority: 20
-    });
-  }
+  api.layout.get('product-view-actions').add('renia-magento-cart/components/ProductAddToCartResolver', 'product-add-to-cart-resolver', {
+    sortOrder: { before: '-' }
+  });
 }

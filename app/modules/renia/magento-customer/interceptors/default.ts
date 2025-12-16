@@ -16,16 +16,11 @@ export default function customerInterceptor(api: any = {}) {
     'renia-magento-customer/pages/RegisterPage': RegisterPage
   });
 
-  if (api?.extension) {
-    api.extension('control-menu', {
-      componentPath: 'renia-magento-customer/components/CustomerStatusControl',
-      id: 'customer-status-control',
-      priority: 105
-    });
-    api.extension('global-overlay', {
-      componentPath: 'renia-magento-customer/components/CustomerBootstrap',
-      id: 'customer-bootstrap',
-      priority: 50
-    });
-  }
+  api.layout.get('control-menu').add('renia-magento-customer/components/CustomerStatusControl', 'customer-status-control', {
+    sortOrder: { before: '-' }
+  });
+
+  api.layout.get('global-overlay').add('renia-magento-customer/components/CustomerBootstrap', 'customer-bootstrap', {
+    sortOrder: { before: '-' }
+  });
 }

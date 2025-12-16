@@ -27,17 +27,16 @@ const enabledModules = bootstrap.enabledModules ?? [];
 const contextsToLoad = routeContexts.length > 0 ? routeContexts : ['default'];
 
 // API object dla interceptorów - rejestruje strategie i komponenty
-// Note: api.extension and api.subslots are no-ops on client since slots come from SSR bootstrap
+// Note: api.layout is a no-op on client since slots come from SSR bootstrap
 const interceptorApi = {
   registerProductTypeComponentStrategy,
   registerComponents,
-  extension: () => {
-    // No-op on client: slots are already provided by SSR bootstrap
-  },
-  subslots: {
-    add: () => {
-      // No-op on client: subslots are already provided by SSR bootstrap
-    }
+  layout: {
+    get: () => ({
+      add: () => {
+        // No-op on client: layout tree is already provided by SSR bootstrap
+      }
+    })
   }
 };
 
@@ -45,7 +44,7 @@ const interceptorApi = {
 // To zarejestuje:
 // - Strategie produktów per typ (e.g., SimpleProduct, ConfigurableProduct)
 // - Komponenty w registry
-// - Komponenty w slotach (via api.extension)
+// - Komponenty w drzewie layoutu (via api.layout)
 (async () => {
   // Load contexts (loadInterceptorsClient zawsze ładuje default + specified context)
   for (const context of contextsToLoad) {
