@@ -1,16 +1,10 @@
 // @env: mixed
-import { CategoryMainMenu } from '../components/CategoryMainMenu';
+import { CategoryHeader } from '../components/CategoryHeader';
+import { CategoryPage } from '../pages/CategoryPage';
 
 export default (api: any) => {
   api.registerComponents?.({
-    'renia-magento-category/components/CategoryMainMenu': CategoryMainMenu
+    'renia-magento-category/components/CategoryHeader': CategoryHeader,
+    'renia-magento-category/pages/CategoryPage': CategoryPage
   });
-
-  if (api?.extension) {
-    api.extension('header', {
-      componentPath: 'renia-magento-category/components/CategoryMainMenu',
-      priority: 50,
-      id: 'category-main-menu'
-    });
-  }
 };

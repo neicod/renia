@@ -9,6 +9,8 @@ export const mapCategoryNode = (node: any): Category => ({
   type: 'category',
   position: typeof node?.position === 'number' ? node.position : undefined,
   includeInMenu: node?.include_in_menu !== false,
+  description: node?.description ?? undefined,
+  image: node?.image ?? undefined,
   children: Array.isArray(node?.children) ? node.children.map(mapCategoryNode) : []
 });
 

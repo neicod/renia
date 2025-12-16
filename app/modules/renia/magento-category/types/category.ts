@@ -7,6 +7,8 @@ export interface Category {
   type?: string;
   position?: number;
   includeInMenu?: boolean;
+  description?: string;
+  image?: string;
   children?: Category[];
 }
 
