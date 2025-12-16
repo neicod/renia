@@ -86,7 +86,7 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
           <Routes>
             {routes.map((route) => {
               const Comp = resolveComponent(route);
-              const layout = route.layout ?? '1column';
+              const layout = (route.meta as any)?.layout ?? (route as any).layout ?? 'renia-layout/layouts/1column';
               return (
                 <Route
                   key={route.path}

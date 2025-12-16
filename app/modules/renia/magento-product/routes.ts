@@ -5,7 +5,9 @@ export default [
     componentPath: 'magento-product/pages/ProductPage',
     handler: 'magento-product/routeHandler',
     priority: 40,
-    layout: '1column',
-    contexts: ['product']
+    contexts: ['product'],
+    meta: {
+      layout: 'renia-layout/layouts/2columns-left'
+    }
   }
 ];

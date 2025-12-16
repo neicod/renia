@@ -5,9 +5,9 @@ export default [
     componentPath: 'renia-layout/pages/LayoutPage',
     handler: 'renia-magento-catalog-search/routeHandler',
     priority: 45,
-    layout: '1column',
     contexts: ['search'],
     meta: {
+      layout: 'renia-layout/layouts/2columns-left',
       type: 'search'
     }
   }

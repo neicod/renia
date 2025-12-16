@@ -5,9 +5,9 @@ export default [
     componentPath: 'renia-layout/pages/LayoutPage',
     handler: 'renia-magento-category/routeHandler',
     priority: 50,
-    layout: '1column',
     contexts: ['category'],
     meta: {
+      layout: 'renia-layout/layouts/2columns-left',
       type: 'category',
       passUrlPath: true
     }
