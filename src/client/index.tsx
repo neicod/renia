@@ -6,28 +6,9 @@ import React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoot from '@framework/runtime/AppRoot';
-
-// Załaduj registerComponents wszystkich enabled modułów z app/etc/config.json
-// (moduły mają zdefiniowane zależności więc kolejność jest ważna)
-import 'renia-magento-cart/registerComponents';
-import 'renia-magento-wishlist/registerComponents';
-import 'renia-layout/registerComponents';
-import 'renia-magento-category/registerComponents';
-import 'magento-product/registerComponents';
-import 'renia-magento-catalog/registerComponents';
-import 'renia-magento-catalog-search/registerComponents';
-import 'renia-ui-toast/registerComponents';
-import 'renia-magento-cart-sidebar/registerComponents';
-import 'renia-magento-configurable-product/registerComponents';
-import 'renia-magento-configurable-product-cart/registerComponents';
-import 'renia-i18n/registerComponents';
-
-// Załaduj strategie produktów (per type)
-import { registerStrategies as registerCartStrategies } from 'renia-magento-cart/registerStrategies';
-import { registerStrategies as registerConfigurableStrategies } from 'renia-magento-configurable-product-cart/registerStrategies';
-
-registerCartStrategies();
-registerConfigurableStrategies();
+import { loadInterceptorsClient } from '@framework/interceptors/loadInterceptorsClient';
+import { registerProductTypeComponentStrategy } from 'magento-product/services/productStrategies';
+import { registerComponents } from '@framework/registry/componentRegistry';
 
 declare global {
   interface Window {
@@ -36,15 +17,50 @@ declare global {
 }
 
 const rootElement = document.getElementById('root');
-const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], slots: {} };
+const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], slots: {}, contexts: [], enabledModules: [] };
 
-if (rootElement) {
-  hydrateRoot(
-    rootElement,
-    <React.StrictMode>
-      <BrowserRouter>
-        <AppRoot bootstrap={bootstrap} runtime="client" />
-      </BrowserRouter>
-    </React.StrictMode>
-  );
-}
+// Bootstrap zawiera konteksty strony (category, product, search, etc)
+// loadInterceptorsClient zawsze ładuje default, plus specified kontekst
+const routeContexts = bootstrap.contexts ?? [];
+const enabledModules = bootstrap.enabledModules ?? [];
+// Only load non-default contexts here, default is loaded automatically by loadInterceptorsClient
+const contextsToLoad = routeContexts.length > 0 ? routeContexts : ['default'];
+
+// API object dla interceptorów - rejestruje strategie i komponenty
+// Note: api.extension and api.subslots are no-ops on client since slots come from SSR bootstrap
+const interceptorApi = {
+  registerProductTypeComponentStrategy,
+  registerComponents,
+  extension: () => {
+    // No-op on client: slots are already provided by SSR bootstrap
+  },
+  subslots: {
+    add: () => {
+      // No-op on client: subslots are already provided by SSR bootstrap
+    }
+  }
+};
+
+// Załaduj interceptory dla danego kontekstu
+// To zarejestuje:
+// - Strategie produktów per typ (e.g., SimpleProduct, ConfigurableProduct)
+// - Komponenty w registry
+// - Komponenty w slotach (via api.extension)
+(async () => {
+  // Load contexts (loadInterceptorsClient zawsze ładuje default + specified context)
+  for (const context of contextsToLoad) {
+    await loadInterceptorsClient(context, interceptorApi, enabledModules);
+  }
+
+  // Hydratuj
+  if (rootElement) {
+    hydrateRoot(
+      rootElement,
+      <React.StrictMode>
+        <BrowserRouter>
+          <AppRoot bootstrap={bootstrap} runtime="client" />
+        </BrowserRouter>
+      </React.StrictMode>
+    );
+  }
+})();

@@ -2,56 +2,68 @@
 import type { ComponentType } from 'react';
 
 /**
- * Product strategy - komponenty dla danego typu produktu
- * Każdy slot = dedykowany komponent dla tego typu
+ * Product Type Component Strategy
+ * Mapuje slot → typ produktu → komponent
+ *
+ * Struktura:
+ * {
+ *   'add-to-cart-button': {
+ *     'SimpleProduct': SimpleAddToCartIcon,
+ *     'ConfigurableProduct': ConfigurableAddToCartIcon
+ *   },
+ *   'wishlist-button': {
+ *     'SimpleProduct': SimpleWishlistButton,
+ *     'ConfigurableProduct': ConfigurableWishlistButton
+ *   }
+ * }
  */
-export type ProductStrategy = {
-  type: string; // 'ConfigurableProduct', 'SimpleProduct', 'BundleProduct', etc.
-  components: Record<string, ComponentType<any>>;
+export type ProductTypeComponentStrategy = {
+  slot: string; // 'add-to-cart-button', 'wishlist-button', etc.
+  components: Record<string, ComponentType<any>>; // productType → Component
 };
 
 /**
  * Global registry - przechowuje wszystkie strategie
+ * slot → (productType → Component)
  */
-const productStrategies: Record<string, ProductStrategy> = {};
+const productTypeStrategies: Record<string, Record<string, ComponentType<any>>> = {};
 
 /**
- * Zarejestruj strategię dla typu produktu
+ * Zarejestruj strategię dla slotu z komponentami per typ produktu
+ * Merge: nadpisujemy tylko te same typy, pozostałe dodajemy
  */
-export const registerProductStrategy = (strategy: ProductStrategy) => {
-  if (productStrategies[strategy.type]) {
-    console.warn(`ProductStrategy for "${strategy.type}" already registered, overwriting`);
+export const registerProductTypeComponentStrategy = (strategy: ProductTypeComponentStrategy) => {
+  if (!productTypeStrategies[strategy.slot]) {
+    productTypeStrategies[strategy.slot] = {};
   }
-  productStrategies[strategy.type] = strategy;
+  // Merge: nadpisujemy istniejące typy, dodajemy nowe
+  productTypeStrategies[strategy.slot] = {
+    ...productTypeStrategies[strategy.slot],
+    ...strategy.components
+  };
 };
 
 /**
- * Pobierz strategię dla danego typu
+ * Pobierz komponent dla typu produktu w danym slocie
+ * Zwraca null jeśli brak slotu lub brak typu
  */
-export const getProductStrategy = (type: string): ProductStrategy | null => {
-  return productStrategies[type] ?? null;
-};
-
-/**
- * Pobierz komponent dla typu produktu i slotu
- * Zwraca null jeśli brak strategii lub brak komponentu dla slotu
- */
-export const getProductStrategyComponent = (
-  type: string,
-  slotName: string
+export const getProductTypeComponent = (
+  productType: string,
+  slot: string
 ): ComponentType<any> | null => {
-  const strategy = getProductStrategy(type);
-  if (!strategy) return null;
-  return strategy.components[slotName] ?? null;
+  return productTypeStrategies[slot]?.[productType] ?? null;
 };
 
 /**
  * Lista wszystkich zarejestrowanych strategii (debug)
  */
-export const listProductStrategies = (): Record<string, string[]> => {
-  const result: Record<string, string[]> = {};
-  for (const [type, strategy] of Object.entries(productStrategies)) {
-    result[type] = Object.keys(strategy.components);
+export const listProductTypeStrategies = (): Record<string, Record<string, string>> => {
+  const result: Record<string, Record<string, string>> = {};
+  for (const [slot, typeMap] of Object.entries(productTypeStrategies)) {
+    result[slot] = {};
+    for (const [productType, component] of Object.entries(typeMap)) {
+      result[slot][productType] = component.name || 'anonymous';
+    }
   }
   return result;
 };

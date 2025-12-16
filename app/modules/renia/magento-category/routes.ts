@@ -6,6 +6,7 @@ export default [
     handler: 'renia-magento-category/routeHandler',
     priority: 50,
     layout: '1column',
+    contexts: ['category'],
     meta: {
       type: 'category',
       passUrlPath: true

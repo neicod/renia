@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "npm run dev:server",
     "dev:server": "NODE_PATH=./modules NODE_ENV=development tsx src/server/index.tsx",
-    "dev:client": "node scripts/build-client.mjs --watch",
-    "build": "npm run build:i18n && npm run build:client && npm run build:server",
+    "dev:client": "npm run generate:interceptors && node scripts/build-client.mjs --watch",
+    "generate:interceptors": "node scripts/generate-interceptor-map.mjs",
+    "build": "npm run generate:interceptors && npm run build:i18n && npm run build:client && npm run build:server",
+    "build:docker": "npm run generate:interceptors && npm run build:i18n && npm run build:client && npm run build:server",
     "build:i18n": "node scripts/build-i18n.mjs",
     "build:client": "node scripts/build-client.mjs",
     "build:server": "node scripts/build-server.mjs",

@@ -135,7 +135,13 @@ GRAPHQL_LOG_RESPONSE=0      # Disable response logging
 - `frontend/AGENT_INSTRUCTIONS.md` - Detailed development rules
 - `docs/concept.md` within modules - Module-specific contracts
 
-## ⚠️ CRITICAL: Debugging & Code Changes
+## ⚠️ CRITICAL: Commits & Code Changes
+
+**NEVER commit changes yourself.** Always ask the user for approval first.
+- Present your changes and explain what you changed and why
+- Wait for user feedback/approval
+- Only commit if explicitly requested by user
+- This ensures the user has control over their codebase history
 
 **NEVER make random changes without understanding them.** This caused regressions and wasted time.
 

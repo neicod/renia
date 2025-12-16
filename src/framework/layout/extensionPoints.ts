@@ -10,7 +10,6 @@ export type ExtensionPoint = {
   name: string; // 'header', 'product-listing-actions', etc.
   componentPath?: string;
   component?: string;
-  category?: string;
   priority?: number;
   id?: string;
   props?: Record<string, unknown>;
@@ -34,7 +33,6 @@ export const extensionToSlotEntry = (ext: ExtensionPoint): SlotEntry => ({
   componentPath: ext.componentPath,
   component: ext.component,
   priority: ext.priority ?? 0,
-  category: ext.category,
   id: ext.id,
   props: ext.props,
   meta: ext.meta
@@ -48,7 +46,6 @@ export const extensionToSubslotEntry = (ext: ExtensionPoint): SubslotEntry => ({
   componentPath: ext.componentPath,
   component: ext.component,
   priority: ext.priority ?? 0,
-  category: ext.category,
   id: ext.id,
   enabled: true,
   props: ext.props,

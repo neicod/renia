@@ -1,9 +1,7 @@
 // @env: mixed
 import React from 'react';
-import { Link } from 'react-router-dom';
 import type { SlotEntry as BaseSlotEntry } from '../types';
 import { SlotProvider } from './SlotRenderer';
-import { useAppEnvironment } from '@framework/runtime/AppEnvContext';
 
 type SlotEntry = BaseSlotEntry & {
   enabled?: boolean;
@@ -15,7 +13,6 @@ type Props = {
   main: React.ReactNode;
   resolveComponent: (entry: { component?: string; componentPath?: string }) => React.ComponentType<any>;
   slots: Record<string, SlotEntry[]>;
-  layoutSlots?: Record<string, SlotEntry[]>;
   routeMeta?: any;
   subslots?: Record<string, SlotEntry[]>;
 };
@@ -64,127 +61,34 @@ const renderSlotEntries = (
   });
 };
 
-const pickEntries = (
-  name: string,
-  layoutSlots?: Record<string, SlotEntry[]>,
-  slots?: Record<string, SlotEntry[]>
-) => layoutSlots?.[name] ?? slots?.[name] ?? [];
 
 export const LayoutShell: React.FC<Props> = ({
   layout,
   main,
   resolveComponent,
   slots,
-  layoutSlots,
   routeMeta,
   subslots
 }) => {
-  const { storeCode, store } = useAppEnvironment();
-  const storeLabel = store?.code ?? storeCode ?? 'Sklep';
-  const currencyLabel = store?.currency ?? 'USD';
-  const localeLabel = store?.locale;
+  // 1. Render all slots to React.ReactNode
+  const renderedSlots: Record<string, React.ReactNode> = {};
 
-  const controlMenu = renderSlotEntries(
-    pickEntries('control-menu', layoutSlots, slots),
-    resolveComponent,
-    routeMeta
-  );
-  const header = renderSlotEntries(pickEntries('header', layoutSlots, slots), resolveComponent, routeMeta);
-  const footer = renderSlotEntries(pickEntries('footer', layoutSlots, slots), resolveComponent, routeMeta);
-  const left = renderSlotEntries(pickEntries('left', layoutSlots, slots), resolveComponent, routeMeta);
-  const contentSlot = renderSlotEntries(pickEntries('content', layoutSlots, slots), resolveComponent, routeMeta);
-  const overlayEntries = renderSlotEntries(
-    pickEntries('global-overlay', layoutSlots, slots),
-    resolveComponent,
-    routeMeta
-  );
-  const heroSection = (
-    <section className="hero-banner">
-      <div className="hero-banner__content">
-        <p className="hero-eyebrow">Nowości · {storeLabel}</p>
-        <h1 className="hero-title">Nowoczesny sklep internetowy dla wymagających klientów</h1>
-        <p className="hero-desc">
-          Znajdziesz tu bestsellerowe kolekcje, szybkie dostawy i personalizowane doświadczenie zakupowe.
-          Wszystko w jednym miejscu – w Twoim ulubionym sklepie.
-        </p>
-        <div className="hero-actions">
-          <Link className="button button--primary" to="/category/what-is-new">
-            Zobacz nowości
-          </Link>
-          <Link className="button button--ghost" to="/category/sale">
-            Promocje
-          </Link>
-          <span className="tag-badge">Waluta: {currencyLabel}</span>
-        </div>
-      </div>
-      <div className="hero-stats">
-        <div className="hero-stats__card">
-          <span className="hero-stats__value">4.9/5</span>
-          <span>Średnia ocena klientów</span>
-        </div>
-        <div className="hero-stats__card">
-          <span className="hero-stats__value">24h</span>
-          <span>Dostawy ekspresowe</span>
-        </div>
-        <div className="hero-stats__card">
-          <span className="hero-stats__value">{currencyLabel}</span>
-          <span>Waluta sklepu</span>
-        </div>
-      </div>
-    </section>
-  );
-
-  const rendered =
-    layout === '2column-left' ? (
-      <div className="app-shell">
-        <header className="header">
-          <div className="header__inner">
-            <div className="slot-stack">{controlMenu}</div>
-          </div>
-          <div className="header__menu">{header}</div>
-        </header>
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '1.5rem' }}>
-          <aside>{left}</aside>
-          <main className="main">
-            {contentSlot}
-            {main}
-          </main>
-        </div>
-        <footer className="footer">{footer}</footer>
-      </div>
-    ) : (
-      <div className="app-shell">
-        <header className="header">
-          <div className="header__inner">
-            <div className="header__brand">
-              <Link to="/" className="brand-logo">
-                Renia Store
-              </Link>
-              <p className="brand-tagline">
-                {storeLabel}
-                {localeLabel ? ` · ${localeLabel}` : ''}
-              </p>
-              <p className="brand-meta" style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>
-                Waluta: {currencyLabel}
-              </p>
-            </div>
-            <div className="slot-stack">{controlMenu}</div>
-          </div>
-          <div className="header__menu">{header}</div>
-        </header>
-        <main className="main">
-          {heroSection}
-          {contentSlot}
-          {main}
-        </main>
-        <footer className="footer">{footer}</footer>
-      </div>
+  for (const slotName of Object.keys(slots)) {
+    renderedSlots[slotName] = renderSlotEntries(
+      slots[slotName] ?? [],
+      resolveComponent,
+      routeMeta
     );
+  }
 
+  // 2. Load layout component (default to 1column if not specified)
+  const layoutPath = layout || 'renia-layout/layouts/1column';
+  const LayoutComponent = resolveComponent({ componentPath: layoutPath });
+
+  // 3. Pass slots and main to layout component
   return (
     <SlotProvider subslots={subslots} resolveComponent={resolveComponent} routeMeta={routeMeta}>
-      {rendered}
-      {overlayEntries}
+      <LayoutComponent slots={renderedSlots} main={main} routeMeta={routeMeta} />
     </SlotProvider>
   );
 };

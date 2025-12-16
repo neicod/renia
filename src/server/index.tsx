@@ -12,7 +12,6 @@ import { StaticRouter } from 'react-router-dom/server';
 import { loadRoutesRegistry } from '@framework/router';
 import { matchPath } from 'react-router-dom';
 import { loadInterceptors } from 'renia-interceptors';
-import { loadLayoutRegistry } from 'renia-layout';
 import AppRoot from '@framework/runtime/AppRoot';
 import { htmlTemplate } from './template';
 import {
@@ -23,11 +22,10 @@ import {
 } from '@framework/layout/extensionPoints';
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
+import { registerComponents } from '@framework/registry/componentRegistry';
+import { registerProductTypeComponentStrategy } from 'magento-product/services/productStrategies';
 import { getStoreConfig } from 'renia-magento-store';
 import { loadMessages as loadI18nMessages } from 'renia-i18n/services/loader';
-// Załaduj strategie produktów (per type)
-import { registerStrategies as registerCartStrategies } from 'renia-magento-cart/registerStrategies';
-import { registerStrategies as registerConfigurableStrategies } from 'renia-magento-configurable-product-cart/registerStrategies';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -99,10 +97,8 @@ const resolveClientAssetPath = () => {
 const sortByPriority = <T extends { priority?: number }>(entries: T[]) =>
   entries.slice().sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
 
-const contextFromPath = (pathname: string): string => {
-  const trimmed = pathname.replace(/^\/+/, '').split('/')[0];
-  return trimmed || 'default';
-};
+// Removed: contextFromPath - now using route.contexts from routes.ts
+// Each route explicitly defines its contexts instead of inferring from path
 
 type SlotEntry = {
   slot: string;
@@ -198,17 +194,17 @@ app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
   res.status(204).end();
 });
 
-// Zarejestruj strategie produktów raz na starcie serwera
-registerCartStrategies();
-registerConfigurableStrategies();
-
 app.get('*', async (req, res) => {
   try {
 
     const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    const enabledModules = Object.entries(config.modules ?? {})
+      .filter(([_, enabled]) => enabled)
+      .map(([name]) => name);
+
     await loadComponentRegistrations({ configPath });
     const routes = await loadRoutesRegistry({ configPath });
-    const layoutRegistry = await loadLayoutRegistry({ configPath });
 
     let preloadedCategoryMenu: MenuItem[] | undefined;
 
@@ -263,6 +259,8 @@ app.get('*', async (req, res) => {
     const slotEntries: SlotEntry[] = [];
     const subslotEntries: SubslotEntry[] = [];
     const api = {
+      registerComponents,
+      registerProductTypeComponentStrategy,
       extension: (name: string, config: Omit<ExtensionPoint, 'name'> = {}) => {
         const ext: ExtensionPoint = { name, ...config };
 
@@ -280,29 +278,45 @@ app.get('*', async (req, res) => {
             subslotEntries.push(subslotEntry);
           }
         }
+      },
+      subslots: {
+        add: (config: Omit<ExtensionPoint, 'name'>) => {
+          const subslotEntry = extensionToSubslotEntry(config as ExtensionPoint);
+          if (subslotEntry?.slot && (subslotEntry?.component || subslotEntry?.componentPath)) {
+            subslotEntries.push(subslotEntry);
+          }
+        }
       }
     };
 
-  const context = contextFromPath(req.path);
+    // Build statusMap to filter interceptors by enabled modules
+    const statusMap = Object.fromEntries(
+      enabledModules.map((name) => [name, true])
+    );
 
-    // global
-    await loadInterceptors('default', { configPath }, api);
-    // control-menu jako stały slot na każdej stronie
-    await loadInterceptors('control-menu', { configPath }, api);
-    // kontekst strony (unikamy drugiego wywołania default)
-    if (context !== 'default') {
-      await loadInterceptors(context, { configPath }, api);
+    // Load interceptors: always default, then route-specific contexts
+    await loadInterceptors('default', { configPath, statusMap }, api);
+
+    // Find matching route and get its contexts
+    const match = routes.find((r) => matchPath({ path: r.path, end: false }, req.path));
+    const routeContexts = (match?.contexts ?? []) as string[];
+
+    // Load context-specific interceptors
+    for (const ctx of routeContexts) {
+      if (ctx !== 'default') {
+        await loadInterceptors(ctx, { configPath, statusMap }, api);
+      }
     }
 
     const slots: Record<string, SlotEntry[]> = {};
     const subslots: Record<string, SubslotEntry[]> = {};
     const categoryPath =
-      context === 'category'
+      routeContexts.includes('category')
         ? req.path.replace(/^\/+category\/?/, '').replace(/\/+$/, '')
         : undefined;
 
     for (const entry of slotEntries) {
-      if (context === 'category' && entry.slot === 'content' && categoryPath) {
+      if (routeContexts.includes('category') && entry.slot === 'content' && categoryPath) {
         entry.props = { ...(entry.props ?? {}), categoryUrlPath: categoryPath };
       }
       const list = slots[entry.slot] ?? [];
@@ -322,7 +336,6 @@ app.get('*', async (req, res) => {
       subslots[slot] = mergeSlots(subslots[slot]);
     });
 
-    const match = routes.find((r) => matchPath({ path: r.path, end: false }, req.path));
     const routeMeta = { ...(match?.meta ?? {}) };
 
     if (match?.handler) {
@@ -382,13 +395,13 @@ app.get('*', async (req, res) => {
         path: r.path,
         component: r.component,
         componentPath: r.componentPath,
-        layout: (r.meta as any)?.layout ?? '1column',
+        layout: (r.meta as any)?.layout ?? 'renia-layout/layouts/1column',
         meta: r.path === match?.path ? routeMeta : r.meta ?? {}
       })),
       slots,
       subslots,
-      layouts: layoutRegistry.layouts,
-      layoutSlots: layoutRegistry.slots,
+      contexts: routeContexts,  // ← Route-specific contexts for client
+      enabledModules,  // ← Pass enabled modules so CSR can filter interceptors
       config: {
         ...appConfig,
         i18n: {

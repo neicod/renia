@@ -1,7 +1,6 @@
 // @env: mixed
 import React from 'react';
 import type { SlotEntry } from '../types';
-import { filterSubslotsByCategory } from '@framework/layout/subslots';
 
 type SlotComponentEntry = {
   component?: string;
@@ -37,8 +36,10 @@ export const SlotRenderer: React.FC<SlotRendererProps> = ({ name, meta, props })
   const allEntries = ctx.subslots?.[name];
   if (!allEntries?.length) return null;
 
-  // Filtruj po kategoriach - renderuj tylko komponentów z najwyższą kategoriąą
-  const entries = filterSubslotsByCategory(allEntries);
+  // Filter and sort by priority - higher priority renders first
+  const entries = allEntries
+    .filter((e) => e.enabled !== false)
+    .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
 
   return (
     <>

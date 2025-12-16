@@ -1,10 +1,9 @@
 // @env: mixed
 import React from 'react';
-import { getProductStrategyComponent } from 'magento-product/services/productStrategies';
+import { getProductTypeComponent } from 'magento-product/services/productStrategies';
 
 type Props = {
   product: any; // ProductInterface
-  slot?: 'add-to-cart-product-page' | 'add-to-cart-product-listing';
 };
 
 /**
@@ -13,21 +12,19 @@ type Props = {
  * Brak typu = null (nie renderuj nic)
  *
  * @param product - Produkt do renderowania
- * @param slot - Typ slotu ('add-to-cart-product-page' dla strony, 'add-to-cart-product-listing' dla listingu)
- *              Domyślnie: 'add-to-cart-product-page'
+ *
+ * Slot ('add-to-cart-button') jest określony przez interceptor,
+ * który rejestruje komponent dla tego slotu
  */
-export const ProductAddToCartResolver: React.FC<Props> = ({
-  product,
-  slot = 'add-to-cart-product-page'
-}) => {
+export const ProductAddToCartResolver: React.FC<Props> = ({ product }) => {
   if (!product || !product.__typename) {
     return null;
   }
 
-  const Component = getProductStrategyComponent(product.__typename, slot);
+  const Component = getProductTypeComponent(product.__typename, 'add-to-cart-button');
 
   if (!Component) {
-    console.warn(`No strategy component "${slot}" for product type "${product.__typename}"`);
+    console.warn(`No component for product type "${product.__typename}" in slot "add-to-cart-button"`);
     return null;
   }
 

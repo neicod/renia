@@ -1,9 +1,10 @@
-// @env: server
+// @env: mixed
 import { CategoryMainMenu } from '../components/CategoryMainMenu';
-import { registerComponent } from '@framework/registry/componentRegistry';
 
 export default (api: any) => {
-  registerComponent('renia-magento-category/components/CategoryMainMenu', CategoryMainMenu);
+  api.registerComponents?.({
+    'renia-magento-category/components/CategoryMainMenu': CategoryMainMenu
+  });
 
   if (api?.extension) {
     api.extension('header', {

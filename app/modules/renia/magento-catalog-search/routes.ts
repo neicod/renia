@@ -6,6 +6,7 @@ export default [
     handler: 'renia-magento-catalog-search/routeHandler',
     priority: 45,
     layout: '1column',
+    contexts: ['search'],
     meta: {
       type: 'search'
     }

@@ -31,8 +31,6 @@ type SlotEntry = LayoutSlotEntry & {
 type BootstrapData = {
   routes: RouteEntry[];
   slots: Record<string, SlotEntry[]>;
-  layoutSlots?: Record<string, SlotEntry[]>;
-  layouts?: Record<string, string[]>;
   subslots?: Record<string, any>;
   config?: {
     magentoGraphQLEndpoint?: string;
@@ -99,7 +97,6 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
                       main={<Comp meta={route.meta} />}
                       resolveComponent={resolveComponent}
                       slots={bootstrap.slots}
-                      layoutSlots={bootstrap.layoutSlots}
                       subslots={bootstrap.subslots}
                       routeMeta={route.meta}
                     />

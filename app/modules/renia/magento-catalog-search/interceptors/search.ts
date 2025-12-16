@@ -1,27 +1,16 @@
-// @env: mixed
-import { SearchBar } from '../components/SearchBar';
+// @env: server
 import { SearchProductList } from '../components/SearchProductList';
 
 export default (api: any = {}) => {
   api.registerComponents?.({
-    'renia-magento-catalog-search/components/SearchBar': SearchBar,
     'renia-magento-catalog-search/components/SearchProductList': SearchProductList
   });
 
   if (api?.extension) {
-    api.extension('control-menu', {
-      componentPath: 'renia-magento-catalog-search/components/SearchBar',
-      id: 'search-bar',
-      priority: 100
-    });
-
     api.extension('content', {
       componentPath: 'renia-magento-catalog-search/components/SearchProductList',
       id: 'search-product-list',
-      priority: 20,
-      meta: {
-        onlyForRouteTypes: ['search']
-      }
+      priority: 20
     });
   }
 };
