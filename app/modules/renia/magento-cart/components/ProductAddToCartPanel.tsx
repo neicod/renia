@@ -1,45 +1,20 @@
 // @env: mixed
 import React from 'react';
 import type { ProductInterface } from 'magento-product/types';
-import { useToast } from 'renia-ui-toast/hooks/useToast';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
-import { useCartManager } from '../context/CartManagerContext';
+import { useAddToCart } from '../hooks/useAddToCart';
 
 type Props = {
   product: ProductInterface;
 };
 
 export const ProductAddToCartPanel: React.FC<Props> = ({ product }) => {
-  const [adding, setAdding] = React.useState(false);
-  const toast = useToast();
-  const manager = useCartManager();
   const { t } = useI18n();
+  const { adding, addToCart } = useAddToCart({ product, quantity: 1 });
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!product?.sku) return;
-    setAdding(true);
-    try {
-      await manager.addProduct({ sku: product.sku, quantity: 1 });
-      toast({
-        tone: 'success',
-        title: t('cart.toast.added.title'),
-        description: t('cart.toast.added.single', {
-          name: product.name ?? product.sku
-        })
-      });
-    } catch (error) {
-      console.error('[ProductAddToCartPanel] Failed to add product', error);
-      const fallbackDesc = t('cart.toast.error.generic');
-      const message = error instanceof Error ? error.message : fallbackDesc;
-      toast({
-        tone: 'error',
-        title: t('cart.toast.error.title'),
-        description: message ?? fallbackDesc
-      });
-    } finally {
-      setAdding(false);
-    }
+    await addToCart();
   };
 
   return (
