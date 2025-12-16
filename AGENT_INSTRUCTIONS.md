@@ -25,9 +25,9 @@ Od niedawna Renia używa **Template-Based Layout System**. Layout to pełny komp
 
 | Layout | Ścieżka | Zastosowanie |
 |--------|--------|--------------|
-| `1column` | `renia-layout/layouts/1column` | Strony bez sidebara (login, wishlist, checkout) |
-| `2columns-left` | `renia-layout/layouts/2columns-left` | Kategorie, produkty, wyszukiwarka (lewy sidebar) |
-| `empty` | `renia-layout/layouts/empty` | Logowanie, rejestracja (bez headera/footera) |
+| `Layout1Column` | `@framework/layout/layouts/Layout1Column` | Strony bez sidebara (login, wishlist, checkout) |
+| `Layout2ColumnsLeft` | `@framework/layout/layouts/Layout2ColumnsLeft` | Kategorie, produkty, wyszukiwarka (lewy sidebar) |
+| `LayoutEmpty` | `@framework/layout/layouts/LayoutEmpty` | Logowanie, rejestracja (bez headera/footera) |
 
 ### Jak zdefiniować route z layoutem
 
@@ -42,7 +42,7 @@ export default [
     priority: 30,
     contexts: ['my-page'],
     meta: {
-      layout: 'renia-layout/layouts/1column',  // ← ZAWSZE pełna ścieżka
+      layout: '@framework/layout/layouts/Layout1Column',  // ← ZAWSZE pełna ścieżka
       type: 'my-page'
     }
   }
@@ -51,15 +51,17 @@ export default [
 
 ### Jak dodać nowy layout
 
-1. Utwórz plik: `app/modules/renia/layout/layouts/mynewlayout.tsx`
+1. Utwórz plik: `src/framework/layout/layouts/LayoutMyNewLayout.tsx`
 2. Implementuj: `type LayoutProps = { slots, main, routeMeta }`
-3. Zarejestruj w: `app/modules/renia/layout/interceptors/default.ts`
+3. Dodaj do eksportu w: `src/framework/layout/index.ts`
+4. Zarejestruj w: `src/server/index.tsx` i `src/client/index.tsx`
 
 ```typescript
 // @env: mixed
-// app/modules/renia/layout/layouts/mynewlayout.tsx
+// src/framework/layout/layouts/LayoutMyNewLayout.tsx
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 type LayoutProps = {
   slots: Record<string, React.ReactNode>;
@@ -67,15 +69,40 @@ type LayoutProps = {
   routeMeta?: Record<string, unknown>;
 };
 
-export default function MyNewLayout({ slots, main }: LayoutProps) {
+export default function LayoutMyNewLayout({ slots, main }: LayoutProps) {
   return (
-    <div className="my-layout">
-      <header>{slots.header}</header>
-      <main>{slots.content}{main}</main>
-      <footer>{slots.footer}</footer>
+    <div className="app-shell">
+      <header className="header">
+        <div className="header__inner">
+          <div className="header__brand">
+            <Link to="/" className="brand-logo">Renia Store</Link>
+          </div>
+          <div className="slot-stack">{slots['control-menu']}</div>
+        </div>
+        <div className="header__menu">{slots['header']}</div>
+      </header>
+
+      <main className="main">
+        {slots['content']}
+        {main}
+      </main>
+
+      <footer className="footer">{slots['footer']}</footer>
+
+      {slots['global-overlay']}
     </div>
   );
 }
+```
+
+Następnie w `src/server/index.tsx` i `src/client/index.tsx`:
+
+```typescript
+import { LayoutMyNewLayout } from '@framework/layout';
+
+registerComponents({
+  '@framework/layout/layouts/LayoutMyNewLayout': LayoutMyNewLayout
+});
 ```
 
 ---
@@ -307,15 +334,17 @@ export default (api: InterceptorApi) => {
 };
 ```
 
-### ❌ "Failed to load layout: renia-layout/layouts/custom"
+### ❌ "Failed to load layout: @framework/layout/layouts/LayoutCustom"
 
-**Przyczyna:** Layout nie zarejestrowany w `renia-layout/interceptors/default.ts`.
+**Przyczyna:** Layout nie zarejestrowany w `src/server/index.tsx` lub `src/client/index.tsx`.
 
 **Rozwiązanie:**
 ```typescript
-// app/modules/renia/layout/interceptors/default.ts
-api.registerComponents?.({
-  'renia-layout/layouts/custom': CustomLayout
+// src/server/index.tsx i src/client/index.tsx
+import { LayoutCustom } from '@framework/layout';
+
+registerComponents({
+  '@framework/layout/layouts/LayoutCustom': LayoutCustom
 });
 ```
 
@@ -325,6 +354,170 @@ api.registerComponents?.({
 1. Komponent zarejestrowany w `api.registerComponents()`?
 2. Dodany do slotu przez `api.layout.get().add()`?
 3. `@env: mixed`?
+
+---
+
+## Pełna spójność i czystość kodu (OBOWIĄZKOWE!)
+
+Kod musi być **spójny**, **czysty** i **maintainable**. To jest obowiązowe dla każdego commita.
+
+### 1. Spójność notacji w kodzie
+
+**Notacja property access:**
+- ✅ Słoty/obiekty z myślnikami: `slots['control-menu']`, `slots['global-overlay']`
+- ✅ Zwykłe property: `slots['header']`, `slots['content']`, `slots['footer']`, `slots['left']`
+- ❌ Nie mieszaj: nie rób `slots.header` i `slots['header']` w tym samym pliku
+
+```typescript
+// ✅ DOBRY - konsekwentnie ze słownikami
+export default function Layout1Column({ slots, main }: LayoutProps) {
+  return (
+    <div className="app-shell">
+      <header>{slots['header']}</header>
+      <div>{slots['control-menu']}</div>
+      <main>{slots['content']}{main}</main>
+      <footer>{slots['footer']}</footer>
+      {slots['global-overlay']}
+    </div>
+  );
+}
+
+// ❌ ZŁY - mieszanie notacji
+export default function Layout1Column({ slots, main }: LayoutProps) {
+  return (
+    <div className="app-shell">
+      <header>{slots.header}</header>                  {/* ← Jest .header */}
+      <div>{slots['control-menu']}</div>              {/* ← Jest ['control-menu'] */}
+      <main>{slots.content}{main}</main>              {/* ← Jest .content */}
+      <footer>{slots['footer']}</footer>              {/* ← Jest ['footer'] */}
+    </div>
+  );
+}
+```
+
+### 2. Typy i interfejsy
+
+**Zawsze definiuj typy:** Nie rób `any` bez powodu.
+
+```typescript
+// ✅ DOBRY
+interface LayoutProps {
+  slots: Record<string, React.ReactNode>;
+  main: React.ReactNode;
+  routeMeta?: Record<string, unknown>;
+}
+
+// ❌ ZŁY
+function MyLayout(props: any) { ... }
+```
+
+### 3. Imports i eksporty
+
+**Porządek importów:**
+```typescript
+// ✅ DOBRY - imports w porządku
+// @env: mixed
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+import { MyComponent } from '../components/MyComponent';
+import type { LayoutProps } from './types';
+
+// ❌ ZŁY - random porządek
+import type { LayoutProps } from './types';
+import { MyComponent } from '../components/MyComponent';
+import React from 'react';
+```
+
+**Named vs default exports:**
+- Components: `export default` (jeden komponent per plik)
+- Utils/helpers: `export const` (wiele funkcji)
+- Types: `export type`
+
+### 4. CSS klasy i styling
+
+**Konwencje CSS:**
+- CSS klasy: `kebab-case` (`.app-shell`, `.control-menu`, `.header__inner`)
+- BEM notation: `.block__element--modifier`
+- Inline styles: tylko dla Layout komponentów z `display: grid`, `gap` itd.
+
+```typescript
+// ✅ DOBRY - CSS klasy dla struktury
+<div className="app-shell">
+  <header className="header">
+    <div className="header__inner">
+      <div className="slot-stack">{slots['control-menu']}</div>
+    </div>
+  </header>
+</div>
+
+// ❌ ZŁY - wszystko inline styles
+<div style={{ maxWidth: '1220px', margin: '0 auto' }}>
+  <header style={{ display: 'flex' }}>
+    <div style={{ gap: '1rem', display: 'flex' }}>
+      {slots['control-menu']}
+    </div>
+  </header>
+</div>
+```
+
+### 5. Nazewnictwo zmiennych
+
+**camelCase dla zmiennych, snake_case tylko w konfigach JSON:**
+
+```typescript
+// ✅ DOBRY
+const controlMenuItems = slots['control-menu'];
+const renderedSlots: Record<string, React.ReactNode> = {};
+
+// ❌ ZŁY
+const control_menu_items = slots['control-menu'];
+const rendered_slots: Record<string, React.ReactNode> = {};
+```
+
+### 6. Brak martwego kodu
+
+**Zawsze usuwaj:**
+- Nieużywane zmienne
+- Zakomentowany kod
+- `console.log` w produkcji (zostawiaj tylko `console.error` i `console.warn`)
+- Niewykorzystane importy
+
+```typescript
+// ❌ ZŁY - martwy kod
+const unusedVar = 123;
+// const oldCode = () => { ... };
+console.log('debug');
+
+// ✅ DOBRY - czysty
+const neededVar = 123;
+```
+
+### 7. Aktualizacja dokumentacji
+
+Gdy zmieniasz architekturę (np. przenosisz moduł):
+1. Aktualizuj paths w `AGENT_INSTRUCTIONS.md`
+2. Aktualizuj `README.md` jeśli dotyczy architektury
+3. Dodaj notę o breaking changes jeśli są
+
+**Przykład - stara ścieżka to `renia-layout/layouts/1column`, nowa to `@framework/layout/layouts/Layout1Column`:**
+
+```markdown
+// STARE (do usunięcia z przykładów)
+meta: { layout: 'renia-layout/layouts/1column' }
+
+// NOWE (używaj tego)
+meta: { layout: '@framework/layout/layouts/Layout1Column' }
+```
+
+### 8. Testing i weryfikacja
+
+Zawsze testuj:
+```bash
+npm run build          # Brak TypeScript errors
+npm run lint           # ESLint pass
+# Sprawdź SSR hydratację w dev tools
+```
 
 ---
 
