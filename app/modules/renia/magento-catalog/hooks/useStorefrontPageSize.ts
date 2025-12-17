@@ -31,6 +31,7 @@ export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = 
     defaultPageSizeRef.current = defaultPageSize;
   }, [defaultPageSize]);
 
+  // applyConfig doesn't need dependencies - only uses refs and setters
   const applyConfig = React.useCallback((config?: CatalogStorefrontConfig | null) => {
     if (!config) return;
     const allowedOptions =
@@ -52,10 +53,13 @@ export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = 
     if (parsed) {
       applyConfig(parsed);
     }
-  }, [store, applyConfig]);
+  }, [applyConfig]);
+
+  // Only load storefront config once - not on every render
+  const configLoadedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (extractCatalogStorefrontConfig(store)) return;
+    if (configLoadedRef.current || extractCatalogStorefrontConfig(store)) return;
 
     let cancelled = false;
 
@@ -63,6 +67,7 @@ export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = 
       try {
         const fetched = await getCatalogStorefrontConfig({ store });
         if (cancelled) return;
+        configLoadedRef.current = true;
         applyConfig(fetched);
       } catch (error) {
         console.error('[useStorefrontPageSize] Failed to load storefront config', { runtime, error });
@@ -80,7 +85,7 @@ export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = 
     return () => {
       cancelled = true;
     };
-  }, [runtime, store, applyConfig]);
+  }, []);
 
   React.useEffect(() => {
     if (!userSelectedRef.current) {
