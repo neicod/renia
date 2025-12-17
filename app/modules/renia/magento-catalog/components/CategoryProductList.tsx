@@ -1,10 +1,8 @@
 // @env: mixed
 import React from 'react';
-import { ProductList } from 'magento-product/components/ProductList';
-import { ProductListingToolbar } from './ProductListingToolbar';
-import { ProductListingPagination } from './ProductListingPagination';
 import { useCategoryProductList } from '../hooks/useCategoryProductList';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
+import { ListingPageContent } from './ListingPageContent';
 
 import type { ProductSearchResults } from 'magento-product';
 
@@ -13,6 +11,15 @@ type Props = {
   initialListing?: ProductSearchResults | null;
 };
 
+/**
+ * CategoryProductList - Category listing page orchestrator
+ *
+ * Responsibility:
+ * - Extract category data from meta
+ * - Call useCategoryProductList hook
+ * - Render header with category title
+ * - Delegate listing UI to ListingPageContent
+ */
 export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: initialListingProp }) => {
   const category = React.useMemo(() => (meta as any)?.category, [meta]);
   const categoryLabel = typeof category?.label === 'string' ? category.label : undefined;
@@ -34,37 +41,25 @@ export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: ini
     return null;
   }
 
-  const controlsDisabled = status === 'loading';
-
   return (
-    <div>
-      <h2 className="section-title">{categoryLabel ?? t('catalog.listing.title')}</h2>
-      <ProductListingToolbar
-        sortOptions={sortOptions}
-        selectedSort={sort}
-        onSortChange={onSortChange}
-        totalItems={total}
-        currentPage={page}
-        itemsPerPage={pageSize}
-        pageSizeOptions={pageSizeOptions}
-        onItemsPerPageChange={onItemsPerPageChange}
-        disabled={controlsDisabled}
-      />
-      <ProductList
-        products={products}
-        loading={status === 'loading'}
-        initialLoading={isInitialLoading}
-        error={status === 'error' ? t('catalog.listing.error') : null}
-        emptyLabel={t('catalog.listing.empty')}
-      />
-      <ProductListingPagination
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={onPageChange}
-        disabled={controlsDisabled}
-      />
-    </div>
+    <ListingPageContent
+      products={products}
+      total={total}
+      currentPage={page}
+      pageSize={pageSize}
+      sortOptions={sortOptions}
+      selectedSort={sort}
+      onSortChange={onSortChange}
+      pageSizeOptions={pageSizeOptions}
+      onItemsPerPageChange={onItemsPerPageChange}
+      onPageChange={onPageChange}
+      isLoading={status === 'loading'}
+      isInitialLoading={isInitialLoading}
+      hasError={status === 'error'}
+      errorMessage={t('catalog.listing.error')}
+      emptyMessage={t('catalog.listing.empty')}
+      header={<h2 className="section-title">{categoryLabel ?? t('catalog.listing.title')}</h2>}
+    />
   );
 };
 
