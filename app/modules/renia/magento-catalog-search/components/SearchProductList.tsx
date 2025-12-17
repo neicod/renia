@@ -2,8 +2,7 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { ProductSearchResults } from 'magento-product';
-import { ProductList } from 'magento-product/components/ProductList';
-import { ProductListingToolbar, ProductListingPagination } from 'renia-magento-catalog';
+import { ListingPageContent } from 'renia-magento-catalog/components/ListingPageContent';
 import { useSearchProductList } from '../hooks/useSearchProductList';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
 
@@ -18,6 +17,9 @@ type Props = {
   initialListing?: ProductSearchResults | null;
 };
 
+/**
+ * Extract query from URL params and meta
+ */
 const useQueryParam = (meta?: SearchMeta) => {
   const [params] = useSearchParams();
   const urlQuery = params.get('q') ?? params.get('query');
@@ -25,10 +27,21 @@ const useQueryParam = (meta?: SearchMeta) => {
   return (urlQuery ?? metaQuery ?? '').trim();
 };
 
+/**
+ * SearchProductList - Search listing page orchestrator
+ *
+ * Responsibility:
+ * - Extract search query from URL params
+ * - Handle empty query state
+ * - Call useSearchProductList hook
+ * - Render header with search results title
+ * - Delegate listing UI to ListingPageContent
+ */
 export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initialListingProp }) => {
   if (meta && meta.type && meta.type !== 'search') {
     return null;
   }
+
   const { t } = useI18n();
   const query = useQueryParam(meta);
   const initialListing = React.useMemo(
@@ -43,6 +56,7 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
     handlers: { onSortChange, onItemsPerPageChange, onPageChange }
   } = useSearchProductList({ query, initialListing });
 
+  // Empty state: no query entered
   if (!query) {
     return (
       <div style={{ padding: '1rem 0' }}>
@@ -52,42 +66,32 @@ export const SearchProductList: React.FC<Props> = ({ meta, initialListing: initi
     );
   }
 
-  const controlsDisabled = status === 'loading';
-
   return (
-    <div>
-      <div style={{ marginBottom: '1rem' }}>
-        <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{t('search.results', { query })}</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#4b5563' }}>
-          {t(total === 1 ? 'search.found.one' : 'search.found.many', { total })}
-        </p>
-      </div>
-      <ProductListingToolbar
-        sortOptions={sortOptions}
-        selectedSort={sort}
-        onSortChange={onSortChange}
-        totalItems={total}
-        currentPage={page}
-        itemsPerPage={pageSize}
-        pageSizeOptions={pageSizeOptions}
-        onItemsPerPageChange={onItemsPerPageChange}
-        disabled={controlsDisabled}
-      />
-      <ProductList
-        products={products}
-        loading={status === 'loading'}
-        initialLoading={isInitialLoading}
-        error={status === 'error' ? t('search.error') : null}
-        emptyLabel={t('search.empty')}
-      />
-      <ProductListingPagination
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        onPageChange={onPageChange}
-        disabled={controlsDisabled}
-      />
-    </div>
+    <ListingPageContent
+      products={products}
+      total={total}
+      currentPage={page}
+      pageSize={pageSize}
+      sortOptions={sortOptions}
+      selectedSort={sort}
+      onSortChange={onSortChange}
+      pageSizeOptions={pageSizeOptions}
+      onItemsPerPageChange={onItemsPerPageChange}
+      onPageChange={onPageChange}
+      isLoading={status === 'loading'}
+      isInitialLoading={isInitialLoading}
+      hasError={status === 'error'}
+      errorMessage={t('search.error')}
+      emptyMessage={t('search.empty')}
+      header={
+        <div style={{ marginBottom: '1rem' }}>
+          <h2 style={{ margin: 0, fontSize: '1.25rem' }}>{t('search.results', { query })}</h2>
+          <p style={{ margin: '0.25rem 0 0', color: '#4b5563' }}>
+            {t(total === 1 ? 'search.found.one' : 'search.found.many', { total })}
+          </p>
+        </div>
+      }
+    />
   );
 };
 
