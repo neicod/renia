@@ -87,6 +87,7 @@ export const useProductRepository = (
           }
         })
         .catch((err) => {
+          // Use runtime from closure only for logging, not in dependencies
           console.error('[useProductRepository] Failed to fetch products', { runtime, err });
           if (!cancelled) {
             setStatus('error');
@@ -99,7 +100,7 @@ export const useProductRepository = (
         cancelled = true;
       };
     },
-    [repo, runtime]
+    [repo]
   );
 
   return {
