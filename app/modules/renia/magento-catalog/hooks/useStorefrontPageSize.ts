@@ -26,6 +26,9 @@ export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = 
   const [defaultPageSize, setDefaultPageSize] = React.useState<number>(DEFAULT_PAGE_SIZE);
   const userSelectedRef = React.useRef(false);
   const defaultPageSizeRef = React.useRef(defaultPageSize);
+  const ssrConfigAppliedRef = React.useRef(false);
+  const prevResetKeyRef = React.useRef<string | undefined>(resetKey);
+
 
   React.useEffect(() => {
     defaultPageSizeRef.current = defaultPageSize;
@@ -49,8 +52,14 @@ export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = 
   }, []);
 
   React.useEffect(() => {
+    // Only apply SSR config once to prevent React.StrictMode double-effect duplication
+    if (ssrConfigAppliedRef.current) {
+      return;
+    }
+
     const parsed = extractCatalogStorefrontConfig(store);
     if (parsed) {
+      ssrConfigAppliedRef.current = true;
       applyConfig(parsed);
     }
   }, [applyConfig]);
@@ -93,8 +102,23 @@ export const useStorefrontPageSize = ({ resetKey }: UseStorefrontPageSizeArgs = 
     }
   }, [defaultPageSize]);
 
+  // Reset hook state when resetKey CHANGES (not on initial mount)
+  // Only reset if resetKey actually changed from previous value
   React.useEffect(() => {
+    // Skip on initial mount
+    if (prevResetKeyRef.current === undefined && resetKey !== undefined) {
+      prevResetKeyRef.current = resetKey;
+      return;
+    }
+
+    // Only reset if resetKey actually changed
+    if (prevResetKeyRef.current === resetKey) {
+      return;
+    }
+
+    prevResetKeyRef.current = resetKey;
     userSelectedRef.current = false;
+    ssrConfigAppliedRef.current = false;  // Allow SSR config to be reapplied on reset
     setPageSize(defaultPageSizeRef.current);
   }, [resetKey]);
 
