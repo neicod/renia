@@ -72,13 +72,19 @@ export const useProductListing = ({
   }, [resetKey, sortOptions, pagination]);
 
   // Build criteria from current state
+  // Use JSON.stringify to create stable dependency for sortOrders array
+  const sortOrdersKey = React.useMemo(
+    () => JSON.stringify(sortOptions.sortOrders),
+    [sortOptions.sortOrders]
+  );
+
   const criteria = React.useMemo<SearchCriteria | null>(() => {
     return buildCriteria({
       page: pagination.page,
       pageSize: pageSize,
       sortOrders: sortOptions.sortOrders
     });
-  }, [buildCriteria, pagination.page, pageSize, sortOptions.sortOrders]);
+  }, [buildCriteria, pagination.page, pageSize, sortOrdersKey]);
 
   // Fetch products when criteria changes
   React.useEffect(() => {
