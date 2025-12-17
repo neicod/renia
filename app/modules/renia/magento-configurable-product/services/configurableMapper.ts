@@ -9,36 +9,16 @@ import type {
 } from '../types';
 import type { ProductMedia, ProductPrice, ProductMapperInterface } from 'magento-product/types';
 import { registerProductMapper } from 'magento-product/services/productMapper';
+import { mapCommonProductFields } from 'magento-product/services/productMapperShared';
 
 const configurableProductMapper: ProductMapperInterface = {
   map(item: any): ConfigurableProduct {
-    const mapped = {
-      id: String(item?.id ?? item?.sku ?? Math.random()),
-      sku: item?.sku ?? '',
-      name: item?.name ?? '',
-      urlKey: item?.url_key ?? undefined,
-      urlPath: item?.url_path ?? undefined,
-      thumbnail: item?.small_image?.url
-        ? { url: item.small_image.url, label: item.small_image?.label }
-        : undefined,
-      price: item?.price_range?.minimum_price?.final_price
-        ? {
-            value: item.price_range.minimum_price.final_price.value,
-            currency: item.price_range.minimum_price.final_price.currency
-          }
-        : undefined,
-      priceOriginal: item?.price_range?.minimum_price?.regular_price
-        ? {
-            value: item.price_range.minimum_price.regular_price.value,
-            currency: item.price_range.minimum_price.regular_price.currency
-          }
-        : undefined,
+    return {
+      ...mapCommonProductFields(item),
       __typename: 'ConfigurableProduct',
       configurableOptions: mapConfigurableOptions(item.configurable_options ?? []),
       variants: mapVariants(item.variants ?? [])
     };
-
-    return mapped;
   }
 };
 
