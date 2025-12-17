@@ -1,6 +1,9 @@
 // @env: mixed
 import React from 'react';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
+import SortSelector from './SortSelector';
+import PageSizeSelector from './PageSizeSelector';
+import { toolbarStyles } from './toolbarStyles';
 
 type SortOption = {
   value: string;
@@ -19,6 +22,24 @@ type Props = {
   disabled?: boolean;
 };
 
+/**
+ * ProductListingToolbar - Orchestrator component for listing controls
+ *
+ * RESPONSIBILITY: ONLY composition - arranges selectors and info display
+ *
+ * Composes:
+ * - SortSelector - Sort dropdown
+ * - PageSizeSelector - Page size dropdown
+ * - Pagination info display
+ *
+ * Changes from previous version:
+ * - Extracted sort selector → SortSelector.tsx
+ * - Extracted page size selector → PageSizeSelector.tsx
+ * - Extracted inline styles → toolbarStyles.ts
+ * - This file now: ~50 lines (was 114)
+ * - Public API unchanged - backward compatible
+ * - Each component: Independently testable
+ */
 export const ProductListingToolbar: React.FC<Props> = ({
   sortOptions,
   selectedSort,
@@ -30,29 +51,17 @@ export const ProductListingToolbar: React.FC<Props> = ({
   onItemsPerPageChange,
   disabled
 }) => {
-  const start = totalItems ? Math.min((currentPage - 1) * itemsPerPage + 1, totalItems) : 0;
-  const end = totalItems ? Math.min(currentPage * itemsPerPage, totalItems) : 0;
-  const perPageOptions =
-    pageSizeOptions && pageSizeOptions.length ? pageSizeOptions : [itemsPerPage];
   const { t } = useI18n();
 
+  // Calculate pagination info
+  const start = totalItems ? Math.min((currentPage - 1) * itemsPerPage + 1, totalItems) : 0;
+  const end = totalItems ? Math.min(currentPage * itemsPerPage, totalItems) : 0;
+  const perPageOptions = pageSizeOptions && pageSizeOptions.length ? pageSizeOptions : [itemsPerPage];
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '1rem',
-        flexWrap: 'wrap',
-        marginBottom: '1.25rem',
-        padding: '0.9rem 1.1rem',
-        borderRadius: '14px',
-        border: '1px solid #e2e8f0',
-        background: '#fff',
-        boxShadow: '0 10px 20px rgba(15, 23, 42, 0.08)'
-      }}
-    >
-      <div style={{ color: '#0f172a', fontSize: '0.95rem', fontWeight: 500 }}>
+    <div style={toolbarStyles.container}>
+      {/* Pagination info */}
+      <div style={toolbarStyles.infoText}>
         {totalItems
           ? t('catalog.listing.showing', {
               start,
@@ -61,51 +70,21 @@ export const ProductListingToolbar: React.FC<Props> = ({
             })
           : t('catalog.listing.title')}
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('catalog.listing.sort')}:</span>
-          <select
-            value={selectedSort}
-            onChange={(e) => onSortChange(e.target.value)}
-            disabled={disabled}
-            style={{
-              padding: '0.45rem 0.9rem',
-              borderRadius: '999px',
-              border: '1px solid #d7def0',
-              background: '#f8faff',
-              color: '#0f172a',
-              minWidth: '170px'
-            }}
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-          <span style={{ color: '#64748b', fontSize: '0.9rem' }}>{t('catalog.listing.perPage')}:</span>
-          <select
-            value={String(itemsPerPage)}
-            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            disabled={disabled || perPageOptions.length <= 1}
-            style={{
-              padding: '0.45rem 0.9rem',
-              borderRadius: '999px',
-              border: '1px solid #d7def0',
-              background: '#f8faff',
-              color: '#0f172a',
-              minWidth: '120px'
-            }}
-          >
-            {perPageOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
+
+      {/* Selectors */}
+      <div style={toolbarStyles.selectorsContainer}>
+        <SortSelector
+          options={sortOptions}
+          selectedValue={selectedSort}
+          onChange={onSortChange}
+          disabled={disabled}
+        />
+        <PageSizeSelector
+          options={perPageOptions}
+          selectedValue={itemsPerPage}
+          onChange={onItemsPerPageChange}
+          disabled={disabled}
+        />
       </div>
     </div>
   );
