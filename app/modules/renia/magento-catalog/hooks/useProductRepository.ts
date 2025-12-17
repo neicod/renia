@@ -49,37 +49,38 @@ export const useProductRepository = (
    * Updates state and handles errors/cancellation
    */
   const fetchProducts = React.useCallback(
-    async (criteria: SearchCriteria | null) => {
+    (criteria: SearchCriteria | null) => {
       // No criteria = reset to idle state
       if (!criteria || !repo) {
         setStatus('idle');
         setProducts([]);
         setTotal(0);
         setHasLoadedOnce(false);
-        return;
+        return () => {};
       }
 
       let cancelled = false;
       setStatus('loading');
 
-      try {
-        const res = await repo.getList(criteria);
+      repo.getList(criteria)
+        .then((res) => {
+          if (!cancelled) {
+            const items = res.items ?? [];
+            setProducts(items);
+            setHasLoadedOnce(true);
+            setTotal(res.totalCount ?? 0);
+            setStatus(items.length ? 'ready' : 'empty');
+          }
+        })
+        .catch((err) => {
+          console.error('[useProductRepository] Failed to fetch products', { runtime, err });
+          if (!cancelled) {
+            setStatus('error');
+            setTotal(0);
+          }
+        });
 
-        if (!cancelled) {
-          const items = res.items ?? [];
-          setProducts(items);
-          setHasLoadedOnce(true);
-          setTotal(res.totalCount ?? 0);
-          setStatus(items.length ? 'ready' : 'empty');
-        }
-      } catch (err) {
-        console.error('[useProductRepository] Failed to fetch products', { runtime, err });
-        if (!cancelled) {
-          setStatus('error');
-          setTotal(0);
-        }
-      }
-
+      // Return cleanup function
       return () => {
         cancelled = true;
       };

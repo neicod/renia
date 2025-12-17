@@ -82,7 +82,8 @@ export const useProductListing = ({
 
   // Fetch products when criteria changes
   React.useEffect(() => {
-    repository.fetchProducts(criteria);
+    const cleanup = repository.fetchProducts(criteria);
+    return cleanup;
   }, [criteria, repository]);
 
   // Reset page to 1 when user changes sort
