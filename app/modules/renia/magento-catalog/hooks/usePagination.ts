@@ -36,11 +36,10 @@ export const usePagination = (
   }, [total, pageSizeSafe]);
 
   /**
-   * Constrain page to valid range [1, totalPages]
+   * Use current page directly - no constraints to avoid dependency on total
+   * Validation happens only when user tries to set invalid page via handlePageChange
    */
-  const safeCurrentPage = React.useMemo(() => {
-    return Math.min(Math.max(page, 1), totalPages);
-  }, [page, totalPages]);
+  const safeCurrentPage = page;
 
   /**
    * GraphQL offset = (page - 1) * pageSize
@@ -76,7 +75,7 @@ export const usePagination = (
       setPage: handlePageChange,
       resetPage: handleResetPage
     }),
-    [safeCurrentPage, totalPages, pageSizeSafe, offset, handlePageChange, handleResetPage]
+    [safeCurrentPage, pageSizeSafe, offset, handlePageChange, handleResetPage]
   );
 };
 
