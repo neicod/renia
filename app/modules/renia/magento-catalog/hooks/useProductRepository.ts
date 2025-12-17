@@ -44,9 +44,13 @@ export const useProductRepository = (
   );
   const [hasLoadedOnce, setHasLoadedOnce] = React.useState<boolean>(!!initialListing);
 
+  // Track last criteria to prevent duplicate fetches
+  const lastCriteriaRef = React.useRef<SearchCriteria | null>(null);
+
   /**
    * Execute product search with given criteria
    * Updates state and handles errors/cancellation
+   * Only fetches if criteria actually changed (by deep comparison)
    */
   const fetchProducts = React.useCallback(
     (criteria: SearchCriteria | null) => {
@@ -56,8 +60,18 @@ export const useProductRepository = (
         setProducts([]);
         setTotal(0);
         setHasLoadedOnce(false);
+        lastCriteriaRef.current = null;
         return () => {};
       }
+
+      // Skip fetch if criteria haven't changed
+      const lastCriteria = lastCriteriaRef.current;
+      if (lastCriteria && JSON.stringify(lastCriteria) === JSON.stringify(criteria)) {
+        return () => {};
+      }
+
+      // Update tracked criteria before fetch
+      lastCriteriaRef.current = criteria;
 
       let cancelled = false;
       setStatus('loading');
