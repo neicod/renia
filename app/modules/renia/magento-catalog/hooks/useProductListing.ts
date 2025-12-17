@@ -69,7 +69,7 @@ export const useProductListing = ({
     if (resetKey === undefined) return;
     sortOptions.handleResetSort();
     pagination.resetPage();
-  }, [resetKey, sortOptions, pagination]);
+  }, [resetKey, sortOptions.handleResetSort, pagination.resetPage]);
 
   // Build criteria from current state
   // Use JSON.stringify to create stable dependency for sortOrders array

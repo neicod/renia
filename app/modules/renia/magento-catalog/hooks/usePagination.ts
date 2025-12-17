@@ -67,14 +67,17 @@ export const usePagination = (
     setPage(1);
   }, []);
 
-  return {
-    page: safeCurrentPage,
-    totalPages,
-    pageSize: pageSizeSafe,
-    offset,
-    setPage: handlePageChange,
-    resetPage: handleResetPage
-  };
+  return React.useMemo(
+    () => ({
+      page: safeCurrentPage,
+      totalPages,
+      pageSize: pageSizeSafe,
+      offset,
+      setPage: handlePageChange,
+      resetPage: handleResetPage
+    }),
+    [safeCurrentPage, totalPages, pageSizeSafe, offset, handlePageChange, handleResetPage]
+  );
 };
 
 export default usePagination;

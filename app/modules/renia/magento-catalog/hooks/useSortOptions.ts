@@ -85,14 +85,16 @@ export const useSortOptions = (initialSortValue: string = DEFAULT_SORT_VALUE) =>
     setSort(initialSortValue);
   }, [initialSortValue]);
 
-  return {
-    sort,
-    setSort,
-    sortOrders,
-    userSelectedSort,
-    handleSortChange,
-    handleResetSort
-  };
+  return React.useMemo(
+    () => ({
+      sort,
+      sortOrders,
+      userSelectedSort,
+      handleSortChange,
+      handleResetSort
+    }),
+    [sort, sortOrders, userSelectedSort, handleSortChange, handleResetSort]
+  );
 };
 
 export default useSortOptions;
