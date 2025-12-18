@@ -22,22 +22,26 @@ const runInterceptor = async (module: any, api: any, context: string) => {
 export const loadInterceptorsClient = async (
   context: InterceptorContext,
   api?: any,
-  enabledModules?: string[]
+  enabledModules?: string[],
+  options?: { includeDefault?: boolean }
 ): Promise<void> => {
+  const includeDefault = options?.includeDefault !== false;
   // 1. Załaduj global defaulty tylko dla włączonych modułów
-  const defaultLoaders = Object.entries(interceptorMap)
-    .filter(([moduleName]) => !enabledModules || enabledModules.includes(moduleName))
-    .map(([_, loaders]) => loaders.default)
-    .filter(Boolean);
+  if (includeDefault) {
+    const defaultLoaders = Object.entries(interceptorMap)
+      .filter(([moduleName]) => !enabledModules || enabledModules.includes(moduleName))
+      .map(([_, loaders]) => loaders.default)
+      .filter(Boolean);
 
-  for (const loader of defaultLoaders) {
-    try {
-      const module = await loader!();
-      if (module) {
-        await runInterceptor(module, api ?? {}, 'default');
+    for (const loader of defaultLoaders) {
+      try {
+        const module = await loader!();
+        if (module) {
+          await runInterceptor(module, api ?? {}, 'default');
+        }
+      } catch (error) {
+        // Niektóre interceptory mogą nie istnieć na kliencie, to OK
       }
-    } catch (error) {
-      // Niektóre interceptory mogą nie istnieć na kliencie, to OK
     }
   }
 

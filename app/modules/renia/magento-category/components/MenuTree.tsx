@@ -1,10 +1,19 @@
 // @env: mixed
 import React from 'react';
+import { Link } from 'react-router-dom';
 import type { MenuItem } from 'renia-menu';
 
 type MenuTreeProps = {
   items: MenuItem[];
   depth?: number;
+};
+
+const isInternalPath = (url: string): boolean => {
+  if (!url) return false;
+  if (url === '#') return false;
+  if (url.startsWith('http://') || url.startsWith('https://')) return false;
+  if (url.startsWith('//')) return false;
+  return url.startsWith('/');
 };
 
 /**
@@ -34,9 +43,15 @@ export const MenuTree: React.FC<MenuTreeProps> = ({ items, depth = 0 }) => {
 
         return (
           <li key={node.id} className={itemClass}>
-            <a className={linkClass} href={node.url}>
-              {node.label}
-            </a>
+            {isInternalPath(node.url) ? (
+              <Link className={linkClass} to={node.url}>
+                {node.label}
+              </Link>
+            ) : (
+              <a className={linkClass} href={node.url}>
+                {node.label}
+              </a>
+            )}
             {childMenu}
           </li>
         );

@@ -7,9 +7,9 @@ import type {
   VariantAttribute,
   SwatchData
 } from '../types';
-import type { ProductMedia, ProductPrice, ProductMapperInterface } from 'magento-product/types';
-import { registerProductMapper } from 'magento-product/services/productMapper';
-import { mapCommonProductFields } from 'magento-product/services/productMapperShared';
+import type { ProductMedia, ProductPrice, ProductMapperInterface } from 'renia-magento-product/types';
+import { registerProductMapper } from 'renia-magento-product/services/productMapper';
+import { mapCommonProductFields } from 'renia-magento-product/services/productMapperShared';
 
 const configurableProductMapper: ProductMapperInterface = {
   map(item: any): ConfigurableProduct {

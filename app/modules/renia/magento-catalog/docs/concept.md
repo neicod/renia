@@ -4,8 +4,8 @@ Cel: moduł katalogu odpowiedzialny za listing produktów na stronach kategorii 
 
 Składniki:
 - **Hook `useCategoryProductList`.** Zarządza stanem listingu (produkty, paginacja, sortowanie, pageSize). Wspiera SSR (`initialListing` z meta trasy) oraz lazy fetch na kliencie.
-- **`CategoryProductList`.** Wrapper renderujący nagłówek (tytuł kategorii), toolbar (`ProductListingToolbar`), siatkę (`ProductList`) i paginację (`ProductListingPagination`). Komponent korzysta z hooka i tłumaczeń `catalog.*`.
-- **Provider konfiguracji.** `services/storefrontConfig.ts` czyta `grid_per_page` i `grid_per_page_values` z `storeConfig.raw` (augmenter dodaje pola do zapytania) i udostępnia wartości hookom.
+- **`CategoryProductList`.** Wrapper renderujący listing produktów kategorii. Wspólne UI (toolbar/paginacja/layout listingu) jest dostarczane przez moduł `renia-magento-product-listing`.
+- **Provider konfiguracji.** Konfiguracja page size (`grid_per_page`, `grid_per_page_values`) jest obsługiwana przez `renia-magento-product-listing`.
 - **Interceptory.** Plik `interceptors/category.ts` wstrzykuje `CategoryProductList` do slotu `content` tylko na trasach typu `category`. SSR przekazuje `initialListing` przez meta slotu, aby uniknąć migania przy pierwszym renderze.
 
 Integracje:

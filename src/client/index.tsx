@@ -7,7 +7,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoot from '@framework/runtime/AppRoot';
 import { loadInterceptorsClient } from '@framework/interceptors/loadInterceptorsClient';
-import { registerProductTypeComponentStrategy } from 'magento-product/services/productStrategies';
+import { registerProductTypeComponentStrategy } from 'renia-magento-product/services/productStrategies';
 import { registerComponents } from '@framework/registry/componentRegistry';
 import { Layout1Column, Layout2ColumnsLeft, LayoutEmpty } from '@framework/layout';
 
@@ -19,6 +19,7 @@ declare global {
 
 const rootElement = document.getElementById('root');
 const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], slots: {}, contexts: [], enabledModules: [] };
+const basePath = typeof bootstrap.basePath === 'string' ? bootstrap.basePath : '';
 
 // Register framework layout components
 registerComponents({
@@ -27,12 +28,7 @@ registerComponents({
   '@framework/layout/layouts/LayoutEmpty': LayoutEmpty
 });
 
-// Bootstrap zawiera konteksty strony (category, product, search, etc)
-// loadInterceptorsClient zawsze ładuje default, plus specified kontekst
-const routeContexts = bootstrap.contexts ?? [];
 const enabledModules = bootstrap.enabledModules ?? [];
-// Only load non-default contexts here, default is loaded automatically by loadInterceptorsClient
-const contextsToLoad = routeContexts.length > 0 ? routeContexts : ['default'];
 
 // API object dla interceptorów - rejestruje strategie i komponenty
 // Note: api.layout is a no-op on client since slots come from SSR bootstrap
@@ -54,17 +50,16 @@ const interceptorApi = {
 // - Komponenty w registry
 // - Komponenty w drzewie layoutu (via api.layout)
 (async () => {
-  // Load contexts (loadInterceptorsClient zawsze ładuje default + specified context)
-  for (const context of contextsToLoad) {
-    await loadInterceptorsClient(context, interceptorApi, enabledModules);
-  }
+  // Load only default interceptors to register components/strategies.
+  // Route-specific layout is handled dynamically in AppRoot on navigation.
+  await loadInterceptorsClient('default', interceptorApi, enabledModules, { includeDefault: true });
 
   // Hydratuj
   if (rootElement) {
     hydrateRoot(
       rootElement,
       <React.StrictMode>
-        <BrowserRouter>
+        <BrowserRouter basename={basePath || undefined}>
           <AppRoot bootstrap={bootstrap} runtime="client" />
         </BrowserRouter>
       </React.StrictMode>

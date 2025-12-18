@@ -1,8 +1,8 @@
 // @env: mixed
 import React from 'react';
 import type { SearchCriteria } from '@framework/api';
-import type { ProductSearchResults } from 'magento-product';
-import { useProductListing } from 'renia-magento-catalog/hooks/useProductListing';
+import type { ProductSearchResults } from 'renia-magento-product';
+import { useProductListing } from 'renia-magento-product-listing/hooks/useProductListing';
 
 type UseSearchProductListArgs = {
   query?: string;

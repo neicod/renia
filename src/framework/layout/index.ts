@@ -5,6 +5,7 @@ export { LayoutTreeBuilder, LayoutNodeAPI, type LayoutNode, type SortOrder } fro
 export { default as LayoutShell } from './LayoutShell';
 export { SlotRenderer, SlotProvider, SlotContext } from './SlotRenderer';
 export { type SlotEntry, type SlotDefinition } from './types';
+export { flattenLayoutTree } from './flattenLayoutTree';
 
 // Layout templates
 export { default as Layout1Column } from './layouts/Layout1Column';

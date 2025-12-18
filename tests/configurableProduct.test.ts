@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { QueryBuilder } from 'renia-graphql-client/builder';
 import { registerGraphQLQueryAugmenter, executeGraphQLRequest } from '@framework/api/graphqlClient';
-import { registerProductMapper, mapProduct } from 'magento-product/services/productMapper';
+import { registerProductMapper, mapProduct } from 'renia-magento-product/services/productMapper';
 
 // Mock configurable product mapper
 const configurableProductMapper = {

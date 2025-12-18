@@ -1,12 +1,11 @@
 // @env: mixed
 import { executeGraphQLRequest } from '@framework/api/graphqlClient';
-import type { ProductInterface } from 'magento-product/types';
-import { mapProduct } from 'magento-product/services/productMapper';
+import type { ProductInterface } from 'renia-magento-product/types';
+import { mapProduct } from 'renia-magento-product/services/productMapper';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 import { buildCategoryProductsQuery } from './queries';
 
 export type FetchCategoryProductsOptions = {
-  categoryUrlPath?: string;
   categoryUid?: string;
   page?: number;
   pageSize?: number;

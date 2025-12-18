@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import type {Product} from 'magento-product/types';
+import type {Product} from 'renia-magento-product/types';
 import {useWishlist} from '../hooks/useWishlist';
 import {useIsClient} from '../hooks/useIsClient';
 import {useToast} from 'renia-ui-toast/hooks/useToast';

@@ -1,9 +1,6 @@
 // @env: mixed
 
 import type { GraphQLLogger } from 'renia-graphql-client';
-import { getLogger } from 'renia-logger';
-
-const logger = getLogger();
 
 const getEnv = (key: string) =>
   typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
@@ -18,6 +15,13 @@ const getEnv = (key: string) =>
  * - Magento error types
  */
 export class MagentoGraphQLLogger implements GraphQLLogger {
+  private logToConsole(level: string, module: string, message: string, data?: unknown): void {
+    if (typeof console !== 'undefined') {
+      const consoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
+      console[consoleMethod as any](`[${module.toUpperCase()} ${level.toUpperCase()}] ${message}`, data || '');
+    }
+  }
+
   logRequest(
     operationId: string | undefined,
     method: string,
@@ -28,7 +32,7 @@ export class MagentoGraphQLLogger implements GraphQLLogger {
       return;
     }
 
-    logger.info('magento-graphql-client', `REQUEST: ${method} ${operationId || 'magento-query'}`, {
+    this.logToConsole('info', 'magento-graphql-client', `REQUEST: ${method} ${operationId || 'magento-query'}`, {
       payload,
       variables,
       isMagentoOperation: true
@@ -46,7 +50,7 @@ export class MagentoGraphQLLogger implements GraphQLLogger {
     }
 
     if (errorCount) {
-      logger.warn('magento-graphql-client', 'Magento GraphQL response has errors', {
+      this.logToConsole('warn', 'magento-graphql-client', 'Magento GraphQL response has errors', {
         status,
         duration,
         errorCount,
@@ -54,7 +58,7 @@ export class MagentoGraphQLLogger implements GraphQLLogger {
         isMagentoError: true
       });
     } else {
-      logger.info('magento-graphql-client', `RESPONSE: ${operationId || 'magento-query'}`, {
+      this.logToConsole('info', 'magento-graphql-client', `RESPONSE: ${operationId || 'magento-query'}`, {
         status,
         duration
       });
@@ -68,7 +72,7 @@ export class MagentoGraphQLLogger implements GraphQLLogger {
     duration: number,
     error: Error
   ): void {
-    logger.error('magento-graphql-client', 'Magento GraphQL request failed', {
+    this.logToConsole('error', 'magento-graphql-client', 'Magento GraphQL request failed', {
       method,
       endpoint,
       duration,

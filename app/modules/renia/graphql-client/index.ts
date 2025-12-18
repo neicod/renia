@@ -5,6 +5,11 @@ export * from './builder';
 export * from './request';
 export * from './types';
 
+// Fluent selection API
+export { SelectionBuilder } from './fluent/SelectionBuilder';
+export { FieldBuilder } from './fluent/FieldBuilder';
+export { SnippetParser } from './fluent/SnippetParser';
+
 // Transport layer
 export type { HttpClient, HttpResponse } from './transport/HttpClient';
 export { FetchHttpClient } from './transport/FetchHttpClient';

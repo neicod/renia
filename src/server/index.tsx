@@ -18,9 +18,11 @@ import { LayoutTreeBuilder, type LayoutNode, Layout1Column, Layout2ColumnsLeft, 
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { registerComponents } from '@framework/registry/componentRegistry';
-import { registerProductTypeComponentStrategy } from 'magento-product/services/productStrategies';
+import { registerProductTypeComponentStrategy } from 'renia-magento-product/services/productStrategies';
 import { getStoreConfig } from 'renia-magento-store';
 import { loadMessages as loadI18nMessages } from 'renia-i18n/services/loader';
+import type { PageContext } from '@framework/runtime/PageContext';
+import { applyPageContextAugmenters } from '@framework/runtime/pageContextAugmenters';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -91,6 +93,89 @@ const resolveClientAssetPath = () => {
 
 const sortByPriority = <T extends { priority?: number }>(entries: T[]) =>
   entries.slice().sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
+
+const isSsrDebugEnabled = (): boolean => {
+  const raw = process.env.SSR_DEBUG;
+  return raw === '1' || raw === 'true';
+};
+
+const parseJsonEnv = <T,>(name: string, fallback: T): T => {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch (error) {
+    console.warn(`[SSR] Invalid JSON in ${name}, using fallback`, { error });
+    return fallback;
+  }
+};
+
+type PrefixResolution = {
+  basePath: string; // e.g. "/pl" or ""
+  routingPath: string; // path without basePath, always starts with "/"
+  storeCode?: string;
+  locale?: string;
+};
+
+const resolvePrefixFromPath = (pathValue: string): PrefixResolution => {
+  const singleStoreRaw = process.env.MAGENTO_SINGLE_STORE;
+  const isSingleStore = singleStoreRaw !== '0' && singleStoreRaw !== 'false';
+
+  const normalizedPath = (pathValue || '/').startsWith('/') ? (pathValue || '/') : `/${pathValue || ''}`;
+
+  if (isSingleStore) {
+    return { basePath: '', routingPath: normalizedPath };
+  }
+
+  const prefixToStore = parseJsonEnv<Record<string, string>>('MAGENTO_STORE_PREFIX_MAP', {});
+  const prefixToLocale = parseJsonEnv<Record<string, string>>('MAGENTO_LOCALE_PREFIX_MAP', {});
+
+  const [, maybePrefix] = normalizedPath.split('/', 3);
+  if (!maybePrefix) return { basePath: '', routingPath: normalizedPath };
+
+  const storeCode = prefixToStore[maybePrefix];
+  if (!storeCode) return { basePath: '', routingPath: normalizedPath };
+
+  const basePath = `/${maybePrefix}`;
+  const rest = normalizedPath.slice(basePath.length) || '/';
+  const routingPath = rest.startsWith('/') ? rest : `/${rest}`;
+
+  return {
+    basePath,
+    routingPath,
+    storeCode,
+    locale: prefixToLocale[maybePrefix]
+  };
+};
+
+const withOverriddenPath = <T extends object>(req: T, routingPath: string): T => {
+  return new Proxy(req, {
+    get(target, prop, receiver) {
+      if (prop === 'path') return routingPath;
+      return Reflect.get(target, prop, receiver);
+    }
+  });
+};
+
+const isRoutesCacheEnabled = (): boolean => {
+  const raw = process.env.ROUTES_CACHE_ENABLED;
+  if (raw === '1' || raw === 'true') return true;
+  if (raw === '0' || raw === 'false') return false;
+  return process.env.NODE_ENV === 'production';
+};
+
+let cachedRoutes: Awaited<ReturnType<typeof loadRoutesRegistry>> | null = null;
+let cachedEnabledModules: string[] | null = null;
+let cachedConfigMtimeMs: number | null = null;
+
+const isComponentRegistrationsCacheEnabled = (): boolean => {
+  const raw = process.env.COMPONENT_REGISTRATIONS_CACHE_ENABLED;
+  if (raw === '1' || raw === 'true') return true;
+  if (raw === '0' || raw === 'false') return false;
+  return process.env.NODE_ENV === 'production';
+};
+
+let cachedComponentRegistrationsMtimeMs: number | null = null;
 
 // Removed: contextFromPath - now using route.contexts from routes.ts
 // Each route explicitly defines its contexts instead of inferring from path
@@ -189,16 +274,197 @@ app.get('/.well-known/appspecific/com.chrome.devtools.json', (req, res) => {
   res.status(204).end();
 });
 
+app.get('/api/page-context', async (req, res) => {
+  try {
+    const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
+    const cacheEnabled = isRoutesCacheEnabled();
+    const configStat = fs.existsSync(configPath) ? fs.statSync(configPath) : null;
+    const configMtimeMs = configStat?.mtimeMs ?? null;
+
+    const canUseCache =
+      cacheEnabled &&
+      cachedRoutes &&
+      cachedEnabledModules &&
+      cachedConfigMtimeMs !== null &&
+      configMtimeMs !== null &&
+      cachedConfigMtimeMs === configMtimeMs;
+
+    const enabledModules = (() => {
+      if (canUseCache) return cachedEnabledModules!;
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      return Object.entries(config.modules ?? {})
+        .filter(([_, enabled]) => enabled)
+        .map(([name]) => name);
+    })();
+
+    const componentsCacheEnabled = isComponentRegistrationsCacheEnabled();
+    const canSkipComponentRegistrations =
+      componentsCacheEnabled &&
+      cachedComponentRegistrationsMtimeMs !== null &&
+      configMtimeMs !== null &&
+      cachedComponentRegistrationsMtimeMs === configMtimeMs;
+
+    if (!canSkipComponentRegistrations) {
+      await loadComponentRegistrations({ configPath });
+      if (componentsCacheEnabled && configMtimeMs !== null) {
+        cachedComponentRegistrationsMtimeMs = configMtimeMs;
+      }
+    }
+
+    const routes = canUseCache ? cachedRoutes! : await loadRoutesRegistry({ configPath });
+    if (cacheEnabled && !canUseCache && configMtimeMs !== null) {
+      cachedRoutes = routes;
+      cachedEnabledModules = enabledModules;
+      cachedConfigMtimeMs = configMtimeMs;
+    }
+
+    const rawUrl = typeof (req.query as any)?.url === 'string' ? String((req.query as any).url) : '';
+    if (!rawUrl) {
+      return res.status(400).json({ error: 'Missing url query parameter' });
+    }
+
+    const urlObj = new URL(rawUrl, 'http://local');
+    const prefix = resolvePrefixFromPath(urlObj.pathname);
+    const routingUrl = `${prefix.routingPath}${urlObj.search ?? ''}`;
+
+    const match = routes.find((r) => matchPath({ path: r.path, end: false }, prefix.routingPath));
+    const routeContexts = (match?.contexts ?? []) as string[];
+
+    const statusMap = Object.fromEntries(enabledModules.map((name) => [name, true]));
+    const layoutNoop: any = {
+      get: () => layoutNoop,
+      add: () => layoutNoop
+    };
+
+    const api = {
+      registerComponents,
+      registerProductTypeComponentStrategy,
+      layout: layoutNoop
+    };
+
+    await loadInterceptors('default', { configPath, statusMap, includeDefault: true }, api);
+    for (const ctx of routeContexts) {
+      if (ctx !== 'default') {
+        await loadInterceptors(ctx, { configPath, statusMap, includeDefault: false }, api);
+      }
+    }
+
+    const routeMeta = { ...(match?.meta ?? {}) } as Record<string, unknown>;
+
+    if (match?.handler) {
+      try {
+        const handlerModule = await import(match.handler);
+        const handler = handlerModule.default ?? handlerModule;
+        if (typeof handler === 'function') {
+          const query: Record<string, string> = {};
+          for (const [k, v] of urlObj.searchParams.entries()) query[k] = v;
+          const reqForHandler: any = {
+            path: prefix.routingPath,
+            url: routingUrl,
+            query
+          };
+          const handlerResult =
+            (await handler({
+              req: reqForHandler,
+              route: match,
+              params: matchPath({ path: match.path, end: false }, prefix.routingPath)?.params ?? {}
+            })) || {};
+          if (handlerResult.meta && typeof handlerResult.meta === 'object') {
+            Object.assign(routeMeta, handlerResult.meta);
+          }
+        }
+      } catch (err) {
+        console.error(`Nie udało się uruchomić handlera dla trasy ${match?.path}:`, err);
+      }
+    }
+
+    const appConfig: {
+      magentoGraphQLEndpoint?: string;
+      magentoProxyEndpoint?: string;
+      magentoStoreCode?: string;
+      store?: Awaited<ReturnType<typeof getStoreConfig>>;
+    } = {
+      magentoGraphQLEndpoint: process.env.MAGENTO_GRAPHQL_ENDPOINT,
+      magentoProxyEndpoint: process.env.MAGENTO_PROXY_ENDPOINT ?? '/api/magento/graphql',
+      magentoStoreCode: prefix.storeCode ?? process.env.MAGENTO_STORE_CODE
+    };
+
+    if (!appConfig.store) {
+      try {
+        const storeConfig = await getStoreConfig();
+        appConfig.store = storeConfig;
+        if (!appConfig.magentoStoreCode && storeConfig.code) {
+          appConfig.magentoStoreCode = storeConfig.code;
+        }
+      } catch (err) {
+        console.error('Nie udało się pobrać konfiguracji sklepu:', err);
+      }
+    }
+
+    (globalThis as any).__APP_CONFIG__ = appConfig;
+
+    const pageContext: PageContext = applyPageContextAugmenters(
+      {
+        kind: typeof (routeMeta as any)?.type === 'string' ? ((routeMeta as any).type as string) : 'default',
+        store: {
+          code: appConfig.magentoStoreCode ?? (appConfig.store as any)?.code ?? null
+        },
+        extensions: {}
+      },
+      {
+        req: { path: prefix.routingPath, url: routingUrl },
+        routeMeta,
+        routeContexts
+      }
+    );
+
+    // Minimal payload: client only needs the resolved PageContext
+    return res.status(200).json({ pageContext });
+  } catch (error) {
+    console.error('Błąd /api/page-context:', error);
+    return res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 app.get('*', async (req, res) => {
   try {
+    const ssrDebug = isSsrDebugEnabled();
 
     const configPath = path.resolve(process.cwd(), 'app/etc/config.json');
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    const enabledModules = Object.entries(config.modules ?? {})
-      .filter(([_, enabled]) => enabled)
-      .map(([name]) => name);
+    const prefix = resolvePrefixFromPath(req.path);
+    const cacheEnabled = isRoutesCacheEnabled();
+    const configStat = fs.existsSync(configPath) ? fs.statSync(configPath) : null;
+    const configMtimeMs = configStat?.mtimeMs ?? null;
 
-    await loadComponentRegistrations({ configPath });
+    const canUseCache =
+      cacheEnabled &&
+      cachedRoutes &&
+      cachedEnabledModules &&
+      cachedConfigMtimeMs !== null &&
+      configMtimeMs !== null &&
+      cachedConfigMtimeMs === configMtimeMs;
+
+    const enabledModules = (() => {
+      if (canUseCache) return cachedEnabledModules!;
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      return Object.entries(config.modules ?? {})
+        .filter(([_, enabled]) => enabled)
+        .map(([name]) => name);
+    })();
+
+    const componentsCacheEnabled = isComponentRegistrationsCacheEnabled();
+    const canSkipComponentRegistrations =
+      componentsCacheEnabled &&
+      cachedComponentRegistrationsMtimeMs !== null &&
+      configMtimeMs !== null &&
+      cachedComponentRegistrationsMtimeMs === configMtimeMs;
+
+    if (!canSkipComponentRegistrations) {
+      await loadComponentRegistrations({ configPath });
+      if (componentsCacheEnabled && configMtimeMs !== null) {
+        cachedComponentRegistrationsMtimeMs = configMtimeMs;
+      }
+    }
 
     // Register framework layout components
     registerComponents({
@@ -207,7 +473,12 @@ app.get('*', async (req, res) => {
       '@framework/layout/layouts/LayoutEmpty': LayoutEmpty
     });
 
-    const routes = await loadRoutesRegistry({ configPath });
+    const routes = canUseCache ? cachedRoutes! : await loadRoutesRegistry({ configPath });
+    if (cacheEnabled && !canUseCache && configMtimeMs !== null) {
+      cachedRoutes = routes;
+      cachedEnabledModules = enabledModules;
+      cachedConfigMtimeMs = configMtimeMs;
+    }
 
     let preloadedCategoryMenu: MenuItem[] | undefined;
 
@@ -222,7 +493,7 @@ app.get('*', async (req, res) => {
       magentoGraphQLEndpoint: process.env.MAGENTO_GRAPHQL_ENDPOINT,
       magentoRootCategoryId: process.env.MAGENTO_ROOT_CATEGORY_ID,
       magentoProxyEndpoint: process.env.MAGENTO_PROXY_ENDPOINT ?? '/api/magento/graphql',
-      magentoStoreCode: process.env.MAGENTO_STORE_CODE,
+      magentoStoreCode: prefix.storeCode ?? process.env.MAGENTO_STORE_CODE,
       preloadedCategoryMenu
     };
 
@@ -274,16 +545,16 @@ app.get('*', async (req, res) => {
     );
 
     // Load interceptors: always default, then route-specific contexts
-    await loadInterceptors('default', { configPath, statusMap }, api);
+    await loadInterceptors('default', { configPath, statusMap, includeDefault: true }, api);
 
     // Find matching route and get its contexts
-    const match = routes.find((r) => matchPath({ path: r.path, end: false }, req.path));
+    const match = routes.find((r) => matchPath({ path: r.path, end: false }, prefix.routingPath));
     const routeContexts = (match?.contexts ?? []) as string[];
 
-    // Load context-specific interceptors
+    // Load context-specific interceptors (without re-running default)
     for (const ctx of routeContexts) {
       if (ctx !== 'default') {
-        await loadInterceptors(ctx, { configPath, statusMap }, api);
+        await loadInterceptors(ctx, { configPath, statusMap, includeDefault: false }, api);
       }
     }
 
@@ -355,17 +626,6 @@ app.get('*', async (req, res) => {
 
     flattenTree(builtTree, true);
 
-    // Apply category-specific props if needed
-    const categoryPath =
-      routeContexts.includes('category')
-        ? req.path.replace(/^\/+category\/?/, '').replace(/\/+$/, '')
-        : undefined;
-    if (categoryPath && slots['content']) {
-      slots['content'].forEach((entry) => {
-        entry.props = { ...(entry.props ?? {}), categoryUrlPath: categoryPath };
-      });
-    }
-
     const routeMeta = { ...(match?.meta ?? {}) };
 
     if (match?.handler) {
@@ -373,8 +633,13 @@ app.get('*', async (req, res) => {
         const handlerModule = await import(match.handler);
         const handler = handlerModule.default ?? handlerModule;
         if (typeof handler === 'function') {
+          const reqForHandler = withOverriddenPath(req, prefix.routingPath);
           const handlerResult =
-            (await handler({ req, route: match, params: matchPath({ path: match.path, end: false }, req.path)?.params ?? {} })) ||
+            (await handler({
+              req: reqForHandler,
+              route: match,
+              params: matchPath({ path: match.path, end: false }, prefix.routingPath)?.params ?? {}
+            })) ||
             {};
           if (handlerResult.meta && typeof handlerResult.meta === 'object') {
             Object.assign(routeMeta, handlerResult.meta);
@@ -385,21 +650,21 @@ app.get('*', async (req, res) => {
       }
     }
 
-    if (routeMeta?.categoryProductListing) {
-      Object.values(slots).forEach((entries) => {
-        entries.forEach((entry) => {
-          if (
-            entry.componentPath === 'renia-magento-catalog/components/CategoryProductList' ||
-            entry.component === 'renia-magento-catalog/components/CategoryProductList'
-          ) {
-            entry.props = {
-              ...(entry.props ?? {}),
-              initialListing: routeMeta.categoryProductListing
-            };
-          }
-        });
-      });
-    }
+    const pageContext: PageContext = applyPageContextAugmenters(
+      {
+        kind: typeof (routeMeta as any)?.type === 'string' ? ((routeMeta as any).type as string) : 'default',
+        store: {
+          code: appConfig.magentoStoreCode ?? (appConfig.store as any)?.code ?? null
+        },
+        extensions: {}
+      },
+      {
+        req: { path: req.path, url: req.url },
+        routeMeta: (routeMeta ?? {}) as Record<string, unknown>,
+        routeContexts
+      }
+    );
+
     if (routeMeta?.searchProductListing) {
       Object.values(slots).forEach((entries) => {
         entries.forEach((entry) => {
@@ -416,26 +681,104 @@ app.get('*', async (req, res) => {
       });
     }
 
+    // Category product listing injection (similar to search pattern)
+    if (ssrDebug) {
+      console.log('[SSR] Category injection check:', {
+        hasCategory: !!routeMeta?.category,
+        categoryId: (routeMeta?.category as any)?.id,
+        hasContexts: routeContexts.length,
+        contexts: routeContexts,
+        isCategoryContext: routeContexts.includes('category')
+      });
+    }
+
+    if (routeMeta?.category?.id && routeContexts.includes('category')) {
+      const categoryUid = (routeMeta.category as any).id;
+      if (ssrDebug) console.log('[SSR] Starting category product fetch:', { categoryUid });
+
+      // Fetch products for category SSR
+      try {
+        const { prefetchProductListing } = await import('renia-magento-catalog/services/productListingPrefetch');
+        const criteria = {
+          filterGroups: [{ filters: [{ field: 'category_uid', value: categoryUid }] }],
+          pageSize: 12,
+          currentPage: 1
+        };
+        if (ssrDebug) console.log('[SSR] Category fetch criteria:', criteria);
+
+        const categoryProductListing = await prefetchProductListing(criteria);
+        if (ssrDebug) {
+          console.log('[SSR] Category products fetched:', {
+            items: (categoryProductListing as any)?.items?.length ?? 0,
+            totalCount: (categoryProductListing as any)?.totalCount ?? 0
+          });
+        }
+
+        // Prefer attaching to routeMeta so page components can consume it directly
+        (routeMeta as any).categoryProductListing = categoryProductListing;
+
+        // Inject initialListing to CategoryProductList component props
+        let injectionCount = 0;
+        Object.values(slots).forEach((entries) => {
+          entries.forEach((entry) => {
+            const isMatch =
+              entry.componentPath === 'renia-magento-catalog/components/CategoryProductList' ||
+              entry.component === 'renia-magento-catalog/components/CategoryProductList';
+
+            if (ssrDebug) {
+              console.log('[SSR] Checking slot entry:', {
+                componentPath: entry.componentPath,
+                component: entry.component,
+                isMatch
+              });
+            }
+
+            if (isMatch) {
+              if (ssrDebug) {
+                console.log('[SSR] INJECTING initialListing to CategoryProductList!', {
+                  before: (entry.props as any)?.initialListing ? 'had initialListing' : 'NO initialListing',
+                  after: 'injected'
+                });
+              }
+
+              entry.props = {
+                ...(entry.props ?? {}),
+                initialListing: categoryProductListing
+              };
+              injectionCount++;
+            }
+          });
+        });
+        if (ssrDebug) console.log('[SSR] Category injection complete:', { injectionCount });
+      } catch (error) {
+        console.error('[SSR] Failed to prefetch category products', { categoryUid, error });
+        // Graceful degradation: CSR will fetch
+      }
+    }
+
     // I18n: wybierz język (storeConfig.locale) i dołącz scalone tłumaczenia z dist/i18n
-    const lang = appConfig.store?.locale ?? 'en_US';
+    const lang = prefix.locale ?? appConfig.store?.locale ?? 'en_US';
     const i18nMessages = loadI18nMessages(lang);
 
     const bootstrap = {
+      basePath: prefix.basePath,
       routes: routes.map((r) => ({
         path: r.path,
         component: r.component,
         componentPath: r.componentPath,
-        layout: (r.meta as any)?.layout ?? '@framework/layout/layouts/Layout1Column',
-        meta: r.path === match?.path ? routeMeta : r.meta ?? {}
-      })),
-      slots,
-      subslots,
-      contexts: routeContexts,  // ← Route-specific contexts for client
-      enabledModules,  // ← Pass enabled modules so CSR can filter interceptors
-      config: {
-        ...appConfig,
-        i18n: {
-          lang,
+        contexts: (r as any).contexts ?? [],
+	        layout: (r.meta as any)?.layout ?? '@framework/layout/layouts/Layout1Column',
+	        meta: r.path === match?.path ? routeMeta : r.meta ?? {}
+	      })),
+	      slots,
+	      subslots,
+	      contexts: routeContexts,  // ← Route-specific contexts for client
+	      enabledModules,  // ← Pass enabled modules so CSR can filter interceptors
+	      pageContext,
+	      config: {
+	        ...appConfig,
+	        i18n: {
+	          lang,
           messages: i18nMessages
         }
       }
@@ -459,7 +802,7 @@ app.get('*', async (req, res) => {
     }
 
     const appHtml = renderToString(
-      <StaticRouter location={req.url}>
+      <StaticRouter location={req.url} basename={prefix.basePath || undefined}>
         <AppRoot bootstrap={bootstrap} runtime="ssr" />
       </StaticRouter>
     );

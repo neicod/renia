@@ -1,8 +1,8 @@
 // @env: mixed
 import React from 'react';
 import type { SearchCriteria } from '@framework/api';
-import type { ProductSearchResults } from 'magento-product';
-import { useProductListing } from './useProductListing';
+import type { ProductSearchResults } from 'renia-magento-product';
+import { useProductListing } from 'renia-magento-product-listing/hooks/useProductListing';
 
 type UseCategoryProductListArgs = {
   categoryUid?: string;
@@ -13,6 +13,14 @@ export const useCategoryProductList = ({
   categoryUid,
   initialListing
 }: UseCategoryProductListArgs) => {
+  React.useEffect(() => {
+    console.log('[useCategoryProductList] Params:', {
+      categoryUid,
+      hasInitialListing: !!initialListing,
+      initialListingItems: (initialListing as any)?.items?.length ?? 0
+    });
+  }, [categoryUid, initialListing]);
+
   const buildCriteria = React.useCallback(
     ({
       page,

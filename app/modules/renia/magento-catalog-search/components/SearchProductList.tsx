@@ -1,8 +1,8 @@
 // @env: mixed
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { ProductSearchResults } from 'magento-product';
-import { ListingPageContent } from 'renia-magento-catalog/components/ListingPageContent';
+import type { ProductSearchResults } from 'renia-magento-product';
+import { ListingPageContent } from 'renia-magento-product-listing/components/ListingPageContent';
 import { useSearchProductList } from '../hooks/useSearchProductList';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
 

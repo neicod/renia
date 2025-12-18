@@ -2,7 +2,7 @@
 import React from 'react';
 import { fetchCategoryUid } from '../services/categoryUid';
 import { fetchCategoryProducts } from '../services/categoryProducts';
-import type { Product } from 'magento-product/types';
+import type { Product } from 'renia-magento-product/types';
 
 type UseCategoryProductsOptions = {
   endpoint?: string;
@@ -42,7 +42,6 @@ export const useCategoryProducts = ({ endpoint, categoryPath, categoryUid }: Use
         const res = await fetchCategoryProducts({
           endpoint,
           categoryUid: uid,
-          categoryUrlPath: path,
           page: 1,
           pageSize: 12
         });

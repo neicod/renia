@@ -1,5 +1,5 @@
 // @env: mixed
-import type { Product } from 'magento-product/types';
+import type { Product } from 'renia-magento-product/types';
 import type { WishlistSnapshot } from './types';
 
 export const createSnapshotFromProduct = (product: Product): WishlistSnapshot => ({

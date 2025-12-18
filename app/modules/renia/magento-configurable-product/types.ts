@@ -1,5 +1,5 @@
 // @env: mixed
-import type {ProductInterface, ProductMedia, ProductPrice} from 'magento-product/types';
+import type {ProductInterface, ProductMedia, ProductPrice} from 'renia-magento-product/types';
 import {getLogger} from 'renia-logger';
 
 const logger = getLogger();

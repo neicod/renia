@@ -9,24 +9,6 @@ export const CATEGORY_FRAGMENT = `
     position
     description
     image
-    children {
-      uid
-      name
-      url_path
-      include_in_menu
-      position
-      description
-      image
-      children {
-        uid
-        name
-        url_path
-        include_in_menu
-        position
-        description
-        image
-      }
-    }
   }
 `;
 

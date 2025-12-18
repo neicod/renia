@@ -4,6 +4,7 @@ import { QueryBuilder } from 'renia-graphql-client/builder';
 import { MagentoGraphQLRequestFactory } from 'renia-magento-graphql-client';
 
 export type StoreConfig = {
+  id?: string;
   code?: string;
   locale?: string;
   currency?: string;
@@ -45,6 +46,7 @@ const mapStoreConfig = (raw: Record<string, unknown>): StoreConfig => {
         : undefined;
 
   return {
+    id: typeof raw?.id === 'string' ? raw.id : undefined,
     code: typeof raw?.code === 'string' ? raw.code : undefined,
     locale: typeof raw?.locale === 'string' ? raw.locale : undefined,
     currency:

@@ -24,11 +24,10 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({
   children,
   store = i18nStore
 }) => {
-  React.useEffect(() => {
-    if (lang && messages) {
-      store.setTranslations(lang, messages);
-    }
-  }, [lang, messages, store]);
+  // Set translations synchronously (not in useEffect) to ensure they're available during SSR
+  if (lang && messages) {
+    store.setTranslations(lang, messages);
+  }
 
   const [state, setState] = React.useState(store.getState());
 

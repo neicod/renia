@@ -1,6 +1,8 @@
 // @env: mixed
 import type { ArgValue, FragmentDef, Operation, OperationKind, SelectionNode } from './types';
 import { GraphQLRenderer } from './rendering/GraphQLRenderer';
+import { SelectionBuilder } from './fluent/SelectionBuilder';
+import { formatPath, parsePath } from './fluent/path';
 
 export class QueryBuilder {
   private type: OperationKind;
@@ -29,6 +31,52 @@ export class QueryBuilder {
     return this;
   }
 
+  /**
+   * Navigate to an existing selection path (dot-separated) and return a fluent SelectionBuilder.
+   *
+   * Path **must exist**; this method never creates missing segments.
+   * Use `add/merge` at a parent first to create structure.
+   *
+   * @example
+   * qb.addField([], 'removeItemFromCart');
+   * qb.at('removeItemFromCart').add('user_errors { code message }');
+   */
+  at(path?: string): SelectionBuilder {
+    const segments = parsePath(path);
+    if (segments.length === 0) return new SelectionBuilder(() => this.selection, '');
+
+    const node = this.findPathNodeOrThrow(segments);
+    const label = formatPath(segments);
+    return new SelectionBuilder(() => (node.children ??= []), label);
+  }
+
+  /**
+   * Fluent shorthand for `qb.at('').add(...)`.
+   */
+  add(snippetOrField: string): this {
+    this.at('').add(snippetOrField);
+    return this;
+  }
+
+  /**
+   * Fluent shorthand for `qb.at('').merge(...)`.
+   */
+  merge(snippet: string): this {
+    this.at('').merge(snippet);
+    return this;
+  }
+
+  /**
+   * Fluent shorthand for `qb.at('').remove(...)`.
+   */
+  remove(fieldOrResponseKey: string): this {
+    this.at('').remove(fieldOrResponseKey);
+    return this;
+  }
+
+  /**
+   * @deprecated Prefer fluent API, e.g. `qb.at('cart').add('items { sku qty }')`.
+   */
   addField(path: string[], name: string, opts?: { alias?: string; args?: Record<string, ArgValue> }) {
     const node = this.ensurePath(path);
     const existing = node.children?.find((c) => c.name === name && c.alias === opts?.alias);
@@ -47,6 +95,9 @@ export class QueryBuilder {
     return this;
   }
 
+  /**
+   * @deprecated Prefer fluent API, e.g. `qb.at('cart').remove('total')`.
+   */
   removeField(path: string[], name: string) {
     const node = this.ensurePath(path);
     if (node.children) {
@@ -60,6 +111,9 @@ export class QueryBuilder {
     return this;
   }
 
+  /**
+   * @deprecated Prefer fluent API for selections; fragment spreads can be added via `add('...FragmentName')` at a path.
+   */
   spreadFragment(path: string[], fragmentName: string) {
     const node = this.ensurePath(path);
     const fragNode: SelectionNode = { name: fragmentName, fragment: fragmentName };
@@ -70,6 +124,9 @@ export class QueryBuilder {
     return this;
   }
 
+  /**
+   * @deprecated Prefer fluent API, e.g. `qb.at('cart').add('... on Bundle { bundleItems { sku } }')`.
+   */
   inlineFragment(path: string[], onType: string, selection: SelectionNode[]) {
     const node = this.ensurePath(path);
 
@@ -91,6 +148,19 @@ export class QueryBuilder {
       current = next;
     }
     return current;
+  }
+
+  private findPathNodeOrThrow(segments: string[]): SelectionNode {
+    let currentChildren: SelectionNode[] = this.selection;
+    let currentNode: SelectionNode | null = null;
+    for (const segment of segments) {
+      currentNode = currentChildren.find((n) => !n.fragment && !n.inline && n.name === segment) ?? null;
+      if (!currentNode) {
+        throw new Error(`Path not found: ${formatPath(segments)} (missing: ${segment})`);
+      }
+      currentChildren = currentNode.children ?? [];
+    }
+    return currentNode!;
   }
 
   toObject(): Operation {

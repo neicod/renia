@@ -1,6 +1,6 @@
 // @env: mixed
 import { useState, useCallback, useMemo } from 'react';
-import type { ProductInterface } from 'magento-product/types';
+import type { ProductInterface } from 'renia-magento-product/types';
 import { useToast } from 'renia-ui-toast/hooks/useToast';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
 import { useCartManager } from '../context/CartManagerContext';

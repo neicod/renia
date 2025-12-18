@@ -24,13 +24,30 @@ Moduł do budowania i wykonywania zapytań GraphQL. Obsługuje:
   - Custom header: `{ type: 'header', name, value }`
 
 ## Przykłady — builder
+### Nowy (preferred) fluent API — czytelne modyfikacje selekcji
+```ts
+import { QueryBuilder } from 'renia-graphql-client';
+
+const qb = new QueryBuilder('mutation').setName('RemoveItemFromCart');
+
+// Najpierw tworzysz pole (np. z args) jak dotychczas:
+qb.addField([], 'removeItemFromCart', { args: { input: '$input' } });
+
+// Potem łatwo doklejasz selekcję jako snippet (merge bez duplikatów):
+qb.at('removeItemFromCart').add('user_errors { code message }');
+```
+
+Ważne:
+- `qb.at('a.b.c')` **nie tworzy** brakujących segmentów — jeśli ścieżka nie istnieje, rzuca wyjątek.
+- `add/merge` robi domyślny merge (dopina brakujące pola, bez duplikatów); konflikty `args` są nadpisywane z `console.warn`.
+
 ### Proste zapytanie
 ```ts
 import { QueryBuilder } from 'renia-graphql-client';
 
 const q = new QueryBuilder('query')
   .setName('GetCart')
-  .setVariable('$id', 'ID!')
+  .setVariable('id', 'ID!')
   .addField([], 'cart', { args: { id: '$id' } }) // root.cart
   .addField(['cart'], 'id')
   .addField(['cart'], 'total');
@@ -69,6 +86,8 @@ q.inlineFragment(['cart'], 'Bundle', [
 ```ts
 q.removeField(['cart'], 'total'); // wycina pole total z selekcji cart
 ```
+
+> Uwaga: `addField/removeField/spreadFragment/inlineFragment` są utrzymywane dla kompatybilności, ale preferowane jest nowe API `at(...).add/merge/remove`.
 
 ### Obiekt operacji i string
 ```ts
@@ -131,4 +150,3 @@ await executeRequest({
 - `payload` może być stringiem lub obiektem/builderem; dla buildera zmienne są brane z `toObject()` lub z `variables` przekazanych w request.
 - Brak hooka na transport; używany jest wbudowany `fetch`.
 - Fragmenty/inline fragmenty są wspierane w builderze; wynik jest deterministycznie generowany (sortowanie pól zależy od kolejności dodawania).
-```bash

@@ -1,6 +1,6 @@
 // @env: mixed
 import { QueryBuilder } from 'renia-graphql-client/builder';
-import { registerProductInListFragment } from 'magento-product/services/queries';
+import { registerProductInListFragment } from 'renia-magento-product/services/queries';
 
 export const buildCategoryUidQuery = (filter: string): QueryBuilder => {
   const builder = new QueryBuilder('query').setName('CategoryUid');

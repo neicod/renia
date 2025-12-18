@@ -1,5 +1,5 @@
 {
-  "name": "magento-product",
+  "name": "renia-magento-product",
   "version": "0.1.0",
   "type": "module",
   "main": "./index.ts",

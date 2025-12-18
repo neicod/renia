@@ -1,5 +1,5 @@
 // @env: mixed
-import type { Product } from 'magento-product/types';
+import type { Product } from 'renia-magento-product/types';
 
 export type WishlistSnapshot = {
   sku: string;

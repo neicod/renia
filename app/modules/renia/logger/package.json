@@ -2,6 +2,7 @@
   "name": "renia-logger",
   "version": "1.0.0",
   "description": "Centralized logging system with level-based filtering for Renia",
+  "type": "module",
   "main": "index.ts",
   "exports": {
     ".": "./index.ts"

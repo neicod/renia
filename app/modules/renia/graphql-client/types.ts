@@ -1,10 +1,22 @@
 // @env: mixed
-export type ArgValue = string | number | boolean | null;
+export type ArgValue =
+  | string // raw GraphQL literal, e.g. "$id", "\"abc\"", "SOME_ENUM"
+  | number
+  | boolean
+  | null
+  | ArgValue[]
+  | { [key: string]: ArgValue };
+
+export type DirectiveNode = {
+  name: string;
+  args?: Record<string, ArgValue>;
+};
 
 export type SelectionNode = {
   name: string;
   alias?: string;
   args?: Record<string, ArgValue>;
+  directives?: DirectiveNode[];
   children?: SelectionNode[];
   fragment?: string;
   inline?: string;

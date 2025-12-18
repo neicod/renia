@@ -2,7 +2,7 @@
 export default [
   {
     path: '/wishlist',
-    componentPath: 'renia-magento-wishlist/pages/WishlistPage',
+    componentPath: '@framework/layout/pages/LayoutPage',
     priority: 80,
     contexts: ['wishlist'],
     meta: {

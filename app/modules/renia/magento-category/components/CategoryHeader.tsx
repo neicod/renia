@@ -1,11 +1,16 @@
 // @env: browser
 
 import React from 'react';
-import type { Category } from '../types/category';
 
 type Props = {
   meta?: Record<string, unknown>;
-  category?: Category;
+  category?: {
+    id?: string;
+    label?: string;
+    urlPath?: string;
+    description?: string;
+    image?: string;
+  };
 };
 
 export const CategoryHeader: React.FC<Props> = ({ meta, category: categoryProp }) => {

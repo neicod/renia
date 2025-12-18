@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import type { ProductInterface } from 'magento-product/types';
+import type { ProductInterface } from 'renia-magento-product/types';
 import type { ConfigurableProduct } from 'renia-magento-configurable-product/types';
 import type { ConfigurableCartItemInput } from '../types';
 import { isConfigurableProduct } from 'renia-magento-configurable-product/types';

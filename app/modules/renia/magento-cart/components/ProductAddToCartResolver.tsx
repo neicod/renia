@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import { getProductTypeComponent } from 'magento-product/services/productStrategies';
+import { getProductTypeComponent } from 'renia-magento-product/services/productStrategies';
 
 type Props = {
   product: any; // ProductInterface

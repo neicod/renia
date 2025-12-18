@@ -4,8 +4,8 @@
   "type": "module",
   "main": "./index.ts",
   "dependencies": {
-    "magento-product": "file:../magento-product",
-    "renia-magento-catalog": "file:../renia-magento-catalog",
+    "renia-magento-product": "file:../magento-product",
+    "renia-magento-product-listing": "file:../magento-product-listing",
     "renia-interceptors": "file:../renia-interceptors"
   }
 }

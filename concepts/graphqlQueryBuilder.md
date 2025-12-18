@@ -1,1 +1,0 @@
-chciałbym aby funkc

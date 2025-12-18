@@ -1,6 +1,6 @@
 // @env: mixed
 import type { SearchCriteria } from '@framework/api';
-import { productRepository } from 'magento-product';
+import { productRepository } from 'renia-magento-product';
 import { wishlistStore } from './wishlistStore';
 
 const buildCriteriaForSkus = (skus: string[]): SearchCriteria => ({

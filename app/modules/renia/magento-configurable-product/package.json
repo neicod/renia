@@ -4,7 +4,7 @@
   "type": "module",
   "main": "./index.ts",
   "dependencies": {
-    "magento-product": "file:../magento-product",
+    "renia-magento-product": "file:../magento-product",
     "renia-magento-catalog": "file:../magento-catalog",
     "renia-magento-graphql-client": "file:../renia-magento-graphql-client",
     "renia-i18n": "file:../renia-i18n",

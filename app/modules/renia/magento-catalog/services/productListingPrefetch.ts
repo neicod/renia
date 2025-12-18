@@ -1,7 +1,7 @@
 // @env: server
 import type { SearchCriteria } from '@framework/api';
-import { productRepository } from 'magento-product';
-import type { ProductSearchResults } from 'magento-product';
+import { productRepository } from 'renia-magento-product';
+import type { ProductSearchResults } from 'renia-magento-product';
 
 export const prefetchProductListing = async (
   criteria: SearchCriteria

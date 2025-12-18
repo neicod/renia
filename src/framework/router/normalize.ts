@@ -21,6 +21,7 @@ export const normalizeRoute = (route: RouteDefinition): RouteDefinition | null =
     redirect: route.redirect,
     status: route.status,
     priority: route.priority ?? 0,
+    contexts: Array.isArray(route.contexts) ? route.contexts.slice() : undefined,
     guards: Array.isArray(route.guards) ? route.guards.slice() : undefined,
     meta: route.meta && typeof route.meta === 'object' ? route.meta : undefined
   };

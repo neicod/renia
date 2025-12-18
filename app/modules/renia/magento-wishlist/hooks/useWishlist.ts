@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import type { Product } from 'magento-product/types';
+import type { Product } from 'renia-magento-product/types';
 import { wishlistStore } from '../services/wishlistStore';
 import type { WishlistSnapshot, WishlistToggleResult } from '../services/types';
 

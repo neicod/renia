@@ -1,18 +1,34 @@
 // @env: mixed
 
-import type { ArgValue, FragmentDef, Operation, SelectionNode } from '../types';
+import type { ArgValue, DirectiveNode, FragmentDef, Operation, SelectionNode } from '../types';
 
 export class GraphQLRenderer {
-  private argToString(v: ArgValue): string {
-    return typeof v === 'string' ? v : v === null ? 'null' : JSON.stringify(v);
+  private valueToString(v: ArgValue): string {
+    if (v === null) return 'null';
+    if (typeof v === 'string') return v; // raw GraphQL literal
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return `[${v.map((x) => this.valueToString(x)).join(', ')}]`;
+    return `{ ${Object.entries(v)
+      .map(([k, x]) => `${k}: ${this.valueToString(x)}`)
+      .join(', ')} }`;
   }
 
   private renderArgs(args?: Record<string, ArgValue>): string {
     return args && Object.keys(args).length
       ? `(${Object.entries(args)
-          .map(([k, v]) => `${k}: ${this.argToString(v)}`)
+          .map(([k, v]) => `${k}: ${this.valueToString(v)}`)
           .join(', ')})`
       : '';
+  }
+
+  private renderDirectives(directives?: DirectiveNode[]): string {
+    if (!directives || directives.length === 0) return '';
+    return ` ${directives
+      .map((d) => {
+        const args = this.renderArgs(d.args);
+        return `@${d.name}${args}`;
+      })
+      .join(' ')}`;
   }
 
   private renderSelection(nodes: SelectionNode[], fragments?: Record<string, FragmentDef>): string {
@@ -20,21 +36,24 @@ export class GraphQLRenderer {
 
     for (const node of nodes) {
       if (node.fragment) {
-        lines.push(`...${node.fragment}`);
+        const directives = this.renderDirectives(node.directives);
+        lines.push(`...${node.fragment}${directives}`);
         continue;
       }
       if (node.inline) {
         const inner = node.children ? this.renderSelection(node.children, fragments) : '';
-        lines.push(`... on ${node.inline} ${inner}`);
+        const directives = this.renderDirectives(node.directives);
+        lines.push(`... on ${node.inline}${directives} ${inner}`);
         continue;
       }
       const args = this.renderArgs(node.args);
+      const directives = this.renderDirectives(node.directives);
       const alias = node.alias ? `${node.alias}: ` : '';
       if (node.children && node.children.length > 0) {
         const inner = this.renderSelection(node.children, fragments);
-        lines.push(`${alias}${node.name}${args} ${inner}`);
+        lines.push(`${alias}${node.name}${args}${directives} ${inner}`);
       } else {
-        lines.push(`${alias}${node.name}${args}`);
+        lines.push(`${alias}${node.name}${args}${directives}`);
       }
     }
 

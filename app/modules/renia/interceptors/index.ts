@@ -15,6 +15,7 @@ export type InterceptorModule = {
 export type InterceptorOptions = {
   configPath?: string;
   includeNodeModules?: boolean;
+  includeDefault?: boolean;
   statusMap?: Record<string, boolean | number | undefined>;
   onError?: (info: { module: string; file: string; error: unknown }) => void;
 };
@@ -45,7 +46,8 @@ const runInterceptorFile = async ({ filePath, moduleName, context, onError, api 
 
 const findInterceptorFiles = (
   moduleDir: string,
-  context: InterceptorContext
+  context: InterceptorContext,
+  includeDefault: boolean
 ): InterceptorModule[] => {
   const interceptorsDir = path.join(moduleDir, 'interceptors');
   if (!fs.existsSync(interceptorsDir) || !fs.statSync(interceptorsDir).isDirectory()) return [];
@@ -58,10 +60,15 @@ const findInterceptorFiles = (
     }
   };
 
-  addIfExists('default.ts', 'default');
-  addIfExists('default.js', 'default');
-  addIfExists(`${context}.ts`, context);
-  addIfExists(`${context}.js`, context);
+  if (includeDefault) {
+    addIfExists('default.ts', 'default');
+    addIfExists('default.js', 'default');
+  }
+
+  if (context !== 'default') {
+    addIfExists(`${context}.ts`, context);
+    addIfExists(`${context}.js`, context);
+  }
 
   return results;
 };
@@ -72,6 +79,7 @@ export const loadInterceptors = async (
   api?: unknown
 ): Promise<InterceptorModule[]> => {
   const { configPath, includeNodeModules, statusMap, onError } = options;
+  const includeDefault = options.includeDefault !== false;
 
   const modules = await loadModuleRegistry({
     configPath,
@@ -83,7 +91,7 @@ export const loadInterceptors = async (
   const toRun: InterceptorModule[] = [];
 
   for (const mod of activeModules) {
-    const files = findInterceptorFiles(mod.path, context);
+    const files = findInterceptorFiles(mod.path, context, includeDefault);
     toRun.push(...files);
   }
 

@@ -1,7 +1,7 @@
 // @env: server
 import type { Request } from 'express';
 import type { SearchCriteria } from '@framework/api';
-import type { ProductSearchResults } from 'magento-product';
+import type { ProductSearchResults } from 'renia-magento-product';
 import { prefetchProductListing } from 'renia-magento-catalog/services/productListingPrefetch';
 
 const DEFAULT_PAGE_SIZE = 12;
