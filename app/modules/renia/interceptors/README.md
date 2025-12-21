@@ -1,6 +1,6 @@
 # renia-interceptors
 
-Moduł narzędziowy do uruchamiania interceptorów z modułów. Interceptor to po prostu plik wykonywany dla efektów ubocznych (np. dopięcie elementu do slotu, rejestracja logiki), bez narzuconego formatu danych. Pliki leżą w `interceptors/` modułu: `default.(ts|js)` (global) oraz `<kontekst>.(ts|js)` (np. `cart`).
+Moduł narzędziowy do uruchamiania interceptorów z modułów. Interceptor to po prostu plik wykonywany dla efektów ubocznych (np. dopięcie elementu do regionu layoutu lub rozszerzenie komponentu, rejestracja logiki), bez narzuconego formatu danych. Pliki leżą w `interceptors/` modułu: `default.(ts|js)` (global) oraz `<kontekst>.(ts|js)` (np. `cart`).
 
 ## Jak działa
 - Korzysta z `renia-module-registry`, więc ładuje interceptory tylko z aktywnych modułów.
@@ -15,8 +15,8 @@ import { loadInterceptors } from 'renia-interceptors';
 
 // przykładowe API kontekstu, które podajesz interceptorom:
 const api = {
-  slots: { add: (entry) => {/* ... */} },
-  router: { add: (route) => {/* ... */} },
+  layout: { get: (path) => ({ add: () => {} }) },
+  extend: { component: (host) => ({ outlet: (name) => ({ add: () => {} }) }) },
   log: console
 };
 
@@ -41,7 +41,7 @@ await loadInterceptors('cart', { configPath: 'app/etc/config.json' }, api);
 import { CartWidget } from 'renia-magento-cart';
 
 export default (api) => {
-  api.slots?.add?.({ slot: 'control-menu', component: CartWidget, priority: 90 });
+  api.layout.get('control-menu').add(CartWidget, 'cart-widget');
   api.log?.info?.('Interceptor koszyka uruchomiony');
 };
 ```

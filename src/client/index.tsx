@@ -31,7 +31,8 @@ registerComponents({
 const enabledModules = bootstrap.enabledModules ?? [];
 
 // API object dla interceptorów - rejestruje strategie i komponenty
-// Note: api.layout is a no-op on client since slots come from SSR bootstrap
+// Note: api.layout/api.extend are used to register components/strategies;
+// regions/extensions snapshots are produced during SSR and rebuilt on navigation in AppRoot.
 const interceptorApi = {
   registerProductTypeComponentStrategy,
   registerComponents,

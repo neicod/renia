@@ -2,7 +2,7 @@
 export default [
   {
     path: '/login',
-    componentPath: 'renia-magento-customer/pages/LoginPage',
+    componentPath: '@framework/layout/pages/LayoutPage',
     priority: 30,
     contexts: ['login'],
     meta: {
@@ -12,7 +12,7 @@ export default [
   },
   {
     path: '/register',
-    componentPath: 'renia-magento-customer/pages/RegisterPage',
+    componentPath: '@framework/layout/pages/LayoutPage',
     priority: 30,
     contexts: ['register'],
     meta: {

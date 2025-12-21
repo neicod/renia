@@ -6,12 +6,12 @@ Moduł dodaje obsługę produktów konfigurowalnych (configurable products) z Ma
 
 ## Zakres
 
-- **Obsługa tylko configurable products** – proste produkty pozostają w gestii `magento-product`.
-- **Wprowadzenie `ProductInterface`** – w `magento-product` należy utworzyć interfejs `ProductInterface` z polami wspólnymi dla wszystkich typów produktów. Typ `Product` (simple/virtual) i `ConfigurableProduct` będą implementować ten interfejs.
+- **Obsługa tylko configurable products** – proste produkty pozostają w gestii `renia-magento-product`.
+- **Wprowadzenie `ProductInterface`** – w `renia-magento-product` należy utworzyć interfejs `ProductInterface` z polami wspólnymi dla wszystkich typów produktów. Typ `Product` (simple/virtual) i `ConfigurableProduct` będą implementować ten interfejs.
 - **Osobny typ dla produktów konfigurowalnych** – `ConfigurableProduct` to osobny typ (nie rozszerzenie `Product`), implementujący `ProductInterface` z dodatkowymi polami: `configurableOptions`, `variants`.
 - **Rozszerzenie przez augmentery** – GraphQL query augmenter dokłada pola konfiguracyjne do zapytań produktowych; komponenty używają type guard `isConfigurableProduct()` do rozróżnienia typów.
 - **UI po stronie klienta** – wybór opcji renderowany jest po hydratacji; SSR dostaje strukturę danych, ale stan wyboru jest zawsze pustym obiektem na starcie.
-- **Integracja przez interceptory** – panel dodawania do koszyka dla produktów konfigurowalnych jest wstrzykiwany do slotu `product-view-actions` z wyższym priorytetem niż domyślny panel z `renia-magento-cart`.
+- **Integracja przez interceptory** – UI dodawania do koszyka jest wybierane przez strategię produktu (`registerProductTypeComponentStrategy` dla `key: 'add-to-cart-button'`) i renderowane w outlecie `actions` hosta PDP (ProductDetails) przez `ProductAddToCartResolver`.
 
 ---
 
@@ -19,7 +19,7 @@ Moduł dodaje obsługę produktów konfigurowalnych (configurable products) z Ma
 
 ### Typy
 
-#### Modyfikacja w `magento-product/types.ts`
+#### Modyfikacja w `renia-magento-product/types.ts`
 
 - **`ProductInterface`** – nowy interfejs bazowy dla wszystkich typów produktów:
   ```typescript
@@ -100,7 +100,7 @@ Moduł dodaje obsługę produktów konfigurowalnych (configurable products) z Ma
 
 - **`ConfigurableProduct`** – osobny typ implementujący `ProductInterface`:
   ```typescript
-  import type { ProductInterface } from 'magento-product/types';
+  import type { ProductInterface } from 'renia-magento-product/types';
 
   export type ConfigurableProduct = ProductInterface & {
     __typename: 'ConfigurableProduct';
@@ -126,7 +126,7 @@ Moduł dodaje obsługę produktów konfigurowalnych (configurable products) z Ma
   - Sprawdza `item.__typename === 'ConfigurableProduct'`.
   - Mapuje wspólne pola `ProductInterface` (id, sku, name, urlKey, thumbnail, price, priceOriginal, __typename).
   - Dodaje `configurableOptions` i `variants` przez pomocnicze `mapConfigurableOptions()` i `mapVariants()`.
-  - **Nie używa** `mapProduct()` z `magento-product`, ponieważ `ConfigurableProduct` to osobny typ, nie rozszerzenie `Product`.
+  - **Nie używa** `mapProduct()` z `renia-magento-product`, ponieważ `ConfigurableProduct` to osobny typ, nie rozszerzenie `Product`.
 - Używane w komponentach przez type guard; produkty niepasujące zwracają `null`.
 
 ### Hook wyboru wariantu (`hooks/useConfigurableSelection.ts`)
@@ -187,7 +187,7 @@ Moduł dodaje obsługę produktów konfigurowalnych (configurable products) z Ma
 ## Zależności
 
 Deklarowane w `registration.js`:
-- **`magento-product`** – interfejs `ProductInterface`, typy pomocnicze (`ProductMedia`, `ProductPrice`).
+- **`renia-magento-product`** – interfejs `ProductInterface`, typy pomocnicze (`ProductMedia`, `ProductPrice`).
 - **`renia-graphql-client`** – `QueryBuilder` do budowania zapytań.
 - **`renia-magento-graphql-client`** – `MagentoGraphQLRequestFactory` (tworzenie requestów).
 - **`renia-magento-cart`** – `CartManagerProvider`, `useCartManager()` (dodawanie do koszyka).
@@ -205,7 +205,7 @@ Runtime (nie deklarowane):
 ### Sloty i interceptory
 
 - **`interceptors/default.ts`** – wywoływany globalnie; rejestruje `registerConfigurableAugmenter()` na starcie modułu, aby każde zapytanie produktowe dostawało pola konfiguracyjne.
-- **`interceptors/product.ts`** – kontekst PDP (strona produktu); dodaje `ConfigurableAddToCartPanel` do slotu `product-view-actions` z `priority: 25` (wyższy niż domyślny panel z `renia-magento-cart`, który ma `20`). Dzięki temu dla produktów konfigurowalnych renderuje się nasz panel, a domyślny zostaje poniżej lub jest pomijany (dzięki warunkowi `isConfigurableProduct` w komponencie).
+- UI dodawania do koszyka jest wybierane przez strategię produktu (`registerProductTypeComponentStrategy` dla `key: 'add-to-cart-button'`). Hosty (listing/PDP) renderują `ProductAddToCartResolver` jako extension w outlecie `actions`.
 
 ### Przepływ danych
 
@@ -216,7 +216,7 @@ productRepository.getList (augmenter dołożył pola configurable_options, varia
   ↓
 mapConfigurableProduct(item) → ConfigurableProduct
   ↓
-ProductDetails → slot 'product-view-actions' → ConfigurableAddToCartPanel
+ProductDetails → ExtensionsOutlet(host: ProductDetails, outlet: actions) → ProductAddToCartResolver → ConfigurableAddToCartPanel (strategia)
   ↓
 useConfigurableSelection(product) → selectedOptions, currentVariant
   ↓
@@ -246,13 +246,13 @@ cartRepository.addItems → GraphQL mutation addProductsToCart z SKU dziecka
 
 ## Konwencje implementacyjne
 
-1. **`ProductInterface` jako kontrakt bazowy.** W `magento-product/types.ts` wprowadzamy `ProductInterface` z polami wspólnymi dla wszystkich typów produktów. `Product` (simple/virtual) i `ConfigurableProduct` to osobne typy implementujące ten interfejs (`ProductInterface & { ... }`). Komponenty przyjmują `ProductInterface` jako props i używają type guard `isConfigurableProduct(product)` do warunkowego renderowania.
+1. **`ProductInterface` jako kontrakt bazowy.** W `renia-magento-product/types.ts` wprowadzamy `ProductInterface` z polami wspólnymi dla wszystkich typów produktów. `Product` (simple/virtual) i `ConfigurableProduct` to osobne typy implementujące ten interfejs (`ProductInterface & { ... }`). Komponenty przyjmują `ProductInterface` jako props i używają type guard `isConfigurableProduct(product)` do warunkowego renderowania.
 
 2. **Augmenter działa globalnie.** Nie ma sensu selektywnie pobierać pola konfiguracyjne – augmenter dołożony jest do wszystkich zapytań `magentoProduct.*`. Dla prostych produktów pola są puste, więc overhead minimalny.
 
 3. **Wybór wariantu tylko w kliencie.** SSR renderuje strukturę opcji, ale stan `selectedOptions` jest pusty. Hook `useConfigurableSelection` startuje z pustym stanem, dopiero klient wybiera opcje. Opcjonalnie można wczytać cache z `variantSelectionStorage` po hydratacji.
 
-4. **Priorytety slotów.** `ConfigurableAddToCartPanel` ma `priority: 25`, domyślny panel koszyka `20`. Dzięki temu nasz panel renderuje się wyżej. Komponent sprawdza `isConfigurableProduct` – jeśli `false`, zwraca `null` i framework przechodzi do kolejnego wpisu (domyślnego panelu).
+4. **Strategie per typ produktu.** `ConfigurableAddToCartPanel` jest strategią `add-to-cart-button` dla `ConfigurableProduct`, a dla `SimpleProduct` pozostaje domyślny panel/ikona. Host wywołuje `ProductAddToCartResolver`, który wybiera komponent po `product.__typename`.
 
 5. **SKU dziecka, nie rodzica.** Kluczowa zasada: przy dodawaniu do koszyka przekazujemy `currentVariant.product.sku`, nie `product.sku`. Magento wymaga SKU prostego produktu (wariantu), nie SKU rodzica.
 
@@ -268,7 +268,7 @@ cartRepository.addItems → GraphQL mutation addProductsToCart z SKU dziecka
    - `configurableProduct.cart.error.noVariant.title` – „Wymagany wybór"
    - `configurableProduct.option.selectValue` – „Wybierz :label"
 
-10. **Zgodność z SOLID.** Warstwa zapytań (`configurableQueryAugmenter`), mapper (`configurableMapper`), logika wyboru (`useConfigurableSelection`), UI (`ConfigurableProductOptions`) i integracja z koszykiem (`ConfigurableAddToCartPanel`) są rozdzielone. Moduł nie ingeruje w kod `magento-product` ani `renia-magento-cart` – korzysta z ich API (repository, CartManager, sloty).
+10. **Zgodność z SOLID.** Warstwa zapytań (`configurableQueryAugmenter`), mapper (`configurableMapper`), logika wyboru (`useConfigurableSelection`), UI (`ConfigurableProductOptions`) i integracja z koszykiem (`ConfigurableAddToCartPanel`) są rozdzielone. Moduł nie ingeruje w kod `renia-magento-product` ani `renia-magento-cart` – korzysta z ich API (repository, CartManager, strategie per typ produktu).
 
 ---
 

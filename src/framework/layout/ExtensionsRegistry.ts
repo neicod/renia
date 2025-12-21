@@ -10,6 +10,11 @@ export type ExtensionEntry = {
   props?: Record<string, unknown>;
   meta?: Record<string, unknown>;
   sortOrder?: SortOrder;
+  /**
+   * Insertion order fallback to keep deterministic rendering
+   * (not meant to be relied on as a public API).
+   */
+  seq?: number;
 };
 
 export type ExtensionsSnapshot = Record<string, Record<string, ExtensionEntry[]>>;
@@ -25,37 +30,46 @@ const ensureOutlet = (snapshot: ExtensionsSnapshot, host: string, outlet: string
   return hostMap[outlet]!;
 };
 
-const compareSortOrder = (a: ExtensionEntry, b: ExtensionEntry, all: ExtensionEntry[]) => {
-  const aOrder = a.sortOrder ? Object.values(a.sortOrder)[0] : '-';
-  const bOrder = b.sortOrder ? Object.values(b.sortOrder)[0] : '-';
+const compareSortOrder = (a: ExtensionEntry, b: ExtensionEntry) => {
+  const aBefore = a.sortOrder?.before;
+  const bBefore = b.sortOrder?.before;
+  const aAfter = a.sortOrder?.after;
+  const bAfter = b.sortOrder?.after;
 
-  if (aOrder === '-' && bOrder === '-') return 0;
-  if (aOrder === '-') return -1;
-  if (bOrder === '-') return 1;
+  // Direct relations between entries
+  if (aBefore && aBefore === b.id) return -1;
+  if (bBefore && bBefore === a.id) return 1;
+  if (aAfter && aAfter === b.id) return 1;
+  if (bAfter && bAfter === a.id) return -1;
 
-  if (a.sortOrder?.before && a.sortOrder.before === b.id) return -1;
-  if (b.sortOrder?.before && b.sortOrder.before === a.id) return 1;
-  if (a.sortOrder?.after && a.sortOrder.after === b.id) return 1;
-  if (b.sortOrder?.after && b.sortOrder.after === a.id) return -1;
+  // Special anchor '-' (first/last)
+  if (aBefore === '-' && bBefore !== '-') return -1;
+  if (bBefore === '-' && aBefore !== '-') return 1;
+  if (aAfter === '-' && bAfter !== '-') return 1;
+  if (bAfter === '-' && aAfter !== '-') return -1;
 
-  return 0;
+  // Fallback: insertion order
+  const aSeq = typeof a.seq === 'number' ? a.seq : 0;
+  const bSeq = typeof b.seq === 'number' ? b.seq : 0;
+  return aSeq - bSeq;
 };
 
 const sortEntries = (entries: ExtensionEntry[]) => {
   const copy = entries.slice();
-  copy.sort((a, b) => compareSortOrder(a, b, copy));
+  copy.sort((a, b) => compareSortOrder(a, b));
   return copy;
 };
 
 export class ExtensionsRegistry {
   private snapshot: ExtensionsSnapshot = {};
+  private seq = 0;
 
   snapshotSorted(): ExtensionsSnapshot {
     const out: ExtensionsSnapshot = {};
     for (const [host, outlets] of Object.entries(this.snapshot)) {
       out[host] = {};
       for (const [outlet, entries] of Object.entries(outlets)) {
-        out[host]![outlet] = sortEntries(entries).map((e) => ({ ...e }));
+        out[host]![outlet] = sortEntries(entries).map(({ seq, ...e }) => ({ ...e }));
       }
     }
     return out;
@@ -91,7 +105,7 @@ export class ExtensionsRegistry {
             if (idx >= 0) {
               list[idx] = { ...list[idx], ...entry };
             } else {
-              list.push(entry);
+              list.push({ ...entry, seq: this.seq++ });
             }
           },
           remove: (id: string) => {

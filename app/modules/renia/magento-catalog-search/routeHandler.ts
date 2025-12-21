@@ -2,14 +2,17 @@
 import type { Request } from 'express';
 import type { SearchCriteria } from '@framework/api';
 import type { ProductSearchResults } from 'renia-magento-product';
-import { prefetchProductListing } from 'renia-magento-catalog/services/productListingPrefetch';
+import { prefetchProductListing } from 'renia-magento-product-listing/services/productListingPrefetch';
+import type { StoreConfig } from 'renia-magento-store';
+import {
+  DEFAULT_PAGE_SIZE,
+  extractCatalogStorefrontConfig
+} from 'renia-magento-product-listing/services/storefrontConfig';
 
-const DEFAULT_PAGE_SIZE = 12;
-
-const buildSearchCriteria = (query: string): SearchCriteria => ({
+const buildSearchCriteria = (query: string, pageSize: number): SearchCriteria => ({
   filterGroups: [],
   search: query,
-  pageSize: DEFAULT_PAGE_SIZE,
+  pageSize,
   currentPage: 1
 });
 
@@ -24,11 +27,12 @@ const extractQuery = (req: Request): string | undefined => {
 };
 
 const fetchInitialSearchListing = async (
-  query?: string
+  query: string,
+  pageSize: number
 ): Promise<ProductSearchResults | null> => {
   if (!query) return null;
   try {
-    const criteria = buildSearchCriteria(query);
+    const criteria = buildSearchCriteria(query, pageSize);
     return await prefetchProductListing(criteria);
   } catch (error) {
     console.error('[SearchRouteHandler] Failed to fetch initial product listing', {
@@ -41,15 +45,19 @@ const fetchInitialSearchListing = async (
 
 type HandlerArgs = {
   req: Request;
+  store?: StoreConfig | null;
 };
 
-export default async function handleSearchRoute({ req }: HandlerArgs) {
+export default async function handleSearchRoute({ req, store }: HandlerArgs) {
   const query = (extractQuery(req) ?? '').trim();
   if (!query) {
     return { meta: { searchQuery: '' } };
   }
 
-  const searchProductListing = await fetchInitialSearchListing(query);
+  const cfg = extractCatalogStorefrontConfig(store);
+  const pageSize = cfg?.gridPerPage ?? cfg?.gridPerPageValues?.[0] ?? DEFAULT_PAGE_SIZE;
+
+  const searchProductListing = await fetchInitialSearchListing(query, pageSize);
 
   return {
     meta: {

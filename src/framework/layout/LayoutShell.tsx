@@ -65,7 +65,7 @@ export const LayoutShell: React.FC<Props> = ({
   extensions,
   routeMeta
 }) => {
-  // 1. Render all slots to React.ReactNode
+  // 1. Render all regions to React.ReactNode
   const renderedRegions: Record<string, React.ReactNode> = {};
 
   for (const regionName of Object.keys(regions)) {
@@ -80,7 +80,7 @@ export const LayoutShell: React.FC<Props> = ({
   const layoutPath = layout || '@framework/layout/layouts/Layout1Column';
   const LayoutComponent = resolveComponent({ componentPath: layoutPath });
 
-  // 3. Pass slots and main to layout component
+  // 3. Pass regions and main to layout component
   return (
     <ExtensionsProvider extensions={extensions} resolveComponent={resolveComponent} routeMeta={routeMeta}>
       <LayoutComponent regions={renderedRegions} main={main} routeMeta={routeMeta} />

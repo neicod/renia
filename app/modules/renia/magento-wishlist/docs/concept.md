@@ -7,12 +7,15 @@ Cel: lekka wishlisty działająca wyłącznie po stronie klienta. Dane o produkt
 - **Synchronizacja** – `wishlistSync` sprawdza, czy istnieją wpisy starsze niż 24h i, jeśli użytkownik odwiedza wishlistę, wywołuje zapytanie `magento-product.getList` z filtrem `sku in [...]`, a następnie aktualizuje snapshoty.
 - **Hooki** – `useWishlist()` (stan + akcje) i `useIsClient()` (blokada SSR).
 - **Komponenty**:
-  - `WishlistControlLink` – link w menu (slot `control-menu`), wyświetla licznik pozycji (tylko po stronie klienta).
-  - `WishlistHeart` – ikona serca wpinana do slotów `product-listing-actions` i `product-view-actions`. Na SSR komponent zwraca `null`, UI pojawia się dopiero w kliencie.
+  - `WishlistControlLink` – link w menu (region `control-menu`), wyświetla licznik pozycji (tylko po stronie klienta).
+  - `WishlistHeart` – ikona serca dopinana jako extension do host komponentów listingu i PDP (outlet `actions`). UI pojawia się dopiero w kliencie.
   - `WishlistPage` – lista produktów z możliwością ręcznego odświeżenia oraz usunięcia pozycji.
 
 ## Integracje
-- **Sloty/interceptory** – `interceptors/default.ts` dodaje link w `control-menu`, `interceptors/category.ts` i `product.ts` doklejają serca do slotów listingu i PDP. Żadnej bezpośredniej ingerencji w kod innych modułów.
+- **Regions/extensions + interceptory** – `interceptors/default.ts` dodaje link w `control-menu` oraz dopina `WishlistHeart` jako extension do:
+  - host: `renia-magento-product/components/ProductTile` (outlet `actions`)
+  - host: `renia-magento-product/pages/components/ProductDetails` (outlet `actions`)
+  Żadnej bezpośredniej ingerencji w kod innych modułów.
 - **Dane produktu** – serce otrzymuje komplet danych w `props.product` (przekazany przez moduł `magento-product`). Dzięki temu kliknięcia nie wymagają dodatkowych zapytań.
 - **i18n** – wszystkie teksty (`wishlist.*`) znajdują się w `i18n/en_US.json` / `pl_PL.json` i są ładowane przez `npm run build:i18n`.
 

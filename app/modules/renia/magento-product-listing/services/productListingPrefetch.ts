@@ -7,7 +7,9 @@ export const prefetchProductListing = async (
   criteria: SearchCriteria
 ): Promise<ProductSearchResults> => {
   const res = await productRepository.getList(criteria);
+  // Ensure serializable payload for SSR bootstrap
   return JSON.parse(JSON.stringify(res)) as ProductSearchResults;
 };
 
 export default prefetchProductListing;
+

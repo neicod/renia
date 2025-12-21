@@ -20,7 +20,7 @@ export default (api: any) => {
   // 2. Rejestruj strategie produktów dla SimpleProduct
   // Domyślnie używamy ikony (dla listingu)
   api.registerProductTypeComponentStrategy?.({
-    slot: 'add-to-cart-button',
+    key: 'add-to-cart-button',
     components: {
       'SimpleProduct': SimpleAddToCartIcon
     }

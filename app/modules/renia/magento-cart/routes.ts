@@ -2,7 +2,7 @@
 export default [
   {
     path: '/cart',
-    componentPath: 'renia-magento-cart/pages/CartPage',
+    componentPath: '@framework/layout/pages/LayoutPage',
     priority: 100,
     contexts: ['cart'],
     meta: {

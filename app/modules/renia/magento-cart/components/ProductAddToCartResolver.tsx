@@ -13,8 +13,8 @@ type Props = {
  *
  * @param product - Produkt do renderowania
  *
- * Slot ('add-to-cart-button') jest określony przez interceptor,
- * który rejestruje komponent dla tego slotu
+ * Klucz strategii ('add-to-cart-button') jest określony przez interceptor,
+ * który rejestruje komponent dla danej strategii
  */
 export const ProductAddToCartResolver: React.FC<Props> = ({ product }) => {
   if (!product || !product.__typename) {
@@ -24,7 +24,7 @@ export const ProductAddToCartResolver: React.FC<Props> = ({ product }) => {
   const Component = getProductTypeComponent(product.__typename, 'add-to-cart-button');
 
   if (!Component) {
-    console.warn(`No component for product type "${product.__typename}" in slot "add-to-cart-button"`);
+    console.warn(`No component for product type "${product.__typename}" in strategy "add-to-cart-button"`);
     return null;
   }
 

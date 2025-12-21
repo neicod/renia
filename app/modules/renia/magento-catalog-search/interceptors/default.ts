@@ -11,11 +11,4 @@ export default (api: any = {}) => {
   api.layout.get('control-menu').add('renia-magento-catalog-search/components/SearchBar', 'search-bar', {
     sortOrder: { before: '-' }
   });
-
-  api.layout.get('content').add('renia-magento-catalog-search/components/SearchProductList', 'search-product-list', {
-    sortOrder: { before: '-' },
-    meta: {
-      onlyForRouteTypes: ['search']
-    }
-  });
 };

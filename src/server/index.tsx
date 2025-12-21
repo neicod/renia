@@ -309,35 +309,6 @@ app.get('/api/page-context', async (req, res) => {
       }
     }
 
-    const routeMeta = { ...(match?.meta ?? {}) } as Record<string, unknown>;
-
-    if (match?.handler) {
-      try {
-        const handlerModule = await import(match.handler);
-        const handler = handlerModule.default ?? handlerModule;
-        if (typeof handler === 'function') {
-          const query: Record<string, string> = {};
-          for (const [k, v] of urlObj.searchParams.entries()) query[k] = v;
-          const reqForHandler: any = {
-            path: prefix.routingPath,
-            url: routingUrl,
-            query
-          };
-          const handlerResult =
-            (await handler({
-              req: reqForHandler,
-              route: match,
-              params: matchPath({ path: match.path, end: false }, prefix.routingPath)?.params ?? {}
-            })) || {};
-          if (handlerResult.meta && typeof handlerResult.meta === 'object') {
-            Object.assign(routeMeta, handlerResult.meta);
-          }
-        }
-      } catch (err) {
-        console.error(`Nie udało się uruchomić handlera dla trasy ${match?.path}:`, err);
-      }
-    }
-
     const appConfig: {
       magentoGraphQLEndpoint?: string;
       magentoProxyEndpoint?: string;
@@ -362,6 +333,36 @@ app.get('/api/page-context', async (req, res) => {
     }
 
     (globalThis as any).__APP_CONFIG__ = appConfig;
+
+    const routeMeta = { ...(match?.meta ?? {}) } as Record<string, unknown>;
+
+    if (match?.handler) {
+      try {
+        const handlerModule = await import(match.handler);
+        const handler = handlerModule.default ?? handlerModule;
+        if (typeof handler === 'function') {
+          const query: Record<string, string> = {};
+          for (const [k, v] of urlObj.searchParams.entries()) query[k] = v;
+          const reqForHandler: any = {
+            path: prefix.routingPath,
+            url: routingUrl,
+            query
+          };
+          const handlerResult =
+            (await handler({
+              req: reqForHandler,
+              route: match,
+              params: matchPath({ path: match.path, end: false }, prefix.routingPath)?.params ?? {},
+              store: appConfig.store ?? null
+            })) || {};
+          if (handlerResult.meta && typeof handlerResult.meta === 'object') {
+            Object.assign(routeMeta, handlerResult.meta);
+          }
+        }
+      } catch (err) {
+        console.error(`Nie udało się uruchomić handlera dla trasy ${match?.path}:`, err);
+      }
+    }
 
     const pageContext: PageContext = applyPageContextAugmenters(
       {
@@ -540,7 +541,8 @@ app.get('*', async (req, res) => {
             (await handler({
               req: reqForHandler,
               route: match,
-              params: matchPath({ path: match.path, end: false }, prefix.routingPath)?.params ?? {}
+              params: matchPath({ path: match.path, end: false }, prefix.routingPath)?.params ?? {},
+              store: appConfig.store ?? null
             })) ||
             {};
           if (handlerResult.meta && typeof handlerResult.meta === 'object') {
@@ -600,10 +602,16 @@ app.get('*', async (req, res) => {
 
       // Fetch products for category SSR
       try {
-        const { prefetchProductListing } = await import('renia-magento-catalog/services/productListingPrefetch');
+        const { prefetchProductListing } = await import('renia-magento-product-listing/services/productListingPrefetch');
+        const { extractCatalogStorefrontConfig, DEFAULT_PAGE_SIZE } = await import(
+          'renia-magento-product-listing/services/storefrontConfig'
+        );
+        const cfg = extractCatalogStorefrontConfig(appConfig.store ?? null);
+        const pageSize = cfg?.gridPerPage ?? cfg?.gridPerPageValues?.[0] ?? DEFAULT_PAGE_SIZE;
+
         const criteria = {
           filterGroups: [{ filters: [{ field: 'category_uid', value: categoryUid }] }],
-          pageSize: 12,
+          pageSize,
           currentPage: 1
         };
         if (ssrDebug) console.log('[SSR] Category fetch criteria:', criteria);

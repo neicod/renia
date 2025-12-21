@@ -22,7 +22,7 @@ Request: /category/men
 3. loadInterceptors('default', api)
 4. loadInterceptors('category', api)  ← Specificzny kontekst!
 5. Komponenty rejestrują się via api.layout.get().add() (hierarchiczny system)
-6. Bootstrap zawiera slots/subslots dla tej ścieżki
+6. Bootstrap zawiera regions/extensions dla tej ścieżki
 7. HTML serializeduje bootstrap do window.__APP_BOOTSTRAP__
 ```
 
@@ -96,8 +96,8 @@ app.get('*', async (req, res) => {
   // Dodaj do bootstrap
   const bootstrap = {
     routes: [...],
-    slots: {...},
-    subslots: {...},
+    regions: {...},
+    extensions: {...},
     requiredModules,  // ← Lista modułów dla klienta
     config: {...}
   };
@@ -151,7 +151,7 @@ const loadRequiredModules = async (moduleNames: string[]) => {
 };
 
 const rootElement = document.getElementById('root');
-const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], slots: {}, requiredModules: [] };
+const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], regions: {}, requiredModules: [] };
 
 // Załaduj moduły przed hydratacją
 (async () => {
@@ -268,10 +268,10 @@ const bootstrap = {
     requiredModules: r.requiredModules ?? [],  // ← NOWE
     meta: r.path === match?.path ? routeMeta : r.meta ?? {}
   })),
-  slots,
-  subslots,
+  regions,
+  extensions,
   layouts: layoutRegistry.layouts,
-  layoutSlots: layoutRegistry.slots,
+  layoutRegions: layoutRegistry.regions,
   config: {...}
 };
 ```

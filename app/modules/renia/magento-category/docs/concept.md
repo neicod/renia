@@ -11,11 +11,11 @@ Cel: moduł kategorii oparty na Magento GraphQL. Dostarcza stronę kategorii, ko
 - `CategoryPage` pobiera `slug` z routera i renderuje zawartość kategorii (placeholder; do rozszerzenia o dane z API).
 - Rejestr tras w `routes.ts` (serializowalne pola: `path`, `componentPath`, `layout?`, `priority?`).
 
-## Sloty / Menu
-- `CategoryMainMenu` (statyczne/dynamiczne) wstrzykiwane do slotu `header` przez interceptor `interceptors/default.ts`.
-- Sloty są niezależne – layout decyduje, gdzie renderuje `header/control-menu/...`.
-- Wpis slotu może mieć `id`, `priority`, `componentPath`, `enabled` (false wyłącza/ nadpisuje przy tym samym `id`).
-- Trasy kategorii wskazują na konkretny layout (np. `@framework/layout/layouts/Layout1Column`); logika kategorii (menu, listing) wpinana przez sloty/interceptory.
+## Regiony layoutu / Menu
+- `CategoryMainMenu` (statyczne/dynamiczne) wstrzykiwane do regionu layoutu `header` przez interceptor `interceptors/default.ts`.
+- Regiony są niezależne – layout decyduje, gdzie renderuje `header/control-menu/...`.
+- Wpis regionu może mieć `id`, `priority`, `componentPath`, `enabled` (false wyłącza/ nadpisuje przy tym samym `id`).
+- Trasy kategorii wskazują na konkretny layout (np. `@framework/layout/layouts/Layout1Column`); logika kategorii (menu, listing) jest dopinana interceptorami.
 
 ## Serwis menu (do wdrożenia)
 - API: `fetchMenu(options)` → zwraca ujednolicone drzewo menu (`MenuItem[]` z `renia-menu`).
@@ -39,8 +39,8 @@ Cel: moduł kategorii oparty na Magento GraphQL. Dostarcza stronę kategorii, ko
 - Przyszłe: serwis `fetchMenu`/helpery mapujące odpowiedź Magento na strukturę menu.
 
 ## Konwencje implementacyjne
-- Korzystaj z `componentPath`/serializowalnych danych w rejestrach (trasy/sloty).
+- Korzystaj z `componentPath`/serializowalnych danych w rejestrach (trasy/regiony layoutu).
 - Nie wiąż modułu na sztywno z innymi bez deklaracji w `registration.js` (zależności).
-- Sloty wstrzykuj interceptorami; layout decyduje o rozmieszczeniu.
+- Regiony layoutu wstrzykuj interceptorami; layout decyduje o rozmieszczeniu.
 - Strona kategorii `/category/:slug`: docelowo pobiera dane kategorii przez serwis GQL (placeholder do rozbudowy: breadcrumb, lista produktów, filtracja). 
-- Interceptor menu powinien docelowo pobierać menu dynamicznie (`fetchMenu`) i wstrzykiwać do slotu `header`.
+- Interceptor menu powinien docelowo pobierać menu dynamicznie (`fetchMenu`) i wstrzykiwać do regionu `header`.

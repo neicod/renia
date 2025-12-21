@@ -10,7 +10,7 @@ Składniki:
 
 Integracje:
 - `renia-magento-category` dostarcza `category` w meta (UID, label, path), a route handler ustawia `requiresCategoryPath`.
-- Komponent `ProductList` pochodzi z `magento-product`; slot `product-listing-actions` pozwala innym modułom dodawać CTA, np. koszyk.
+- Komponent `ProductList` pochodzi z `magento-product`; akcje na kaflu są rozszerzane przez component extensions (`ProductTile` host/outlet `actions`), np. koszyk i wishlist.
 - Hook `useStorefrontPageSizeConfig` korzysta z `renia-magento-store` (augmenter `storeConfig`) i fallbacku GraphQL `StorefrontPageSizeConfig`.
 
 Konwencje:

@@ -52,7 +52,7 @@ export default [
 ### Jak dodać nowy layout
 
 1. Utwórz plik: `src/framework/layout/layouts/LayoutMyNewLayout.tsx`
-2. Implementuj: `type LayoutProps = { slots, main, routeMeta }`
+2. Implementuj: `type LayoutProps = { regions, main, routeMeta }`
 3. Dodaj do eksportu w: `src/framework/layout/index.ts`
 4. Zarejestruj w: `src/server/index.tsx` i `src/client/index.tsx`
 
@@ -64,12 +64,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 type LayoutProps = {
-  slots: Record<string, React.ReactNode>;
+  regions: Record<string, React.ReactNode>;
   main: React.ReactNode;
   routeMeta?: Record<string, unknown>;
 };
 
-export default function LayoutMyNewLayout({ slots, main }: LayoutProps) {
+export default function LayoutMyNewLayout({ regions, main }: LayoutProps) {
   return (
     <div className="app-shell">
       <header className="header">
@@ -77,19 +77,19 @@ export default function LayoutMyNewLayout({ slots, main }: LayoutProps) {
           <div className="header__brand">
             <Link to="/" className="brand-logo">Renia Store</Link>
           </div>
-          <div className="slot-stack">{slots['control-menu']}</div>
+          <div className="slot-stack">{regions['control-menu']}</div>
         </div>
-        <div className="header__menu">{slots['header']}</div>
+        <div className="header__menu">{regions['header']}</div>
       </header>
 
       <main className="main">
-        {slots['content']}
+        {regions['content']}
         {main}
       </main>
 
-      <footer className="footer">{slots['footer']}</footer>
+      <footer className="footer">{regions['footer']}</footer>
 
-      {slots['global-overlay']}
+      {regions['global-overlay']}
     </div>
   );
 }
@@ -107,7 +107,7 @@ registerComponents({
 
 ---
 
-## Interceptory i sloty
+## Interceptory i regions/extensions
 
 ### Hierarchiczny system layoutu
 
@@ -173,13 +173,14 @@ Zamiast `priority`, używaj `sortOrder` z `before` lub `after`:
 { sortOrder: { after: 'menu' } }
 ```
 
-### Subsloty (product-view-actions, product-listing-actions)
+### Rozszerzenia komponentów (component extensions)
 
-Subsloty działają tak samo jak zwykłe sloty:
+Rozszerzenia “wewnątrz komponentów” realizujemy przez `api.extend` + `ExtensionsOutlet` (host komponent + outlet):
 
 ```typescript
-api.layout
-  .get('product-view-actions')
+api.extend
+  .component('renia-magento-product/pages/components/ProductDetails')
+  .outlet('actions')
   .add('renia-magento-wishlist/components/WishlistHeart', 'wishlist-heart');
 ```
 
@@ -364,32 +365,32 @@ Kod musi być **spójny**, **czysty** i **maintainable**. To jest obowiązowe dl
 ### 1. Spójność notacji w kodzie
 
 **Notacja property access:**
-- ✅ Słoty/obiekty z myślnikami: `slots['control-menu']`, `slots['global-overlay']`
-- ✅ Zwykłe property: `slots['header']`, `slots['content']`, `slots['footer']`, `slots['left']`
-- ❌ Nie mieszaj: nie rób `slots.header` i `slots['header']` w tym samym pliku
+- ✅ Regiony/obiekty z myślnikami: `regions['control-menu']`, `regions['global-overlay']`
+- ✅ Regiony bez myślników: `regions['header']`, `regions['content']`, `regions['footer']`, `regions['left']`
+- ❌ Nie mieszaj: nie rób `regions.header` i `regions['header']` w tym samym pliku
 
 ```typescript
 // ✅ DOBRY - konsekwentnie ze słownikami
-export default function Layout1Column({ slots, main }: LayoutProps) {
+export default function Layout1Column({ regions, main }: LayoutProps) {
   return (
     <div className="app-shell">
-      <header>{slots['header']}</header>
-      <div>{slots['control-menu']}</div>
-      <main>{slots['content']}{main}</main>
-      <footer>{slots['footer']}</footer>
-      {slots['global-overlay']}
+      <header>{regions['header']}</header>
+      <div>{regions['control-menu']}</div>
+      <main>{regions['content']}{main}</main>
+      <footer>{regions['footer']}</footer>
+      {regions['global-overlay']}
     </div>
   );
 }
 
 // ❌ ZŁY - mieszanie notacji
-export default function Layout1Column({ slots, main }: LayoutProps) {
+export default function Layout1Column({ regions, main }: LayoutProps) {
   return (
     <div className="app-shell">
-      <header>{slots.header}</header>                  {/* ← Jest .header */}
-      <div>{slots['control-menu']}</div>              {/* ← Jest ['control-menu'] */}
-      <main>{slots.content}{main}</main>              {/* ← Jest .content */}
-      <footer>{slots['footer']}</footer>              {/* ← Jest ['footer'] */}
+      <header>{regions.header}</header>                  {/* ← Jest .header */}
+      <div>{regions['control-menu']}</div>              {/* ← Jest ['control-menu'] */}
+      <main>{regions.content}{main}</main>              {/* ← Jest .content */}
+      <footer>{regions['footer']}</footer>              {/* ← Jest ['footer'] */}
     </div>
   );
 }
@@ -402,7 +403,7 @@ export default function Layout1Column({ slots, main }: LayoutProps) {
 ```typescript
 // ✅ DOBRY
 interface LayoutProps {
-  slots: Record<string, React.ReactNode>;
+  regions: Record<string, React.ReactNode>;
   main: React.ReactNode;
   routeMeta?: Record<string, unknown>;
 }
@@ -446,7 +447,7 @@ import React from 'react';
 <div className="app-shell">
   <header className="header">
     <div className="header__inner">
-      <div className="slot-stack">{slots['control-menu']}</div>
+      <div className="slot-stack">{regions['control-menu']}</div>
     </div>
   </header>
 </div>
@@ -455,7 +456,7 @@ import React from 'react';
 <div style={{ maxWidth: '1220px', margin: '0 auto' }}>
   <header style={{ display: 'flex' }}>
     <div style={{ gap: '1rem', display: 'flex' }}>
-      {slots['control-menu']}
+      {regions['control-menu']}
     </div>
   </header>
 </div>
@@ -467,12 +468,12 @@ import React from 'react';
 
 ```typescript
 // ✅ DOBRY
-const controlMenuItems = slots['control-menu'];
-const renderedSlots: Record<string, React.ReactNode> = {};
+const controlMenuItems = regions['control-menu'];
+const renderedRegions: Record<string, React.ReactNode> = {};
 
 // ❌ ZŁY
-const control_menu_items = slots['control-menu'];
-const rendered_slots: Record<string, React.ReactNode> = {};
+const control_menu_items = regions['control-menu'];
+const rendered_regions: Record<string, React.ReactNode> = {};
 ```
 
 ### 6. Brak martwego kodu

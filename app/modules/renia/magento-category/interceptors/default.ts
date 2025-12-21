@@ -17,7 +17,7 @@ export default (api: any) => {
     'renia-magento-category/pages/CategoryPage': CategoryPage
   });
 
-  // Inject CategoryMainMenu into header slot
+  // Inject CategoryMainMenu into header region
   api.layout
     .get('header')
     .add(

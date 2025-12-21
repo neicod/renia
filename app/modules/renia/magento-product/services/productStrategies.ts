@@ -3,7 +3,7 @@ import type { ComponentType } from 'react';
 
 /**
  * Product Type Component Strategy
- * Mapuje slot → typ produktu → komponent
+ * Mapuje klucz strategii → typ produktu → komponent
  *
  * Struktura:
  * {
@@ -18,40 +18,40 @@ import type { ComponentType } from 'react';
  * }
  */
 export type ProductTypeComponentStrategy = {
-  slot: string; // 'add-to-cart-button', 'wishlist-button', etc.
+  key: string; // 'add-to-cart-button', 'wishlist-button', etc.
   components: Record<string, ComponentType<any>>; // productType → Component
 };
 
 /**
  * Global registry - przechowuje wszystkie strategie
- * slot → (productType → Component)
+ * key → (productType → Component)
  */
 const productTypeStrategies: Record<string, Record<string, ComponentType<any>>> = {};
 
 /**
- * Zarejestruj strategię dla slotu z komponentami per typ produktu
+ * Zarejestruj strategię dla klucza z komponentami per typ produktu
  * Merge: nadpisujemy tylko te same typy, pozostałe dodajemy
  */
 export const registerProductTypeComponentStrategy = (strategy: ProductTypeComponentStrategy) => {
-  if (!productTypeStrategies[strategy.slot]) {
-    productTypeStrategies[strategy.slot] = {};
+  if (!productTypeStrategies[strategy.key]) {
+    productTypeStrategies[strategy.key] = {};
   }
   // Merge: nadpisujemy istniejące typy, dodajemy nowe
-  productTypeStrategies[strategy.slot] = {
-    ...productTypeStrategies[strategy.slot],
+  productTypeStrategies[strategy.key] = {
+    ...productTypeStrategies[strategy.key],
     ...strategy.components
   };
 };
 
 /**
- * Pobierz komponent dla typu produktu w danym slocie
- * Zwraca null jeśli brak slotu lub brak typu
+ * Pobierz komponent dla typu produktu w danym kluczu strategii
+ * Zwraca null jeśli brak klucza lub brak typu
  */
 export const getProductTypeComponent = (
   productType: string,
-  slot: string
+  key: string
 ): ComponentType<any> | null => {
-  return productTypeStrategies[slot]?.[productType] ?? null;
+  return productTypeStrategies[key]?.[productType] ?? null;
 };
 
 /**
@@ -59,10 +59,10 @@ export const getProductTypeComponent = (
  */
 export const listProductTypeStrategies = (): Record<string, Record<string, string>> => {
   const result: Record<string, Record<string, string>> = {};
-  for (const [slot, typeMap] of Object.entries(productTypeStrategies)) {
-    result[slot] = {};
+  for (const [key, typeMap] of Object.entries(productTypeStrategies)) {
+    result[key] = {};
     for (const [productType, component] of Object.entries(typeMap)) {
-      result[slot][productType] = component.name || 'anonymous';
+      result[key][productType] = component.name || 'anonymous';
     }
   }
   return result;

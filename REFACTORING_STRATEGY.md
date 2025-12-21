@@ -132,8 +132,7 @@
 - **Problem**: ProductTile robi wszystko:
   - Układ (image, name, price)
   - Rendering ceny (price + priceOriginal)
-  - Slot rendering (product-listing-actions)
-  - Importuje ProductAddToCartResolver
+  - Rendering rozszerzeń (component extensions / outlet `actions`)
 - **Impact**:
   - Komponent ma 60+ linii
   - Niski reusability

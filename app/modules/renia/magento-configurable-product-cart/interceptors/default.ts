@@ -12,7 +12,7 @@ export default (api: any) => {
   // 2. Rejestruj strategie produktów dla ConfigurableProduct
   // Domyślnie używamy ikony (dla listingu)
   api.registerProductTypeComponentStrategy?.({
-    slot: 'add-to-cart-button',
+    key: 'add-to-cart-button',
     components: {
       'ConfigurableProduct': ConfigurableAddToCartIcon
     }

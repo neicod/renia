@@ -59,12 +59,11 @@ make docker-shell      # Interactive shell in container
 - `storage/` - Browser storage abstraction (never use `localStorage` directly)
 - `runtime/` - `AppEnvironment` context (runtime mode, storeCode, storeConfig)
 
-### Layout & Slots
-- Layout system: `src/framework/layout/` contains core components (`LayoutShell`, `SlotRenderer`) and templates (`Layout1Column`, `Layout2ColumnsLeft`, `LayoutEmpty`)
-- Slots available: `header`, `control-menu`, `content`, `left`, `footer`, `global-overlay`
-- Modules inject components via interceptors
-- Slot entries sorted by `priority` (higher = rendered first)
-- Product-specific slots: `product-listing-actions`, `product-view-actions`
+### Layout & Regions + Component Extensions
+- Layout system: `src/framework/layout/` contains core components (`LayoutShell`) and templates (`Layout1Column`, `Layout2ColumnsLeft`, `LayoutEmpty`)
+- Regions available: `header`, `control-menu`, `content`, `left`, `footer`, `global-overlay`
+- Modules inject region components via interceptors (`api.layout.get(region).add(...)`)
+- For extending UI inside host components (PDP tile actions, etc.) use component extensions (`api.extend.component(host).outlet(name).add(...)`) and render via `ExtensionsOutlet`
 
 ### Product Strategy Pattern
 Products use strategy pattern for context-aware "Add to Cart" UI:
@@ -76,7 +75,7 @@ Products use strategy pattern for context-aware "Add to Cart" UI:
   - Configurable: Options selector + Icon 🛒 (qty=1)
 
 Flow:
-1. `ProductAddToCartResolver` (in `ProductTile` for listing, or `product-view-actions` slot) receives product
+1. `ProductAddToCartResolver` (in ProductTile actions extension or ProductDetails actions extension) receives product
 2. Resolver queries `productStrategies` registry by `product.__typename` and `slot`
 3. Registry returns component for that type+slot combo
 4. Component renders with full product object
@@ -88,7 +87,8 @@ Adding new product types:
 
 ### Interceptors
 - Files in `interceptors/default.ts` (global) or `interceptors/<context>.ts` (category, search, product, etc.)
-- API: `api.layout.get(slotName).add(componentPath, id, { sortOrder, props, meta })`
+- API regions: `api.layout.get(regionName).add(componentPath, id, { sortOrder, props, meta })`
+- API extensions: `api.extend.component(componentPath).outlet(outletName).add(componentPath, id, { sortOrder, props, meta })`
 - Hierarchical layout tree: `page.header`, `page.content`, `page.footer`, `page.global-overlay`, `page.header.control-menu`
 - For product pages: Use `ProductAddToCartResolver` with `slot: 'add-to-cart-product-page'` to auto-select component by product type
 - Sort order: Use `{ before: '-' }` for first position, or `{ before: 'id' }` / `{ after: 'id' }` for relative positioning
@@ -115,7 +115,7 @@ GRAPHQL_LOG_RESPONSE=0      # Disable response logging
 - Mark files with `// @env: server|browser|mixed` at top
 - JSX files must use `.tsx` extension
 - Use bare specifiers for module imports: `import x from 'renia-magento-cart'`
-- Component registration uses string paths matching `componentPath` in routes/slots
+- Component registration uses string paths matching `componentPath` in routes/regions/extensions
 
 ## Key Modules
 

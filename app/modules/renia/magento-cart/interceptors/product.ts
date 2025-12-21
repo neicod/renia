@@ -4,7 +4,7 @@ import { ProductAddToCartPanel } from '../components/ProductAddToCartPanel';
 export default function productInterceptor(api: any = {}) {
   // 1. Rejestruj strategie produktów dla SimpleProduct na stronie produktu
   api.registerProductTypeComponentStrategy?.({
-    slot: 'add-to-cart-button',
+    key: 'add-to-cart-button',
     components: {
       'SimpleProduct': ProductAddToCartPanel
     }
