@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import type { MenuItem } from 'renia-menu';
 
 type MenuTreeProps = {
@@ -26,9 +26,22 @@ const isInternalPath = (url: string): boolean => {
 export const MenuTree: React.FC<MenuTreeProps> = ({ items, depth = 0 }) => {
   if (!items.length) return null;
 
+  const location = useLocation();
+  const rootMenuRef = React.useRef<HTMLUListElement | null>(null);
+
+  React.useEffect(() => {
+    if (depth !== 0) return;
+    if (typeof document === 'undefined') return;
+    const active = document.activeElement as HTMLElement | null;
+    if (!active) return;
+    if (rootMenuRef.current && rootMenuRef.current.contains(active)) {
+      active.blur?.();
+    }
+  }, [depth, location.pathname]);
+
   const listProps =
     depth === 0
-      ? { className: 'main-menu' }
+      ? { className: 'main-menu', ref: rootMenuRef }
       : { className: 'main-menu__dropdown', role: 'menu' as const, 'aria-hidden': true };
 
   return (
@@ -44,11 +57,23 @@ export const MenuTree: React.FC<MenuTreeProps> = ({ items, depth = 0 }) => {
         return (
           <li key={node.id} className={itemClass}>
             {isInternalPath(node.url) ? (
-              <Link className={linkClass} to={node.url}>
+              <Link
+                className={linkClass}
+                to={node.url}
+                onClick={(e) => {
+                  (e.currentTarget as HTMLElement).blur?.();
+                }}
+              >
                 {node.label}
               </Link>
             ) : (
-              <a className={linkClass} href={node.url}>
+              <a
+                className={linkClass}
+                href={node.url}
+                onClick={(e) => {
+                  (e.currentTarget as HTMLElement).blur?.();
+                }}
+              >
                 {node.label}
               </a>
             )}

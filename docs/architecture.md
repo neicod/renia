@@ -1,40 +1,41 @@
 
 
-# Architecture
+# Architektura
 
-## Goal
-Build a reusable, high-performance Next.js (App Router) frontend base for headless Magento projects (B2C and B2B), adaptable to different pricing, store, and personalization models.
+## Cel
+Zbudowanie wielokrotnego użytku, wysokowydajnej bazy frontendowej w Next.js (App Router) dla projektów headless Magento (B2C i B2B), możliwej do dostosowania do różnych modeli cenowych, store’ów i personalizacji.
 
-Magento is treated as a data provider. All rendering, caching, and personalization strategies are implemented on the frontend.
+Magento jest traktowane wyłącznie jako dostawca danych. Cała logika renderowania, cache i personalizacji znajduje się po stronie frontendu.
 
-## Core Principles
-- Default to static or incremental rendering (ISR)
-- Separate content (base) from personalization (pricing, availability)
-- Cache aggressively where cardinality is low
-- Avoid SSR unless it provides measurable value
-- Never mix authenticated context into public cache
+## Główne zasady
+- Domyślnie używamy renderowania statycznego lub przyrostowego (ISR)
+- Rozdzielamy content (base) od personalizacji (ceny, dostępność)
+- Cache’ujemy agresywnie tam, gdzie kardynalność jest niska
+- Unikamy SSR, jeśli nie daje mierzalnej wartości
+- Pilnujemy poprawności kontekstu requestów (storeCode/currency/locale/groupId), aby backend (Magento + Varnish) zwrócił właściwe dane
+- Kod utrzymujemy zgodny z zasadami SOLID (SRP, DI, małe kontrakty)
 
-## High-Level Model
+## Model wysokopoziomowy
 
 ### Page Shell
-- Rendered using ISR
-- Contains only public, non-personalized data
-- Cacheable at CDN level
+- Renderowany jako ISR
+- Zawiera wyłącznie publiczne, niespersonalizowane dane
+- Może być cache’owany na poziomie CDN
 
-### Private / Segment Islands
-- Price, stock, promotions, permissions
-- Rendered using SSR or server-side fetches
-- Cache scope depends on pricing mode
+### Wyspy segmentowe / prywatne
+- Cena, dostępność, badge’e promocyjne, uprawnienia
+- Renderowane przez SSR lub server-side fetch
+- Zakres cache zależy od trybu cenowego
 
-## Data Scopes
-- PUBLIC: same for all users
-- SEGMENT: varies by store, locale, currency, or customer group
-- PRIVATE: varies per customer or company
+## Zakresy danych
+- PUBLIC: identyczne dla wszystkich użytkowników
+- SEGMENT: zależne od `storeCode`, `currency`, `locale` lub `customer group`
+- PRIVATE: zależne od konkretnego klienta lub firmy
 
-## Non-Goals
-- Full SSR for the entire catalog
-- Frontend business logic duplication of Magento
-- Cache strategies depending on user tokens
+## Poza zakresem
+- Full SSR dla całego katalogu
+- Duplikowanie logiki biznesowej Magento na froncie
+- Strategie cache zależne od tokenów użytkownika
 # Architektura
 
 ## Cel
@@ -64,6 +65,42 @@ Magento jest traktowane wyłącznie jako dostawca danych. Cała logika renderowa
 ## Zakresy danych
 - PUBLIC: identyczne dla wszystkich użytkowników
 - SEGMENT: zależne od store, locale, waluty lub customer group
+- PRIVATE: zależne od konkretnego klienta lub firmy
+
+## Poza zakresem
+- Full SSR dla całego katalogu
+- Duplikowanie logiki biznesowej Magento na froncie
+- Strategie cache zależne od tokenów użytkownika
+# Architektura
+
+## Cel
+Zbudowanie wielokrotnego użytku, wysokowydajnej bazy frontendowej w Next.js (App Router) dla projektów headless Magento (B2C i B2B), możliwej do dostosowania do różnych modeli cenowych, store’ów i personalizacji.
+
+Magento jest traktowane wyłącznie jako dostawca danych. Cała logika renderowania, cache i personalizacji znajduje się po stronie frontendu.
+
+## Główne zasady
+- Domyślnie używamy renderowania statycznego lub przyrostowego (ISR)
+- Rozdzielamy content (base) od personalizacji (ceny, dostępność)
+- Cache’ujemy agresywnie tam, gdzie kardynalność jest niska
+- Unikamy SSR, jeśli nie daje mierzalnej wartości
+- Pilnujemy poprawności kontekstu requestów (storeCode/currency/locale/groupId), aby backend (Magento + Varnish) zwrócił właściwe dane
+- Kod utrzymujemy zgodny z zasadami SOLID (SRP, DI, małe kontrakty)
+
+## Model wysokopoziomowy
+
+### Page Shell
+- Renderowany jako ISR
+- Zawiera wyłącznie publiczne, niespersonalizowane dane
+- Może być cache’owany na poziomie CDN
+
+### Wyspy segmentowe / prywatne
+- Cena, dostępność, badge’e promocyjne, uprawnienia
+- Renderowane przez SSR lub server-side fetch
+- Zakres cache zależy od trybu cenowego
+
+## Zakresy danych
+- PUBLIC: identyczne dla wszystkich użytkowników
+- SEGMENT: zależne od `storeCode`, `currency`, `locale` lub `customer group`
 - PRIVATE: zależne od konkretnego klienta lub firmy
 
 ## Poza zakresem

@@ -13,14 +13,6 @@ export const useCategoryProductList = ({
   categoryUid,
   initialListing
 }: UseCategoryProductListArgs) => {
-  React.useEffect(() => {
-    console.log('[useCategoryProductList] Params:', {
-      categoryUid,
-      hasInitialListing: !!initialListing,
-      initialListingItems: (initialListing as any)?.items?.length ?? 0
-    });
-  }, [categoryUid, initialListing]);
-
   const buildCriteria = React.useCallback(
     ({
       page,

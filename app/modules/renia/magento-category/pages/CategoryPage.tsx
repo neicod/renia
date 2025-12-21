@@ -20,11 +20,6 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ meta }) => {
     [contextCategory, meta]
   );
 
-  if (typeof window !== 'undefined') {
-    console.log('[CategoryPage] Received meta:', meta ? Object.keys(meta) : null);
-    console.log('[CategoryPage] Has category:', (meta as any)?.category ? 'yes' : 'NO');
-  }
-
   return (
     <div>
       <CategoryHero meta={resolvedMeta} />

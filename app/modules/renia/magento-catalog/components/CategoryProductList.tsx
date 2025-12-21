@@ -5,6 +5,7 @@ import { useCategoryProductList } from '../hooks/useCategoryProductList';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
 import { ListingPageContent } from 'renia-magento-product-listing/components/ListingPageContent';
 import { useCategoryContext } from '../hooks/useCategoryContext';
+import { useLocation } from 'react-router-dom';
 
 type Props = {
   meta?: Record<string, unknown>;
@@ -21,13 +22,22 @@ type Props = {
  * - Delegate listing UI to ListingPageContent
  */
 export const CategoryProductList: React.FC<Props> = ({ meta, initialListing: initialListingProp }) => {
+  const location = useLocation();
   const { category, uid: categoryUid, uidStatus } = useCategoryContext({ meta });
   const categoryLabel = typeof (category as any)?.label === 'string' ? (category as any).label : undefined;
 
   // Merge initialListing from props (SSR injection) or meta (fallback)
+  const isSameSsrPath = React.useMemo(() => {
+    const ssrPath = typeof (meta as any)?.__ssrPath === 'string' ? String((meta as any).__ssrPath) : undefined;
+    if (!ssrPath) return false;
+    return ssrPath === location.pathname;
+  }, [location.pathname, meta]);
+
   const initialListing = React.useMemo(
-    () => initialListingProp ?? (meta as any)?.categoryProductListing ?? null,
-    [initialListingProp, meta]
+    () =>
+      initialListingProp ??
+      (isSameSsrPath ? (meta as any)?.categoryProductListing ?? null : null),
+    [initialListingProp, isSameSsrPath, meta]
   );
 
   const { t } = useI18n();

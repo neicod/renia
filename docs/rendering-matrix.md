@@ -1,18 +1,40 @@
 
 
-# Rendering Matrix
+# Matryca renderowania
 
-| Pricing Mode | Page Shell | Pricing Block | Cache Scope |
-|-------------|-----------|---------------|-------------|
-| PUBLIC | ISR | Included in shell | CDN / ISR |
-| GROUP_FEW | ISR | SSR (cached per group) | Redis / Next cache |
-| GROUP_MANY | ISR | SSR private | None / session |
-| ACCOUNT | ISR | SSR private | None |
+## Słowniczek
+- **PDP** (Product Detail Page) – karta produktu (strona szczegółów produktu)
+- **PLP** (Product Listing Page) – lista produktów (kategoria/wyszukiwarka)
+- **CMS** – strony treściowe (np. „O nas”, landing)
 
-## Notes
-- Page shell is always ISR by default
-- Only pricing-related fragments change behavior
-- SEO-critical pages may opt-in to server-rendered pricing selectively
+## Domyślna zasada
+- **Shell strony (content/base) renderujemy jako ISR**.
+- Zmienny jest głównie sposób renderowania **ceny / dostępności / badge’y promocyjne**.
+
+## Matryca (wysokopoziomowa)
+
+| Tryb cenowy | Shell (PDP/PLP) | Cena / dostępność | Zakres cache |
+|------------|------------------|-------------------|--------------|
+| PUBLIC | ISR | w shellu | PUBLIC (CDN/ISR) |
+| GROUP_FEW | ISR | SSR + cache per `groupId` | SEGMENT |
+| GROUP_MANY | ISR | SSR prywatny | PRIVATE |
+| ACCOUNT | ISR | SSR prywatny | PRIVATE |
+
+## Ważne różnice PDP vs PLP
+
+### PDP (karta produktu)
+- Ma mało danych dynamicznych na raz → łatwo zrobić „wyspę ceny”.
+- W `GROUP_FEW` cena/dostępność mogą być SSR + cache per grupa.
+
+### PLP (lista produktów)
+- Ma dużo pozycji → najłatwiej zabić wydajność, jeśli pobierasz cenę „per produkt”.
+
+Zasady:
+- `GROUP_FEW`: preferuj **batch pricing** (jeden request po ceny dla listy) + cache per grupa.
+- `GROUP_MANY/ACCOUNT`: preferuj prywatny fragment dla całej listy (jeden request), albo placeholdery bez mnożenia requestów.
+
+## CMS
+CMS prawie zawsze: **PUBLIC + ISR**.
 # Matryca renderowania
 
 | Tryb cenowy | Page Shell | Blok ceny | Zakres cache |
@@ -52,6 +74,41 @@ PLP ma dużo pozycji, więc cena jest kosztowna.
 - W `GROUP_MANY` / `ACCOUNT` preferujemy:
   - ceny jako prywatny fragment (SSR) albo
   - „placeholder” w liście i doładowanie po stronie serwera (bez mnożenia requestów per produkt).
+
+## CMS
+CMS prawie zawsze: **PUBLIC + ISR**.
+# Matryca renderowania
+
+## Słowniczek
+- **PDP** (Product Detail Page) – karta produktu (strona szczegółów produktu)
+- **PLP** (Product Listing Page) – lista produktów (kategoria/wyszukiwarka)
+- **CMS** – strony treściowe (np. „O nas”, landing)
+
+## Domyślna zasada
+- **Shell strony (content/base) renderujemy jako ISR**.
+- Zmienny jest głównie sposób renderowania **ceny / dostępności / badge’y promocyjne**.
+
+## Matryca (wysokopoziomowa)
+
+| Tryb cenowy | Shell (PDP/PLP) | Cena / dostępność | Zakres cache |
+|------------|------------------|-------------------|--------------|
+| PUBLIC | ISR | w shellu | PUBLIC (CDN/ISR) |
+| GROUP_FEW | ISR | SSR + cache per `groupId` | SEGMENT |
+| GROUP_MANY | ISR | SSR prywatny | PRIVATE |
+| ACCOUNT | ISR | SSR prywatny | PRIVATE |
+
+## Ważne różnice PDP vs PLP
+
+### PDP (karta produktu)
+- Ma mało danych dynamicznych na raz → łatwo zrobić „wyspę ceny”.
+- W `GROUP_FEW` cena/dostępność mogą być SSR + cache per grupa.
+
+### PLP (lista produktów)
+- Ma dużo pozycji → najłatwiej zabić wydajność, jeśli pobierasz cenę „per produkt”.
+
+Zasady:
+- `GROUP_FEW`: preferuj **batch pricing** (jeden request po ceny dla listy) + cache per grupa.
+- `GROUP_MANY/ACCOUNT`: preferuj prywatny fragment dla całej listy (jeden request), albo placeholdery bez mnożenia requestów.
 
 ## CMS
 CMS prawie zawsze: **PUBLIC + ISR**.

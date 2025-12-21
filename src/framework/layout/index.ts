@@ -3,9 +3,9 @@
 // Core layout system
 export { LayoutTreeBuilder, LayoutNodeAPI, type LayoutNode, type SortOrder } from './LayoutTree';
 export { default as LayoutShell } from './LayoutShell';
-export { SlotRenderer, SlotProvider, SlotContext } from './SlotRenderer';
-export { type SlotEntry, type SlotDefinition } from './types';
-export { flattenLayoutTree } from './flattenLayoutTree';
+export { ExtensionsOutlet, ExtensionsProvider, ExtensionsContext } from './ExtensionsOutlet';
+export { ExtensionsRegistry, type ExtensionEntry, type ExtensionsSnapshot } from './ExtensionsRegistry';
+export { buildRegions, type RegionEntry, type RegionsSnapshot } from './buildRegions';
 
 // Layout templates
 export { default as Layout1Column } from './layouts/Layout1Column';

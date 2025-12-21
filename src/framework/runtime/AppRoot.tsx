@@ -5,7 +5,14 @@ import { registerComponents, resolveComponentEntry } from '../registry/component
 import { AppEnvironmentProvider, type AppRuntime } from './AppEnvContext';
 import { PageContextProvider, type PageContext } from './PageContext';
 import type { StoreConfig } from 'renia-magento-store';
-import { LayoutShell, LayoutTreeBuilder, flattenLayoutTree, type SlotEntry as LayoutSlotEntry } from '@framework/layout';
+import {
+  LayoutShell,
+  LayoutTreeBuilder,
+  buildRegions,
+  ExtensionsRegistry,
+  type RegionsSnapshot,
+  type ExtensionsSnapshot
+} from '@framework/layout';
 import { I18nProvider } from 'renia-i18n/context/I18nProvider';
 import { loadInterceptorsClient } from '@framework/interceptors/loadInterceptorsClient';
 import { registerProductTypeComponentStrategy } from 'renia-magento-product/services/productStrategies';
@@ -26,15 +33,10 @@ type RouteEntry = {
   meta?: Record<string, any>;
 };
 
-type SlotEntry = LayoutSlotEntry & {
-  id?: string;
-  enabled?: boolean;
-};
-
 type BootstrapData = {
   routes: RouteEntry[];
-  slots: Record<string, SlotEntry[]>;
-  subslots?: Record<string, any>;
+  regions: RegionsSnapshot;
+  extensions?: ExtensionsSnapshot;
   pageContext?: PageContext;
   enabledModules?: string[];
   config?: {
@@ -76,17 +78,17 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
 
   const location = useLocation();
   const [pageContext, setPageContext] = React.useState<PageContext | undefined>(bootstrap.pageContext);
-  const [slots, setSlots] = React.useState<Record<string, SlotEntry[]>>(bootstrap.slots ?? {});
-  const [subslots, setSubslots] = React.useState<Record<string, SlotEntry[]>>(bootstrap.subslots ?? {});
+  const [regions, setRegions] = React.useState<RegionsSnapshot>(bootstrap.regions ?? {});
+  const [extensions, setExtensions] = React.useState<ExtensionsSnapshot>(bootstrap.extensions ?? {});
   const lastLayoutKeyRef = React.useRef<string>('');
   const didMountRef = React.useRef(false);
   const inflightRef = React.useRef<Map<string, Promise<void>>>(new Map());
 
   React.useEffect(() => {
     setPageContext(bootstrap.pageContext);
-    setSlots((bootstrap.slots ?? {}) as any);
-    setSubslots((bootstrap.subslots ?? {}) as any);
-  }, [bootstrap.pageContext, bootstrap.slots, bootstrap.subslots]);
+    setRegions((bootstrap.regions ?? {}) as any);
+    setExtensions((bootstrap.extensions ?? {}) as any);
+  }, [bootstrap.pageContext, bootstrap.regions, bootstrap.extensions]);
 
   React.useEffect(() => {
     if (runtime !== 'client') return;
@@ -111,10 +113,12 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
     lastLayoutKeyRef.current = layoutKey;
 
     const layoutTree = new LayoutTreeBuilder();
+    const extensionsRegistry = new ExtensionsRegistry();
     const api = {
       registerComponents,
       registerProductTypeComponentStrategy,
-      layout: layoutTree.get('page')
+      layout: layoutTree.get('page'),
+      extend: extensionsRegistry
     };
 
     let cancelled = false;
@@ -128,9 +132,8 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
 
       if (cancelled) return;
       const built = layoutTree.build();
-      const flat = flattenLayoutTree(built);
-      setSlots(flat.slots as any);
-      setSubslots(flat.subslots as any);
+      setRegions(buildRegions(built) as any);
+      setExtensions(extensionsRegistry.snapshotSorted() as any);
     };
 
     run().catch((error) => console.error('[ClientLayout] Failed to rebuild layout', error));
@@ -253,8 +256,8 @@ export const AppRoot: React.FC<AppRootProps> = ({ bootstrap, runtime = 'client' 
                         layout={layout}
                         main={<Comp meta={route.meta} />}
                         resolveComponent={resolveComponent}
-                        slots={slots}
-                        subslots={subslots}
+                        regions={regions}
+                        extensions={extensions}
                         routeMeta={route.meta}
                       />
                     }

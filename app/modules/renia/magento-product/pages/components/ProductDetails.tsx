@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import { SlotRenderer } from '@framework/layout';
+import { ExtensionsOutlet } from '@framework/layout';
 import type { ProductInterface } from '../../types';
 import { useI18n } from 'renia-i18n/hooks/useI18n';
 
@@ -13,8 +13,7 @@ export const ProductDetails: React.FC<Props> = ({ product }) => {
   const price = product.price
     ? `${product.price.value.toFixed(2)} ${product.price.currency}`
     : t('product.price.inCart');
-
-
+  const host = 'renia-magento-product/pages/components/ProductDetails';
 
   const originalDiffers =
     product.priceOriginal && product.price && product.priceOriginal.value !== product.price.value;
@@ -50,7 +49,7 @@ export const ProductDetails: React.FC<Props> = ({ product }) => {
       <div style={{ color: '#64748b' }}>
         <p>{t('product.description.placeholder')}</p>
       </div>
-      <SlotRenderer name="product-view-actions" props={{ product }} />
+      <ExtensionsOutlet host={host} outlet="actions" props={{ product }} />
     </section>
   );
 };

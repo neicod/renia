@@ -1,44 +1,19 @@
 
 
-# Implementation Guidelines
 
-## Data Access Layer
-- All GraphQL calls go through a single fetch abstraction
-- Fetch functions declare scope: public | segment | private
-
-## Components
-- Page components load base data only
-- Pricing components are isolated (PriceBlock, StockBlock)
-
-## Next.js Rules
-- Use ISR for catalog pages
-- Use server components for private fragments
-- Avoid client-side pricing logic
-
-## Anti-Patterns
-- One large GraphQL query for everything
-- Conditional rendering based on pricing mode inside UI
-- Passing auth context into static functions
 # Wytyczne implementacyjne
 
-## Warstwa dostępu do danych
-- Wszystkie zapytania GraphQL przechodzą przez jedną abstrakcję fetch
-- Każdy fetch deklaruje zakres: public | segment | private
+## Standardy jakości (SOLID)
+Pisząc kod w tym repozytorium stosujemy zasady **SOLID**.
 
-## Komponenty
-- Komponenty stron ładują wyłącznie dane base
-- Komponenty cenowe są izolowane (PriceBlock, StockBlock)
+W praktyce oznacza to m.in.:
+- **S** (Single Responsibility): jedna odpowiedzialność na moduł/serwis/komponent (bez „kombajnów”).
+- **O** (Open/Closed): rozszerzamy przez moduły/sloty/strategie, nie przez edycję core.
+- **L** (Liskov): strategie/implementacje muszą być podstawialne bez efektów ubocznych.
+- **I** (Interface Segregation): małe, celowane kontrakty (np. osobno base vs pricing).
+- **D** (Dependency Inversion): UI/domena zależą od abstrakcji (DAL/kontrakty), nie od klienta backendu.
 
-## Zasady Next.js
-- ISR dla stron katalogowych
-- Server Components dla fragmentów prywatnych
-- Brak logiki cenowej po stronie klienta
-
-## Antywzorce
-- Jedno wielkie zapytanie GraphQL
-- Warunki pricing mode w UI
-- Przekazywanie kontekstu auth do funkcji statycznych
-# Wytyczne implementacyjne
+> Jeśli jakaś zmiana łamie SOLID, należy ją przeprojektować (albo uzasadnić wyjątek w PR).
 
 ## Słowniczek
 - **PDP**: karta produktu (Product Detail Page)
@@ -50,7 +25,8 @@
 ## Warstwa dostępu do danych (DAL)
 - Wszystkie zapytania GraphQL przechodzą przez jedną abstrakcję fetch
 - Każdy fetch deklaruje zakres: `public | segment | private`
-- Cache key jest budowany wyłącznie z jawnych parametrów (store/locale/currency/groupId), nigdy z tokenów
+- Cache key budujemy standardowo (patrz: `cache-policy.md`) i zaczynamy od `storeCode:currency:...`
+- Cache key jest budowany wyłącznie z jawnych parametrów (storeCode/currency/locale/groupId), nigdy z tokenów
 
 ## Komponenty
 - Komponenty stron (PDP/PLP) ładują wyłącznie dane base (PUBLIC)

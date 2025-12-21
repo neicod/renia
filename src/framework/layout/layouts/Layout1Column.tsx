@@ -3,12 +3,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 type LayoutProps = {
-  slots: Record<string, React.ReactNode>;
+  regions: Record<string, React.ReactNode>;
   main: React.ReactNode;
   routeMeta?: Record<string, unknown>;
 };
 
-export default function Layout1Column({ slots, main }: LayoutProps) {
+export default function Layout1Column({ regions, main }: LayoutProps) {
   return (
     <div className="app-shell">
       <header className="header">
@@ -18,19 +18,19 @@ export default function Layout1Column({ slots, main }: LayoutProps) {
               Renia Store
             </Link>
           </div>
-          <div className="slot-stack">{slots['control-menu']}</div>
+          <div className="slot-stack">{regions['control-menu']}</div>
         </div>
-        <div className="header__menu">{slots['header']}</div>
+        <div className="header__menu">{regions['header']}</div>
       </header>
 
       <main className="main">
-        {slots['content']}
+        {regions['content']}
         {main}
       </main>
 
-      <footer className="footer">{slots['footer']}</footer>
+      <footer className="footer">{regions['footer']}</footer>
 
-      {slots['global-overlay']}
+      {regions['global-overlay']}
     </div>
   );
 }

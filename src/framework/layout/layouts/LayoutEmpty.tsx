@@ -2,17 +2,17 @@
 import React from 'react';
 
 type LayoutProps = {
-  slots: Record<string, React.ReactNode>;
+  regions: Record<string, React.ReactNode>;
   main: React.ReactNode;
   routeMeta?: Record<string, unknown>;
 };
 
-export default function LayoutEmpty({ slots, main }: LayoutProps) {
+export default function LayoutEmpty({ regions, main }: LayoutProps) {
   return (
     <>
-      {slots.content}
+      {regions.content}
       {main}
-      {slots['global-overlay']}
+      {regions['global-overlay']}
     </>
   );
 }

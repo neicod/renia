@@ -14,7 +14,7 @@ import { matchPath } from 'react-router-dom';
 import { loadInterceptors } from 'renia-interceptors';
 import AppRoot from '@framework/runtime/AppRoot';
 import { htmlTemplate } from './template';
-import { LayoutTreeBuilder, type LayoutNode, Layout1Column, Layout2ColumnsLeft, LayoutEmpty } from '@framework/layout';
+import { LayoutTreeBuilder, buildRegions, ExtensionsRegistry, Layout1Column, Layout2ColumnsLeft, LayoutEmpty } from '@framework/layout';
 import type { MenuItem } from 'renia-menu';
 import { loadComponentRegistrations } from '@framework/registry/loadModuleComponents';
 import { registerComponents } from '@framework/registry/componentRegistry';
@@ -180,51 +180,9 @@ let cachedComponentRegistrationsMtimeMs: number | null = null;
 // Removed: contextFromPath - now using route.contexts from routes.ts
 // Each route explicitly defines its contexts instead of inferring from path
 
-type SlotEntry = {
-  slot: string;
-  id?: string;
-  component?: string;
-  componentPath?: string;
-  priority?: number;
-  enabled?: boolean;
-  props?: Record<string, unknown>;
-  meta?: Record<string, unknown>;
-};
-
-type SubslotEntry = {
-  slot: string;
-  id?: string;
-  component?: string;
-  componentPath?: string;
-  priority?: number;
-  enabled?: boolean;
-  props?: Record<string, unknown>;
-  meta?: Record<string, unknown>;
-};
-
-const mergeSlots = (entries: SlotEntry[]): SlotEntry[] => {
-  const map = new Map<string, SlotEntry>();
-
-  for (const entry of entries) {
-    if (!entry.slot || (!entry.component && !entry.componentPath)) continue;
-    const key =
-      entry.id ??
-      `${entry.componentPath ?? entry.component ?? 'component'}::${entry.slot}`;
-
-    const current: SlotEntry = map.get(key) ?? { slot: entry.slot };
-    const merged: SlotEntry = {
-      ...current,
-      ...entry,
-      enabled: entry.enabled ?? entry.enabled === false ? entry.enabled : current.enabled ?? true
-    };
-
-    map.set(key, merged);
-  }
-
-  return sortByPriority(
-    Array.from(map.values()).filter((e) => e.enabled !== false)
-  );
-};
+// NOTE:
+// - Layout regions are derived from LayoutTreeBuilder via buildRegions().
+// - Component-level extensions are collected via ExtensionsRegistry.
 
 app.post('/api/magento/graphql', async (req, res) => {
   const upstream = process.env.MAGENTO_GRAPHQL_ENDPOINT;
@@ -335,11 +293,13 @@ app.get('/api/page-context', async (req, res) => {
       get: () => layoutNoop,
       add: () => layoutNoop
     };
+    const extensionsNoop = new ExtensionsRegistry();
 
     const api = {
       registerComponents,
       registerProductTypeComponentStrategy,
-      layout: layoutNoop
+      layout: layoutNoop,
+      extend: extensionsNoop
     };
 
     await loadInterceptors('default', { configPath, statusMap, includeDefault: true }, api);
@@ -532,11 +492,13 @@ app.get('*', async (req, res) => {
 
     // Build hierarchical layout tree using new API
     const layoutTree = new LayoutTreeBuilder();
+    const extensions = new ExtensionsRegistry();
 
     const api = {
       registerComponents,
       registerProductTypeComponentStrategy,
-      layout: layoutTree.get('page') // Root API - start from page
+      layout: layoutTree.get('page'), // Root API - start from page
+      extend: extensions
     };
 
     // Build statusMap to filter interceptors by enabled modules
@@ -558,75 +520,15 @@ app.get('*', async (req, res) => {
       }
     }
 
-    // Build the final layout tree and convert to flat slots/subslots for rendering
+    // Build the final layout tree and derive regions/extensions snapshot for rendering
     const builtTree = layoutTree.build();
 
-    // Convert hierarchical tree to flat slot/subslot structure for backward compatibility
-    const slots: Record<string, SlotEntry[]> = {};
-    const subslots: Record<string, SubslotEntry[]> = {};
+    const regions = buildRegions(builtTree);
+    const extensionsSnapshot = extensions.snapshotSorted();
 
-    const flattenTree = (node: LayoutNode, isRootLevel: boolean = false) => {
-      for (const [nodeId, child] of node.children.entries()) {
-        if (isRootLevel) {
-          // Root level children (direct children of 'page') are always slots, even if they have children
-          const slotName = child.id;
-          if (!slots[slotName]) slots[slotName] = [];
-
-          // Add the node itself if it has a component
-          if (child.component || child.componentPath) {
-            slots[slotName].push({
-              slot: slotName,
-              component: child.component as any,
-              componentPath: child.componentPath,
-              priority: 0,
-              props: child.props,
-              meta: child.meta
-            });
-          }
-
-          // If it has children, add them to the same slot
-          if (child.children.size > 0) {
-            for (const [childId, grandchild] of child.children.entries()) {
-              if (grandchild.component || grandchild.componentPath) {
-                slots[slotName].push({
-                  slot: slotName,
-                  component: grandchild.component as any,
-                  componentPath: grandchild.componentPath,
-                  priority: 0,
-                  id: grandchild.id,
-                  props: grandchild.props,
-                  meta: grandchild.meta
-                });
-              }
-            }
-          }
-        } else {
-          // Non-root node - treat as subslot
-          const slotName = child.path;
-          if (child.component || child.componentPath) {
-            if (!subslots[slotName]) subslots[slotName] = [];
-            subslots[slotName].push({
-              slot: slotName,
-              component: child.component as any,
-              componentPath: child.componentPath,
-              priority: 0,
-              id: child.id,
-              enabled: true,
-              props: child.props,
-              meta: child.meta
-            });
-          }
-          // Recurse into children
-          if (child.children.size > 0) {
-            flattenTree(child, false);
-          }
-        }
-      }
-    };
-
-    flattenTree(builtTree, true);
-
-    const routeMeta = { ...(match?.meta ?? {}) };
+    const routeMeta = { ...(match?.meta ?? {}) } as Record<string, unknown>;
+    // Used by client to avoid reusing SSR-only meta (like initial listings) for a different URL.
+    (routeMeta as any).__ssrPath = prefix.routingPath;
 
     if (match?.handler) {
       try {
@@ -666,7 +568,7 @@ app.get('*', async (req, res) => {
     );
 
     if (routeMeta?.searchProductListing) {
-      Object.values(slots).forEach((entries) => {
+      Object.values(regions).forEach((entries) => {
         entries.forEach((entry) => {
           if (
             entry.componentPath === 'renia-magento-catalog-search/components/SearchProductList' ||
@@ -719,7 +621,7 @@ app.get('*', async (req, res) => {
 
         // Inject initialListing to CategoryProductList component props
         let injectionCount = 0;
-        Object.values(slots).forEach((entries) => {
+        Object.values(regions).forEach((entries) => {
           entries.forEach((entry) => {
             const isMatch =
               entry.componentPath === 'renia-magento-catalog/components/CategoryProductList' ||
@@ -767,25 +669,25 @@ app.get('*', async (req, res) => {
         component: r.component,
         componentPath: r.componentPath,
         contexts: (r as any).contexts ?? [],
-	        layout: (r.meta as any)?.layout ?? '@framework/layout/layouts/Layout1Column',
-	        meta: r.path === match?.path ? routeMeta : r.meta ?? {}
-	      })),
-	      slots,
-	      subslots,
-	      contexts: routeContexts,  // ← Route-specific contexts for client
-	      enabledModules,  // ← Pass enabled modules so CSR can filter interceptors
-	      pageContext,
-	      config: {
-	        ...appConfig,
-	        i18n: {
-	          lang,
+        layout: (r.meta as any)?.layout ?? '@framework/layout/layouts/Layout1Column',
+        meta: r.path === match?.path ? routeMeta : r.meta ?? {}
+      })),
+      regions,
+      extensions: extensionsSnapshot,
+      contexts: routeContexts, // ← Route-specific contexts for client
+      enabledModules, // ← Pass enabled modules so CSR can filter interceptors
+      pageContext,
+      config: {
+        ...appConfig,
+        i18n: {
+          lang,
           messages: i18nMessages
         }
       }
     };
 
     // Podaj initial translations do I18nBootstrap jeśli slot istnieje
-    const overlay = bootstrap.slots?.['global-overlay'];
+    const overlay = bootstrap.regions?.['global-overlay'];
     if (overlay) {
       overlay.forEach((entry: any) => {
         if (

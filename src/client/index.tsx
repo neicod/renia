@@ -18,7 +18,7 @@ declare global {
 }
 
 const rootElement = document.getElementById('root');
-const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], slots: {}, contexts: [], enabledModules: [] };
+const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], regions: {}, contexts: [], enabledModules: [] };
 const basePath = typeof bootstrap.basePath === 'string' ? bootstrap.basePath : '';
 
 // Register framework layout components
@@ -40,6 +40,17 @@ const interceptorApi = {
       add: () => {
         // No-op on client: layout tree is already provided by SSR bootstrap
       }
+    })
+  },
+  extend: {
+    component: () => ({
+      outlet: () => ({
+        add: () => {},
+        remove: () => {},
+        enable: () => {},
+        disable: () => {},
+        clear: () => {}
+      })
     })
   }
 };

@@ -10,8 +10,11 @@ export default function productInterceptor(api: any = {}) {
     }
   });
 
-  // 2. Rejestruj resolver w slocie
-  api.layout.get('product-view-actions').add('renia-magento-cart/components/ProductAddToCartResolver', 'product-add-to-cart-resolver', {
-    sortOrder: { before: '-' }
-  });
+  // 2. Rejestruj resolver jako extension dla host komponentu (PDP)
+  api.extend
+    ?.component('renia-magento-product/pages/components/ProductDetails')
+    .outlet('actions')
+    .add('renia-magento-cart/components/ProductAddToCartResolver', 'product-add-to-cart-resolver', {
+      sortOrder: { before: '-' }
+    });
 }

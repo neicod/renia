@@ -9,9 +9,4 @@ export default function productInterceptor(api: any = {}) {
       'ConfigurableProduct': ConfigurableAddToCartPanel
     }
   });
-
-  // Rejestruj resolver w slocie
-  api.layout.get('product-view-actions').add('renia-magento-cart/components/ProductAddToCartResolver', 'configurable-product-add-to-cart-resolver', {
-    sortOrder: { before: '-' }
-  });
 }

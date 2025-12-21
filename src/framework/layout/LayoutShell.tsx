@@ -1,28 +1,23 @@
 // @env: mixed
 import React from 'react';
-import type { SlotEntry as BaseSlotEntry } from './types';
-import { SlotProvider } from './SlotRenderer';
-
-type SlotEntry = BaseSlotEntry & {
-  enabled?: boolean;
-  id?: string;
-};
+import type { RegionEntry, RegionsSnapshot } from './buildRegions';
+import { ExtensionsProvider } from './ExtensionsOutlet';
 
 type Props = {
   layout: string;
   main: React.ReactNode;
   resolveComponent: (entry: { component?: string; componentPath?: string }) => React.ComponentType<any>;
-  slots: Record<string, SlotEntry[]>;
+  regions: RegionsSnapshot;
+  extensions?: any;
   routeMeta?: any;
-  subslots?: Record<string, SlotEntry[]>;
 };
 
-const sortSlotEntries = (entries: SlotEntry[] = []) =>
+const sortRegionEntries = (entries: RegionEntry[] = []) =>
   entries
     .filter((entry) => entry.enabled !== false)
     .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
 
-const shouldRenderEntry = (entry: SlotEntry, routeMeta?: Record<string, unknown>) => {
+const shouldRenderEntry = (entry: RegionEntry, routeMeta?: Record<string, unknown>) => {
   const meta = (entry.meta ?? {}) as Record<string, unknown> & {
     onlyForRouteTypes?: string | string[];
   };
@@ -43,16 +38,16 @@ const shouldRenderEntry = (entry: SlotEntry, routeMeta?: Record<string, unknown>
   return true;
 };
 
-const renderSlotEntries = (
-  entries: SlotEntry[] = [],
+const renderRegionEntries = (
+  entries: RegionEntry[] = [],
   resolveComponent: (entry: { component?: string; componentPath?: string }) => React.ComponentType<any>,
   routeMeta?: Record<string, unknown>
 ) => {
   const filtered = entries.filter((entry) => shouldRenderEntry(entry, routeMeta));
 
-  return sortSlotEntries(filtered).map((entry, idx) => {
+  return sortRegionEntries(filtered).map((entry, idx) => {
     const Comp = resolveComponent(entry);
-    const key = `${entry.componentPath || entry.component || 'slot'}-${idx}`;
+    const key = `${entry.componentPath || entry.component || 'region'}-${idx}`;
     const mergedMeta = {
       ...(routeMeta ?? {}),
       ...(entry.meta ?? {})
@@ -66,16 +61,16 @@ export const LayoutShell: React.FC<Props> = ({
   layout,
   main,
   resolveComponent,
-  slots,
-  routeMeta,
-  subslots
+  regions,
+  extensions,
+  routeMeta
 }) => {
   // 1. Render all slots to React.ReactNode
-  const renderedSlots: Record<string, React.ReactNode> = {};
+  const renderedRegions: Record<string, React.ReactNode> = {};
 
-  for (const slotName of Object.keys(slots)) {
-    renderedSlots[slotName] = renderSlotEntries(
-      slots[slotName] ?? [],
+  for (const regionName of Object.keys(regions)) {
+    renderedRegions[regionName] = renderRegionEntries(
+      regions[regionName] ?? [],
       resolveComponent,
       routeMeta
     );
@@ -87,9 +82,9 @@ export const LayoutShell: React.FC<Props> = ({
 
   // 3. Pass slots and main to layout component
   return (
-    <SlotProvider subslots={subslots} resolveComponent={resolveComponent} routeMeta={routeMeta}>
-      <LayoutComponent slots={renderedSlots} main={main} routeMeta={routeMeta} />
-    </SlotProvider>
+    <ExtensionsProvider extensions={extensions} resolveComponent={resolveComponent} routeMeta={routeMeta}>
+      <LayoutComponent regions={renderedRegions} main={main} routeMeta={routeMeta} />
+    </ExtensionsProvider>
   );
 };
 

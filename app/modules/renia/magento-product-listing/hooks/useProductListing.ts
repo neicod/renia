@@ -28,7 +28,7 @@ export const useProductListing = ({
   initialListing
 }: UseProductListingArgs) => {
   const { pageSize, pageSizeOptions, setUserPageSize } = useStorefrontPageSize({ resetKey });
-  const repository = useProductRepository(initialListing);
+  const repository = useProductRepository(initialListing, resetKey);
   const sortOptions = useSortOptions(DEFAULT_SORT_VALUE);
   const pagination = usePagination(pageSize, repository.total, 1);
   const derived = useDerivedListingState(

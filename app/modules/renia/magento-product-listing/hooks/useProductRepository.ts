@@ -18,7 +18,13 @@ export type ProductSearchState = {
   hasLoadedOnce: boolean;
 };
 
-export const useProductRepository = (initialListing?: ProductSearchResults | null) => {
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
+
+export const useProductRepository = (
+  initialListing?: ProductSearchResults | null,
+  resetKey?: string
+) => {
   const { runtime } = useAppEnvironment();
   const repo = React.useMemo<ProductRepositoryService>(() => productRepository, []);
 
@@ -34,6 +40,29 @@ export const useProductRepository = (initialListing?: ProductSearchResults | nul
   };
 
   const lastCriteriaRef = React.useRef<SearchCriteria | null>(null);
+  const seededFromInitialListingRef = React.useRef<boolean>(false);
+
+  useIsomorphicLayoutEffect(() => {
+    seededFromInitialListingRef.current = false;
+    lastCriteriaRef.current = null;
+
+    const items = initialListing?.items ?? [];
+    setProducts(items);
+    setTotal(initialListing?.totalCount ?? 0);
+    setHasLoadedOnce(!!initialListing);
+
+    if (initialListing) {
+      setStatus(items.length ? 'ready' : 'empty');
+      return;
+    }
+
+    if (resetKey) {
+      setStatus('loading');
+      return;
+    }
+
+    setStatus('idle');
+  }, [resetKey, initialListing]);
 
   const fetchProducts = React.useCallback(
     (criteria: SearchCriteria | null) => {
@@ -48,6 +77,13 @@ export const useProductRepository = (initialListing?: ProductSearchResults | nul
 
       const lastCriteria = lastCriteriaRef.current;
       if (lastCriteria && JSON.stringify(lastCriteria) === JSON.stringify(criteria)) {
+        return () => {};
+      }
+
+      // SSR already delivered initial listing for the current criteria; avoid immediate refetch on hydration.
+      if (initialListing && !seededFromInitialListingRef.current) {
+        seededFromInitialListingRef.current = true;
+        lastCriteriaRef.current = criteria;
         return () => {};
       }
 
@@ -78,7 +114,7 @@ export const useProductRepository = (initialListing?: ProductSearchResults | nul
         cancelled = true;
       };
     },
-    [repo, runtime]
+    [repo, runtime, initialListing]
   );
 
   return React.useMemo(
