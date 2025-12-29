@@ -1,0 +1,1 @@
+{"version":3,"file":"HttpClientFactory.d.ts","sourceRoot":"","sources":["../../transport/HttpClientFactory.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,cAAc,CAAC;AAK/C,eAAO,MAAM,kBAAkB,GAAI,QAAQ,UAAU,KAAG,IAEvD,CAAC;AAEF,eAAO,MAAM,aAAa,QAAO,UAKhC,CAAC;AAEF,eAAO,MAAM,eAAe,QAAO,IAElC,CAAC"}

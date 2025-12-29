@@ -1,0 +1,63 @@
+{
+  "name": "@renia/framework",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "import": "./dist/api/index.js"
+    },
+    "./api/*": {
+      "types": "./dist/api/*.d.ts",
+      "import": "./dist/api/*.js"
+    },
+    "./layout": {
+      "types": "./dist/layout/index.d.ts",
+      "import": "./dist/layout/index.js"
+    },
+    "./layout/*": {
+      "types": "./dist/layout/*.d.ts",
+      "import": "./dist/layout/*.js"
+    },
+    "./router": {
+      "types": "./dist/router/index.d.ts",
+      "import": "./dist/router/index.js"
+    },
+    "./router/*": {
+      "types": "./dist/router/*.d.ts",
+      "import": "./dist/router/*.js"
+    },
+    "./storage": {
+      "types": "./dist/storage/index.d.ts",
+      "import": "./dist/storage/index.js"
+    },
+    "./storage/*": {
+      "types": "./dist/storage/*.d.ts",
+      "import": "./dist/storage/*.js"
+    },
+    "./runtime/*": {
+      "types": "./dist/runtime/*.d.ts",
+      "import": "./dist/runtime/*.js"
+    },
+    "./registry/*": {
+      "types": "./dist/registry/*.d.ts",
+      "import": "./dist/registry/*.js"
+    },
+    "./server/*": {
+      "types": "./dist/server/*.d.ts",
+      "import": "./dist/server/*.js"
+    },
+    "./interceptors/*": {
+      "types": "./dist/interceptors/*.d.ts",
+      "import": "./dist/interceptors/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  }
+}

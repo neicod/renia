@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@renia/framework/*": ["./*"],
+      "@renia/framework/api": ["./api/index.ts"],
+      "@renia/framework/api/*": ["./api/*"],
+      "renia-i18n/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-cart/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-cart-sidebar/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-catalog/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-catalog-search/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-category/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-cms/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-configurable-product/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-configurable-product-cart/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-customer/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-product/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-product-listing/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-routing/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-magento-wishlist/interceptors/*": ["./interceptors/interceptorModuleStub.ts"],
+      "renia-ui-toast/interceptors/*": ["./interceptors/interceptorModuleStub.ts"]
+    },
+    "rootDir": ".",
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "noEmit": false
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ]
+}

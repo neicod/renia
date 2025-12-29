@@ -1,0 +1,1 @@
+{"version":3,"file":"FetchHttpClient.d.ts","sourceRoot":"","sources":["../../transport/FetchHttpClient.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,UAAU,EAAE,YAAY,EAAE,MAAM,cAAc,CAAC;AAE7D,qBAAa,eAAgB,YAAW,UAAU;IAC1C,OAAO,CAAC,GAAG,EAAE,MAAM,EAAE,OAAO,EAAE,WAAW,GAAG,OAAO,CAAC,YAAY,CAAC;CAQxE"}

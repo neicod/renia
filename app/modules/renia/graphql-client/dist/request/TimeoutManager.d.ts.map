@@ -1,0 +1,1 @@
+{"version":3,"file":"TimeoutManager.d.ts","sourceRoot":"","sources":["../../request/TimeoutManager.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,kBAAkB;IACjC,MAAM,EAAE,WAAW,CAAC;IACpB,OAAO,EAAE,MAAM,IAAI,CAAC;CACrB;AAED,qBAAa,cAAc;IACzB,iBAAiB,CAAC,SAAS,EAAE,MAAM,GAAG,kBAAkB;IAUxD,kBAAkB,CAAC,SAAS,EAAE,MAAM,GAAG,KAAK;IAI5C,cAAc,CAAC,KAAK,EAAE,GAAG,GAAG,OAAO;CAGpC"}

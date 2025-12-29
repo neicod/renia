@@ -1,0 +1,1 @@
+{"version":3,"file":"productSearchResponse.d.ts","sourceRoot":"","sources":["../../services/productSearchResponse.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,cAAc,EAAE,MAAM,sBAAsB,CAAC;AAE3D,OAAO,KAAK,EAAE,oBAAoB,EAAE,MAAM,2BAA2B,CAAC;AAuBtE,eAAO,MAAM,wBAAwB,GACnC,SAAS,GAAG,EACZ,UAAU,cAAc,KACvB,oBAmBF,CAAC;AAEF,eAAe,wBAAwB,CAAC"}

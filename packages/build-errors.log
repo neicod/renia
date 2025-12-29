@@ -1,0 +1,92 @@
+- @renia/framework (pack)
+- renia-graphql-client (pack)
+- renia-i18n (pack)
+- renia-interceptors (pack)
+- renia-logger (pack)
+- renia-magento-cart (pack)
+- renia-magento-cart-sidebar (pack)
+- renia-magento-catalog (pack)
+- renia-magento-catalog-search (pack)
+- renia-magento-category (pack)
+- renia-magento-cms (pack)
+- renia-magento-configurable-product (pack)
+- renia-magento-configurable-product-cart (pack)
+- renia-magento-customer (pack)
+- renia-magento-graphql-client (pack)
+- renia-magento-product (build)
+- renia-magento-product-listing (pack)
+- renia-magento-routing (pack)
+- renia-magento-store (pack)
+- renia-magento-wishlist (pack)
+- renia-menu (pack)
+- renia-module-cart (pack)
+- renia-ui-toast (pack)
+
+[@renia/framework] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-graphql-client] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-i18n] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-interceptors] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-logger] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-cart] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-cart-sidebar] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-catalog] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-catalog-search] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-category] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-cms] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-configurable-product] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-configurable-product-cart] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-customer] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-graphql-client] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-product] build
+Command failed: npm run build
+
+[renia-magento-product-listing] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-routing] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-store] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-magento-wishlist] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-menu] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-module-cart] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages
+
+[renia-ui-toast] pack
+Command failed: npm pack --pack-destination /Users/dcienkuszewski/www/renia2/frontend/packages

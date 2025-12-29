@@ -1,0 +1,26 @@
+// @env: mixed
+// Core exports
+export * from './builder.js';
+export * from './request.js';
+export * from './types.js';
+// Fluent selection API
+export { SelectionBuilder } from './fluent/SelectionBuilder.js';
+export { FieldBuilder } from './fluent/FieldBuilder.js';
+export { SnippetParser } from './fluent/SnippetParser.js';
+export { gql } from './fluent/snippetFormat.js';
+export { FetchHttpClient } from './transport/FetchHttpClient.js';
+export { registerHttpClient, getHttpClient, resetHttpClient } from './transport/HttpClientFactory.js';
+export { BearerAuthStrategy } from './auth/BearerAuthStrategy.js';
+export { BasicAuthStrategy } from './auth/BasicAuthStrategy.js';
+export { HeaderAuthStrategy } from './auth/HeaderAuthStrategy.js';
+export { AuthHeaderApplier } from './auth/AuthHeaderApplier.js';
+export { registerAuthStrategy, getAuthStrategy, hasAuthStrategy, resetAuthStrategies } from './auth/AuthStrategyRegistry.js';
+export { DefaultGraphQLLogger } from './logging/DefaultGraphQLLogger.js';
+// Rendering
+export { GraphQLRenderer } from './rendering/GraphQLRenderer.js';
+export { DefaultGraphQLFormatter } from './rendering/DefaultGraphQLFormatter.js';
+// Request execution
+export { RequestPayloadBuilder } from './request/RequestPayloadBuilder.js';
+export { ResponseHandler } from './request/ResponseHandler.js';
+export { TimeoutManager } from './request/TimeoutManager.js';
+export { GraphQLRequestExecutor } from './request/GraphQLRequestExecutor.js';

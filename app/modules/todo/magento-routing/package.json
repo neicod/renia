@@ -1,0 +1,15 @@
+{
+  "name": "renia-magento-routing",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./index.ts",
+  "dependencies": {
+    "renia-graphql-client": "file:../renia-graphql-client",
+    "renia-magento-graphql-client": "file:../renia-magento-graphql-client",
+    "renia-magento-category": "file:../renia-magento-category",
+    "renia-magento-product": "file:../renia-magento-product",
+    "renia-magento-cms": "file:../renia-magento-cms",
+    "renia-magento-product-listing": "file:../renia-magento-product-listing",
+    "renia-magento-store": "file:../renia-magento-store"
+  }
+}

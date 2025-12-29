@@ -1,0 +1,1 @@
+{"version":3,"file":"pageContextPolicy.d.ts","sourceRoot":"","sources":["../../runtime/pageContextPolicy.ts"],"names":[],"mappings":"AAEA,MAAM,MAAM,0BAA0B,GAAG;IACvC,aAAa,EAAE,OAAO,CAAC;IACvB,uBAAuB,EAAE,OAAO,CAAC;IACjC,UAAU,EAAE,MAAM,GAAG,IAAI,CAAC;CAC3B,CAAC;AAEF;;;;;;GAMG;AACH,eAAO,MAAM,6BAA6B,GAAI,MAAM,0BAA0B,KAAG,OAKhF,CAAC;;0CALkD,0BAA0B,KAAG,OAAO;;AAOxF,wBAEE"}
