@@ -5,7 +5,7 @@ import {
   registerGraphQLHeaderAugmenter,
   registerGraphQLQueryAugmenter,
   executeGraphQLRequest
-} from '@framework/api/graphqlClient';
+} from '@renia/framework/api/graphqlClient';
 import { QueryBuilder } from 'renia-graphql-client/builder';
 
 const createMockResponse = (body: any, init?: ResponseInit) => {
@@ -67,12 +67,12 @@ test('augmentery zapytań modyfikują payload na podstawie operationId', async (
   registerGraphQLQueryAugmenter((payload, ctx) => {
     if (ctx.operationId !== 'test.ping') return;
     if (payload instanceof QueryBuilder) {
-      payload.addField([], 'augmented_field');
+      payload.add('augmented_field');
     }
   });
 
   const builder = new QueryBuilder('query').setName('Ping');
-  builder.addField([], 'ping');
+  builder.add('ping');
 
   const response = await executeGraphQLRequest({
     endpoint: 'https://example.magento/graphql',

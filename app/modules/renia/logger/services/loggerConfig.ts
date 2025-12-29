@@ -1,6 +1,6 @@
 // @env: mixed
 
-import type { LoggerConfig, LogLevel } from '../types/logger';
+import type { LoggerConfig, LogLevel } from '../types/logger.js';
 
 /**
  * Global logger configuration

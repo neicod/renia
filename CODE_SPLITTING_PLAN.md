@@ -21,7 +21,7 @@ Request: /category/men
 2. matchPath('/category/men') → Znaleźliśmy route: '/category/*'
 3. loadInterceptors('default', api)
 4. loadInterceptors('category', api)  ← Specificzny kontekst!
-5. Komponenty rejestrują się via api.layout.get().add() (hierarchiczny system)
+5. Komponenty rejestrują się via api.layout.at().add() (hierarchiczny system)
 6. Bootstrap zawiera regions/extensions dla tej ścieżki
 7. HTML serializeduje bootstrap do window.__APP_BOOTSTRAP__
 ```
@@ -30,7 +30,7 @@ Request: /category/men
 ```
 Bootstrap received (window.__APP_BOOTSTRAP__)
     ↓
-src/client/index.tsx
+app/entry/client.tsx
     ↓
 import 'renia-magento-cart/registerComponents'           // Cały moduł
 import 'renia-magento-wishlist/registerComponents'       // Cały moduł
@@ -84,7 +84,7 @@ export default [
 ### 2. SSR: Detectaj route i oblicz requiredModules
 
 ```typescript
-// src/server/index.tsx
+// app/entry/server/index.tsx
 
 app.get('*', async (req, res) => {
   const routes = await loadRoutesRegistry({ configPath });
@@ -111,12 +111,12 @@ app.get('*', async (req, res) => {
 ### 3. CSR: Załaduj dynamicznie tylko potrzebne moduły
 
 ```typescript
-// src/client/index.tsx - NEW APPROACH
+// app/entry/client.tsx - NEW APPROACH
 
 import React from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import AppRoot from '@framework/runtime/AppRoot';
+import AppRoot from '@renia/framework/runtime/AppRoot';
 
 declare global {
   interface Window {
@@ -181,7 +181,7 @@ const bootstrap = window.__APP_BOOTSTRAP__ ?? { routes: [], regions: {}, require
 ### 4. Client-Side Navigation: Lazy Load na zmianę route'u
 
 ```typescript
-// src/framework/runtime/AppRoot.tsx - ZMIENIONY
+// app/modules/renia/framework/runtime/AppRoot.tsx - ZMIENIONY
 
 const AppRoot: React.FC<AppRootProps> = ({ bootstrap }) => {
   const navigate = useNavigate();
@@ -254,7 +254,7 @@ export default [
 ];
 ```
 
-### Faza 2: Modify src/server/index.tsx - Add requiredModules to bootstrap
+### Faza 2: Modify app/entry/server/index.tsx - Add requiredModules to bootstrap
 
 ```typescript
 // Wokół linii 380-399
@@ -276,7 +276,7 @@ const bootstrap = {
 };
 ```
 
-### Faza 3: Modify src/client/index.tsx - Dynamic module loading
+### Faza 3: Modify app/entry/client.tsx - Dynamic module loading
 
 Zastąp statyczne importy dynamicznym załadowaniem (patrz wyżej).
 

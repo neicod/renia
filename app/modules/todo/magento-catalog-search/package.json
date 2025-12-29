@@ -1,0 +1,10 @@
+{
+  "name": "renia-magento-catalog-search",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./index.ts",
+  "dependencies": {
+    "renia-magento-product": "file:../magento-product",
+    "renia-magento-product-listing": "file:../magento-product-listing"
+  }
+}

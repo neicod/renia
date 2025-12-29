@@ -11,25 +11,23 @@ export const localModulesPlugin = () => ({
   name: 'local-modules',
   setup(build) {
     const requireFromRoot = createRequire(path.join(process.cwd(), 'package.json'));
-    const modulesDir = path.resolve(process.cwd(), 'modules');
     const reniaModulesDir = path.resolve(process.cwd(), 'app/modules/renia');
 
     const resolveLocalModule = (specifier) => {
-      // First try standard modules directory
-      let pkgDir = path.join(modulesDir, specifier);
+      let pkgDir = null;
 
       // If not found and specifier starts with 'renia-', try removing prefix in app/modules/renia/
-      if (!fs.existsSync(pkgDir) && specifier.startsWith('renia-')) {
+      if (specifier.startsWith('renia-')) {
         const moduleName = specifier.slice(6); // Remove 'renia-' prefix
         pkgDir = path.join(reniaModulesDir, moduleName);
       }
 
       // If still not found and specifier is 'magento-*', try in app/modules/renia/ as-is
-      if (!fs.existsSync(pkgDir) && specifier.startsWith('magento-')) {
+      if (!pkgDir && specifier.startsWith('magento-')) {
         pkgDir = path.join(reniaModulesDir, specifier);
       }
 
-      if (!fs.existsSync(pkgDir) || !fs.statSync(pkgDir).isDirectory()) return null;
+      if (!pkgDir || !fs.existsSync(pkgDir) || !fs.statSync(pkgDir).isDirectory()) return null;
 
       const pkgJsonPath = path.join(pkgDir, 'package.json');
       const candidates = [];
@@ -71,7 +69,7 @@ export const localModulesPlugin = () => ({
       const localResolved = resolveLocalModule(args.path);
       if (localResolved) return { path: localResolved };
 
-      const paths = [modulesDir];
+      const paths = [];
       if (args.resolveDir) paths.push(args.resolveDir);
       paths.push(process.cwd());
 

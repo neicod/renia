@@ -1,7 +1,7 @@
 // @env: mixed
 import React from 'react';
-import { I18nProvider } from '../context/I18nProvider';
-import type { Messages } from '../services/types';
+import { I18nProvider } from '../context/I18nProvider.js';
+import type { Messages } from '../services/types.js';
 
 type Props = {
   initialLang?: string;

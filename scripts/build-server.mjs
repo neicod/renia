@@ -5,7 +5,7 @@ const isWatch = process.argv.includes('--watch');
 const isProd = !isWatch && process.env.NODE_ENV === 'production';
 
 const buildOptions = {
-    entryPoints: ['src/server/index.tsx'],
+    entryPoints: ['app/entry/server/index.tsx'],
     bundle: true,
     platform: 'node',
     format: 'esm',

@@ -1,5 +1,3 @@
-
-
 # Best practices
 
 Ten dokument zbiera dodatkowe praktyki, które pomagają utrzymać **platformę** (wiele wariantów klientów) w dobrej kondycji.
@@ -105,3 +103,20 @@ Rekomendacje:
 - Trzymamy się SOLID (patrz `docs/implementation-guidelines.md`).
 - Każda zmiana wpływająca na cache/rendering wymaga aktualizacji dokumentów.
 - Checklisty z `docs/checklists.md` są obowiązkowe w PR.
+
+---
+
+## 11) Dodatkowe zasady projektowe
+
+Poza **SOLID** i **DRY** w tym projekcie świadomie stosujemy:
+
+- **KISS** – preferujemy najprostsze rozwiązanie, szczególnie w cache, renderingu i routingach.
+- **YAGNI** – nie budujemy abstrakcji ani hooków „na przyszłość” bez realnego use-case.
+- **Separation of Concerns** – UI ≠ domena ≠ integracja ≠ infrastruktura.
+- **Clean Architecture / Dependency Rule** – zależności idą do środka (UI → domena → integracja → infra).
+- **Explicit over implicit** – jawne kontrakty, jawny scope fetchy, jawne capabilities.
+- **Composition over inheritance** – rozszerzamy przez moduły, sloty i strategie.
+- **Fail fast** – błędy konfiguracji (capabilities, context) wykrywamy jak najwcześniej.
+- **Determinism** – ten sam input (context + query) musi dawać ten sam wynik i cache key.
+
+Te zasady są traktowane jako **architektoniczne guardrails** dla całej platformy.

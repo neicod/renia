@@ -192,7 +192,7 @@ class QueryBuilder {
 ```typescript
 // Domyślny renderer
 const builder = new QueryBuilder('query');
-builder.addField(['user'], 'id');
+builder.add('user { id }');
 console.log(builder.toString()); // Używa GraphQLRenderer
 
 // Custom formatter (pretty-print)

@@ -1,0 +1,13 @@
+{
+  "name": "renia-magento-catalog",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./index.ts",
+  "dependencies": {
+    "renia-magento-product": "file:../magento-product",
+    "renia-magento-category": "file:../renia-magento-category",
+    "renia-magento-product-listing": "file:../magento-product-listing",
+    "renia-graphql-client": "file:../renia-graphql-client",
+    "renia-magento-graphql-client": "file:../renia-magento-graphql-client"
+  }
+}

@@ -1,9 +1,9 @@
 // @env: mixed
 
-import type { Logger, LogLevel } from '../types/logger';
-import { getLoggerConfig, shouldLog } from './loggerConfig';
-import { formatLogMessage } from '../utils/formatters';
-import { getLogLevelColor, getBrowserLogStyle, colorize } from '../utils/colors';
+import type { Logger, LogLevel } from '../types/logger.js';
+import { getLoggerConfig, shouldLog } from './loggerConfig.js';
+import { formatLogMessage } from '../utils/formatters.js';
+import { getLogLevelColor, getBrowserLogStyle, colorize } from '../utils/colors.js';
 
 /**
  * Logger implementation
@@ -57,9 +57,13 @@ class LoggerImpl implements Logger {
     const consoleMethod = level === 'ERROR' ? 'error' : level === 'WARN' ? 'warn' : 'log';
 
     if (data && Object.keys(data).length > 0) {
-      console[consoleMethod as any](`%c${level}%c ${message}`, style, '', data);
+      const sink = console as unknown as Record<string, (...args: unknown[]) => void>;
+      const log = sink[consoleMethod] ?? console.log;
+      log(`%c${level}%c ${message}`, style, '', data);
     } else {
-      console[consoleMethod as any](`%c${level}%c ${message}`, style, '');
+      const sink = console as unknown as Record<string, (...args: unknown[]) => void>;
+      const log = sink[consoleMethod] ?? console.log;
+      log(`%c${level}%c ${message}`, style, '');
     }
   }
 
@@ -71,7 +75,9 @@ class LoggerImpl implements Logger {
     const coloredMessage = colorize(message, color);
 
     const consoleMethod = level === 'ERROR' ? 'error' : level === 'WARN' ? 'warn' : 'log';
-    console[consoleMethod as any](coloredMessage);
+    const sink = console as unknown as Record<string, (...args: unknown[]) => void>;
+    const log = sink[consoleMethod] ?? console.log;
+    log(coloredMessage);
   }
 
   debug(module: string, message: string, data?: Record<string, any>): void {

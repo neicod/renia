@@ -20,16 +20,16 @@
  */
 
 // Types
-export type { LogLevel, LoggerConfig, Logger } from './types/logger';
-export { LOG_LEVEL_PRIORITY } from './types/logger';
+export type { LogLevel, LoggerConfig, Logger } from './types/logger.js';
+export { LOG_LEVEL_PRIORITY } from './types/logger.js';
 
 // Services
-export { initLogger, getLoggerConfig, updateLoggerConfig, shouldLog } from './services/loggerConfig';
-export { getLogger, resetLogger } from './services/logger';
+export { initLogger, getLoggerConfig, updateLoggerConfig, shouldLog } from './services/loggerConfig.js';
+export { getLogger, resetLogger } from './services/logger.js';
 
 // Utilities
-export { formatLogMessage, formatTimestamp, formatMetadata } from './utils/formatters';
-export { getLogLevelColor, getBrowserLogStyle, colorize, COLORS } from './utils/colors';
+export { formatLogMessage, formatTimestamp, formatMetadata } from './utils/formatters.js';
+export { getLogLevelColor, getBrowserLogStyle, colorize, COLORS } from './utils/colors.js';
 
 // Hooks
-export { useLogger } from './hooks/useLogger';
+export { useLogger } from './hooks/useLogger.js';

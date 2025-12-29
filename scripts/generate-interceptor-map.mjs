@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Script to generate interceptor map from available files.
- * Scans:
- * 1. app/etc/config.json - which modules are enabled
- * 2. app/modules - what contexts we have from routes.ts
- * 3. app/modules - what interceptors exist
+ * Script to generate interceptor map for client-side dynamic imports.
  *
- * Generates: src/framework/interceptors/interceptorMap.generated.ts
+ * Sources of truth:
+ * - Enabled modules: app/etc/config.json
+ * - Interceptor files: <module>/interceptors/{default|<context>}.(ts|js)
+ *
+ * Writes: generated/interceptors/interceptorMap.generated.ts
  */
 
 import fs from 'node:fs';
@@ -16,77 +16,107 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 
-// 1. Load module configuration
+const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+const listDirSorted = (dirPath) => {
+  if (!fs.existsSync(dirPath)) return [];
+  return fs.readdirSync(dirPath).slice().sort((a, b) => a.localeCompare(b));
+};
+
+const resolveNodeModulesPath = (moduleName) => {
+  if (!moduleName || typeof moduleName !== 'string') return null;
+  const nodeModulesDir = path.join(projectRoot, 'node_modules');
+  if (moduleName.startsWith('@')) {
+    const [scope, pkg] = moduleName.split('/', 2);
+    if (!scope || !pkg) return null;
+    const p = path.join(nodeModulesDir, scope, pkg);
+    return fs.existsSync(p) ? p : null;
+  }
+  const p = path.join(nodeModulesDir, moduleName);
+  return fs.existsSync(p) ? p : null;
+};
+
+const buildAppModulesIndex = () => {
+  const out = new Map();
+  const appModulesRoot = path.join(projectRoot, 'app/modules');
+  if (!fs.existsSync(appModulesRoot)) return out;
+
+  for (const vendor of listDirSorted(appModulesRoot)) {
+    const vendorDir = path.join(appModulesRoot, vendor);
+    if (!fs.existsSync(vendorDir) || !fs.statSync(vendorDir).isDirectory()) continue;
+
+    for (const mod of listDirSorted(vendorDir)) {
+      const modDir = path.join(vendorDir, mod);
+      const pkgPath = path.join(modDir, 'package.json');
+      if (!fs.existsSync(pkgPath)) continue;
+      try {
+        const pkg = readJson(pkgPath);
+        if (pkg?.name && typeof pkg.name === 'string') {
+          out.set(pkg.name, modDir);
+        }
+      } catch {
+        // ignore invalid package.json
+      }
+    }
+  }
+  return out;
+};
+
+const appModulesIndex = buildAppModulesIndex();
+
+const resolveModuleDir = (moduleName) => {
+  const fromNodeModules = resolveNodeModulesPath(moduleName);
+  if (fromNodeModules) return fromNodeModules;
+  const fromAppModules = appModulesIndex.get(moduleName) ?? null;
+  if (fromAppModules && fs.existsSync(fromAppModules)) return fromAppModules;
+  return null;
+};
+
+// 1) enabled modules
 const configPath = path.join(projectRoot, 'app/etc/config.json');
-const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-const enabledModules = Object.entries(config.modules)
-  .filter(([_, enabled]) => enabled)
-  .map(([name]) => name);
+const config = readJson(configPath);
+const enabledModules = Object.entries(config.modules ?? {})
+  .filter(([, enabled]) => Boolean(enabled))
+  .map(([name]) => name)
+  .sort((a, b) => a.localeCompare(b));
 
 console.log(`Found ${enabledModules.length} enabled modules`);
 
-// 2. Build module directory map
-const moduleDirs = fs.readdirSync(path.join(projectRoot, 'app/modules/renia'));
-const moduleNameToDir = {};
-
-for (const dir of moduleDirs) {
-  // Try to find which config module this directory corresponds to
-  // Usually: renia-magento-cart -> magento-cart, graphql-client -> graphql-client
-  const dirName = dir; // e.g., 'magento-cart'
-
-  // Find matching module in config
-  for (const moduleName of enabledModules) {
-    // Check if module name matches directory
-    if (moduleName === dirName || moduleName === `renia-${dirName}` || moduleName.endsWith(`/${dirName}`)) {
-      moduleNameToDir[moduleName] = dirName;
-      break;
-    }
-    // Also check if directory is in the module name
-    if (moduleName.includes(dirName)) {
-      moduleNameToDir[moduleName] = dirName;
-      break;
-    }
-  }
-}
-
-// 3. Scan interceptors for each module
+// 2) scan interceptor files
 const interceptorMap = {};
 
 for (const moduleName of enabledModules) {
-  const dirName = moduleNameToDir[moduleName] || moduleName.replace('renia-', '');
-  const modulePath = path.join(projectRoot, 'app/modules/renia', dirName);
-  const interceptorsDir = path.join(modulePath, 'interceptors');
-
-  if (!fs.existsSync(interceptorsDir)) {
-    continue; // Module has no interceptors
-  }
-
-  const files = fs.readdirSync(interceptorsDir).filter(f => f.endsWith('.ts'));
-
-  if (files.length === 0) {
+  const moduleDir = resolveModuleDir(moduleName);
+  if (!moduleDir) {
+    console.warn(`⚠ Enabled module "${moduleName}" not found in node_modules or app/modules`);
     continue;
   }
 
+  const interceptorsDir = path.join(moduleDir, 'interceptors');
+  if (!fs.existsSync(interceptorsDir) || !fs.statSync(interceptorsDir).isDirectory()) {
+    continue;
+  }
+
+  const files = listDirSorted(interceptorsDir).filter((f) => {
+    if (f.endsWith('.d.ts')) return false;
+    return f.endsWith('.ts') || f.endsWith('.js');
+  });
+
+  if (!files.length) continue;
+
   interceptorMap[moduleName] = {};
-
   for (const file of files) {
-    const contextName = file.replace('.ts', '');
-    const importPath = `${moduleName}/interceptors/${contextName}`;
-
-    // Determine if this interceptor is required or optional
-    // If it's default, it's required. Otherwise optional.
-    const isRequired = contextName === 'default';
-
+    const contextName = file.replace(/\.(ts|js)$/, '');
     interceptorMap[moduleName][contextName] = {
-      path: importPath,
-      required: isRequired
+      importPath: `${moduleName}/interceptors/${contextName}`,
+      required: contextName === 'default'
     };
   }
 }
 
 console.log(`Found interceptors for ${Object.keys(interceptorMap).length} modules`);
 
-// 4. Generate TypeScript code
+// 3) generate TS
 const generateTypeScript = () => {
   const entries = Object.entries(interceptorMap).sort((a, b) => a[0].localeCompare(b[0]));
 
@@ -102,86 +132,72 @@ export type InterceptorLoaders = {
   [context: string]: (() => Promise<any>) | undefined;
 };
 
-// Map: module -> context -> loader
 export const interceptorMap: Record<string, InterceptorLoaders> = {
 `;
 
   for (const [moduleName, contexts] of entries) {
     code += `  '${moduleName}': {\n`;
-
     const sortedContexts = Object.entries(contexts).sort((a, b) => a[0].localeCompare(b[0]));
-    for (const [contextName, { path: importPath, required }] of sortedContexts) {
-      const catchClause = required ? '' : ".catch(() => null)";
-      code += `    ${contextName}: () => import('${importPath}')${catchClause},\n`;
+    for (const [contextName, { importPath, required }] of sortedContexts) {
+      const catchClause = required ? '' : '.catch(() => null)';
+      code += `    '${contextName}': () => import('${importPath}')${catchClause},\n`;
     }
-
     code += `  },\n`;
   }
 
   code += `};\n`;
-
   return code;
 };
 
 const generatedCode = generateTypeScript();
 
-// 5. Validate: Check if all contexts from routes are available in interceptorMap
+// 4) validate contexts referenced in routes.ts (best-effort)
 const validateContexts = () => {
-  const routesFiles = [];
-  const appModulesDir = path.join(projectRoot, 'app/modules/renia');
-
-  // Find all routes.ts files
-  for (const dir of fs.readdirSync(appModulesDir)) {
-    const routesFile = path.join(appModulesDir, dir, 'routes.ts');
-    if (fs.existsSync(routesFile)) {
-      routesFiles.push({ module: dir, path: routesFile });
-    }
-  }
-
   const issues = [];
+  const hasContext = (contextName) =>
+    Object.values(interceptorMap).some((ctxMap) => ctxMap && Object.prototype.hasOwnProperty.call(ctxMap, contextName));
 
-  // Check each routes file
-  for (const { module, path: routesPath } of routesFiles) {
+  for (const moduleName of enabledModules) {
+    const moduleDir = resolveModuleDir(moduleName);
+    if (!moduleDir) continue;
+    const routesCandidates = [path.join(moduleDir, 'routes.ts'), path.join(moduleDir, 'routes.js')];
+    const routesPath = routesCandidates.find((p) => fs.existsSync(p));
+    if (!routesPath) continue;
+
     try {
       const content = fs.readFileSync(routesPath, 'utf-8');
-
-      // Simple regex to find contexts arrays
-      const contextsMatches = content.match(/contexts\s*:\s*\[(.*?)\]/g) || [];
-
+      const contextsMatches = content.match(/contexts\\s*:\\s*\\[(.*?)\\]/g) || [];
       for (const match of contextsMatches) {
-        // Extract context strings
         const contexts = match.match(/'([^']+)'/g) || [];
         for (const ctx of contexts) {
           const contextName = ctx.replace(/'/g, '');
-
-          // Check if any module has this context
-          const hasContext = Object.values(interceptorMap).some(
-            contexts => contextName in contexts
-          );
-
-          if (!hasContext && contextName !== 'default') {
-            issues.push(`Module ${module}: context '${contextName}' not found in interceptors`);
+          if (contextName === 'default') continue;
+          if (!hasContext(contextName)) {
+            issues.push(`Module ${moduleName}: context '${contextName}' not found in interceptors`);
           }
         }
       }
-    } catch (error) {
-      // Silently skip files that can't be parsed
+    } catch {
+      // ignore parse errors
     }
   }
-
   return issues;
 };
 
 const validationIssues = validateContexts();
 if (validationIssues.length > 0) {
-  console.log('\nValidation info (contexts from routes that are not in enabled modules):');
-  validationIssues.forEach(issue => console.log(`  ℹ ${issue}`));
+  console.log('\\nValidation info (contexts referenced in routes that are not present in interceptors map):');
+  validationIssues.forEach((issue) => console.log(`  ℹ ${issue}`));
 }
 
-// 6. Write file
-const outputPath = path.join(projectRoot, 'src/framework/interceptors/interceptorMap.generated.ts');
+// 5) write file
+const outputDir = path.join(projectRoot, 'generated/interceptors');
+fs.mkdirSync(outputDir, { recursive: true });
+const outputPath = path.join(outputDir, 'interceptorMap.generated.ts');
 fs.writeFileSync(outputPath, generatedCode, 'utf-8');
 
 console.log(`Generated map: ${path.relative(projectRoot, outputPath)}`);
 console.log(`  Modules: ${Object.keys(interceptorMap).length}`);
-console.log(`  Contexts: ${Object.values(interceptorMap).reduce((sum, c) => sum + Object.keys(c).length, 0)}`);
+console.log(
+  `  Contexts: ${Object.values(interceptorMap).reduce((sum, ctxs) => sum + Object.keys(ctxs).length, 0)}`
+);

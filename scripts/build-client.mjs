@@ -31,7 +31,7 @@ const writeAssetVersion = async () => {
 
 esbuild
   .build({
-    entryPoints: ['src/client/index.tsx'],
+    entryPoints: ['app/entry/client.tsx'],
     bundle: true,
     sourcemap: true,
     format: 'esm',

@@ -17,7 +17,9 @@ export class DefaultGraphQLLogger implements GraphQLLogger {
   private logToConsole(level: string, message: string, data?: unknown): void {
     if (typeof console !== 'undefined') {
       const consoleMethod = level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log';
-      console[consoleMethod as any](`[GraphQL ${level.toUpperCase()}] ${message}`, data || '');
+      const sink = console as unknown as Record<string, (...args: unknown[]) => void>;
+      const log = sink[consoleMethod] ?? console.log;
+      log(`[GraphQL ${level.toUpperCase()}] ${message}`, data || '');
     }
   }
 

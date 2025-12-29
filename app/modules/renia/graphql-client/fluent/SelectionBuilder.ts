@@ -131,7 +131,7 @@ export class SelectionBuilder {
   at(path?: string): SelectionBuilder {
     const segments = parsePath(path);
     if (segments.length === 0) return this;
-    let current = this;
+    let current: SelectionBuilder = this;
     for (const segment of segments) {
       const node = current.selection().find((n) => !n.fragment && !n.inline && n.name === segment);
       if (!node) {

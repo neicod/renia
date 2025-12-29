@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { QueryBuilder } from 'renia-graphql-client/builder';
-import { registerGraphQLQueryAugmenter, executeGraphQLRequest } from '@framework/api/graphqlClient';
+import { registerGraphQLQueryAugmenter, executeGraphQLRequest } from '@renia/framework/api/graphqlClient';
 import { registerProductMapper, mapProduct } from 'renia-magento-product/services/productMapper';
 
 // Mock configurable product mapper
@@ -146,9 +146,7 @@ test('augmenter dodaje configurable_options do zapytań magentoProduct.search', 
   }) as typeof fetch;
 
   const builder = new QueryBuilder('query').setName('ProductSearch');
-  builder.addField(['products', 'items'], 'id');
-  builder.addField(['products', 'items'], 'sku');
-  builder.addField(['products', 'items'], 'name');
+  builder.add('products { items { id sku name } }');
 
   const response = await executeGraphQLRequest({
     endpoint: 'https://example.magento/graphql',
@@ -190,7 +188,7 @@ test('augmenter dodaje configurable_options do zapytań magentoCatalog.categoryP
   }) as typeof fetch;
 
   const builder = new QueryBuilder('query').setName('CategoryProducts');
-  builder.addField(['products', 'items'], 'id');
+  builder.add('products { items { id } }');
 
   const response = await executeGraphQLRequest({
     endpoint: 'https://example.magento/graphql',

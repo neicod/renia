@@ -1,5 +1,5 @@
 // @env: mixed
-export * from './context/I18nProvider';
-export * from './hooks/useI18n';
-export * from './services/types';
-export * from './services/interpolate';
+export * from './context/I18nProvider.js';
+export * from './hooks/useI18n.js';
+export * from './services/types.js';
+export * from './services/interpolate.js';

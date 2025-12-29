@@ -7,8 +7,10 @@ type Token =
   | { kind: 'NUMBER'; value: number; raw: string }
   | { kind: 'STRING'; raw: string }
   | { kind: 'SPREAD' }
-  | { kind: 'PUNCT'; value: string }
+  | { kind: 'PUNCT'; value: '(' | ')' | '{' | '}' | '[' | ']' | ':' | '=' | '@' | '!' | '$' | ',' }
   | { kind: 'EOF' };
+
+type PunctTokenValue = Extract<Token, { kind: 'PUNCT' }>['value'];
 
 const isNameStart = (ch: string) => /[A-Za-z_]/.test(ch);
 const isNameContinue = (ch: string) => /[A-Za-z0-9_]/.test(ch);
@@ -59,7 +61,7 @@ class Lexer {
     // Punctuators (single-char)
     if ('!$():=@[]{}'.includes(ch) || ch === ',' ) {
       this.nextChar();
-      return { kind: 'PUNCT', value: ch };
+      return { kind: 'PUNCT', value: ch as PunctTokenValue };
     }
 
     // String literal
@@ -154,6 +156,14 @@ class Parser {
     return false;
   }
 
+  private isPunct(value: PunctTokenValue): boolean {
+    return this.lookahead.kind === 'PUNCT' && this.lookahead.value === value;
+  }
+
+  private isEof(): boolean {
+    return this.lookahead.kind === 'EOF';
+  }
+
   private expectName(): string {
     if (this.lookahead.kind === 'NAME') return (this.consume() as any).value as string;
     throw new Error('Expected NAME in GraphQL snippet');
@@ -177,7 +187,7 @@ class Parser {
     if (this.lookahead.kind === 'PUNCT' && this.lookahead.value === '[') {
       this.consume();
       const items: ArgValue[] = [];
-      while (!(this.lookahead.kind === 'PUNCT' && this.lookahead.value === ']')) {
+      while (!this.isPunct(']')) {
         if (this.maybePunct(',')) continue;
         items.push(this.parseValue());
         this.maybePunct(',');
@@ -188,7 +198,7 @@ class Parser {
     if (this.lookahead.kind === 'PUNCT' && this.lookahead.value === '{') {
       this.consume();
       const obj: Record<string, ArgValue> = {};
-      while (!(this.lookahead.kind === 'PUNCT' && this.lookahead.value === '}')) {
+      while (!this.isPunct('}')) {
         if (this.maybePunct(',')) continue;
         const key = this.expectName();
         this.expectPunct(':');
@@ -205,7 +215,7 @@ class Parser {
     if (!(this.lookahead.kind === 'PUNCT' && this.lookahead.value === '(')) return undefined;
     this.consume();
     const args: Record<string, ArgValue> = {};
-    while (!(this.lookahead.kind === 'PUNCT' && this.lookahead.value === ')')) {
+    while (!this.isPunct(')')) {
       if (this.maybePunct(',')) continue;
       const key = this.expectName();
       this.expectPunct(':');
@@ -230,7 +240,7 @@ class Parser {
   private parseSelectionSet(): SelectionNode[] {
     this.expectPunct('{');
     const nodes: SelectionNode[] = [];
-    while (!(this.lookahead.kind === 'PUNCT' && this.lookahead.value === '}')) {
+    while (!this.isPunct('}')) {
       nodes.push(this.parseSelection());
     }
     this.expectPunct('}');
@@ -240,14 +250,14 @@ class Parser {
   private parseSelection(): SelectionNode {
     if (this.lookahead.kind === 'SPREAD') {
       this.consume();
-      if (this.lookahead.kind === 'NAME' && this.lookahead.value === 'on') {
-        this.consume(); // on
+      const nameOrOn = this.expectName();
+      if (nameOrOn === 'on') {
         const onType = this.expectName();
         const directives = this.parseDirectives();
         const children = this.parseSelectionSet();
         return { name: '__inline', inline: onType, directives, children };
       }
-      const fragmentName = this.expectName();
+      const fragmentName = nameOrOn;
       const directives = this.parseDirectives();
       return { name: fragmentName, fragment: fragmentName, directives };
     }
@@ -279,12 +289,12 @@ class Parser {
   parseSnippet(): SelectionNode[] {
     if (this.lookahead.kind === 'PUNCT' && this.lookahead.value === '{') {
       const nodes = this.parseSelectionSet();
-      if (this.lookahead.kind !== 'EOF') throw new Error('Unexpected tokens after selection set');
+      if (!this.isEof()) throw new Error('Unexpected tokens after selection set');
       return nodes;
     }
 
     const nodes: SelectionNode[] = [];
-    while (this.lookahead.kind !== 'EOF') {
+    while (!this.isEof()) {
       nodes.push(this.parseSelection());
     }
     return nodes;
@@ -299,4 +309,3 @@ export class SnippetParser {
     return parser.parseSnippet();
   }
 }
-

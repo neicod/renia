@@ -11,10 +11,10 @@ README **nie opisuje szczegółów domenowych ani implementacyjnych** (np. produ
 
 ## Czym jest ten projekt
 
-Jest to **modułowa platforma frontendowa** oparta o **React + SSR/ISR**, zaprojektowana jako baza pod wiele wariantów aplikacji (różni klienci, różne modele cenowe, różne konfiguracje store’ów).
+Jest to **modułowa platforma frontendowa** oparta o **React + Express SSR**, zaprojektowana jako baza pod wiele wariantów aplikacji (różni klienci, różne modele cenowe, różne konfiguracje store’ów).
 
 Backend (np. Magento) jest traktowany wyłącznie jako **dostawca danych**. Cała logika dotycząca:
-- renderowania (SSR / ISR),
+- renderowania (SSR shell + wyspy),
 - cache (PUBLIC / SEGMENT / PRIVATE),
 - segmentacji (store, currency, locale, group),
 - składania UI z modułów
@@ -25,7 +25,7 @@ znajduje się **po stronie frontendu**.
 
 ## Najważniejsze założenia architektoniczne (TL;DR)
 
-- Domyślnie renderujemy **ISR shell** (content/base).
+- Domyślnie renderujemy **SSR shell** (content/base) i pozwalamy CDN/Varnish go cache’ować.
 - Dane kontekstowe (ceny, dostępność, uprawnienia) są renderowane jako **wyspy segmentowe lub prywatne**.
 - Cache jest agresywny tam, gdzie kardynalność jest niska.
 - Nigdy nie opieramy cache na tokenach użytkownika.
@@ -54,7 +54,7 @@ Opisuje:
 ### 2. `docs/architecture.md`
 **Wizja i fundamenty architektury.**
 
-- model renderowania (ISR shell + wyspy),
+- model renderowania (SSR shell + wyspy),
 - zakresy danych (PUBLIC / SEGMENT / PRIVATE),
 - założenia i non-goals.
 
@@ -77,7 +77,7 @@ Ten plik determinuje zachowanie cache i renderowania cen.
 **Jak renderujemy strony i fragmenty UI.**
 
 - różnice PDP / PLP / CMS,
-- co jest ISR, a co SSR,
+- jakie fragmenty są PUBLIC vs SEGMENT/PRIVATE i jak je renderujemy,
 - gdzie obowiązuje batch pricing.
 
 Czytaj przed wprowadzaniem zmian w renderowaniu stron.

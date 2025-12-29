@@ -1,7 +1,7 @@
 // @env: server
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { ExtensionsRegistry } from '@framework/layout';
+import { ExtensionsRegistry } from '@renia/framework/layout';
 
 describe('ExtensionsRegistry', () => {
   test('sortOrder before/after controls order', () => {

@@ -10,24 +10,53 @@ Zawiera praktyczny przewodnik po najczęstszych zadaniach przy rozwoju Renii. Za
 2. **[KRYTYCZNE] Modułowe rozszerzenia:** Moduł A nigdy nie modyfikuje kodu modułu B. Rozszerzenia implementuj poprzez interceptory, sloty, augmentacje GraphQL lub publiczne API modułu. Każdy moduł musi być wyłączalny w `config.json` bez wpływu na inne.
 3. Zanim zaczniesz, zerknij do `README.md`, `docs/MODULES.md` oraz `docs/concept.md` w obrębie modułu.
 4. Każdy plik `.ts/.tsx/.js` oznacz `// @env: server|browser|mixed` na początku (KRYTYCZNE dla SSR/hydratacji).
-5. Nigdy nie używaj `window.localStorage` bezpośrednio – zawsze `@framework/storage/browserStorage`.
-6. Pliki tłumaczeń: `app/modules/<vendor>/<module>/i18n/<lang>.json` (wewnątrz `frontend`). Pamiętaj o `npm run build:i18n` po zmianach.
-7. Struktura katalogów modułu: w głównym folderze tylko `package.json`, `registration.js`, `index.ts`. Kod w: `components/`, `hooks/`, `services/`, `interceptors/`, `pages/`, `utils/`.
-8. Śledzenie postępu: przy złożonych zadaniach (3+ kroki) używaj `TodoWrite` do zarządzania listą; aktualizuj status (`pending`/`in_progress`/`completed`) po każdym kroku.
+5. **[KRYTYCZNE] Interceptor map (client):** aplikacja musi wywołać `registerInterceptorMap(...)` (np. w `app/entry/client.tsx`) zanim użyje `loadInterceptorsClient`.
+5. Nigdy nie używaj `window.localStorage` bezpośrednio – zawsze `@renia/framework/storage/browserStorage`.
+6. **[KRYTYCZNE] Runtime config:** w modułach nie czytamy `window.__APP_BOOTSTRAP__` ani `process.env` bezpośrednio (poza `@env: server`). Zamiast tego:
+   - config czytaj przez `import { readAppConfig } from '@renia/framework/runtime/appConfig'` (działa SSR+CSR),
+   - storeCode/runtime info czytaj przez `useAppEnvironment()` jeśli jesteś w React.
+   Źródło prawdy: `docs/app-config.md`.
+7. Pliki tłumaczeń: `app/modules/<vendor>/<module>/i18n/<lang>.json` (wewnątrz `frontend`). Pamiętaj o `npm run build:i18n` po zmianach.
+8. Struktura katalogów modułu: w głównym folderze tylko `package.json`, `registration.js`, `index.ts`. Kod w: `components/`, `hooks/`, `services/`, `interceptors/`, `pages/`, `utils/`.
+9. Śledzenie postępu: przy złożonych zadaniach (3+ kroki) używaj `TodoWrite` do zarządzania listą; aktualizuj status (`pending`/`in_progress`/`completed`) po każdym kroku.
+
+---
+
+## `generated/` (artefakty autogenerowane)
+
+W repo istnieje katalog `generated/` na pliki tworzone przez skrypty (np. mapy do dynamic importów).
+
+Zasady:
+- **Nie commitujemy** nic z `generated/` (jest w `.gitignore`).
+- Przed `test/build/dev` uruchamiamy generowanie: `npm run generate`.
+- Jeżeli import z `generated/` nie działa (brak pliku) → pierwsze co robisz to `npm run generate`.
+
+Aktualnie generowane:
+- `generated/interceptors/interceptorMap.generated.ts` przez `npm run generate:interceptors`.
+
+---
+
+## `node_modules` w modułach (ważne)
+
+W `app/modules/**` mogą pojawić się lokalne `node_modules/` (zwykle jako symlinki), jeśli ktoś uruchomi `npm install` wewnątrz modułu.
+
+Zasady:
+- Instalację zależności robimy **tylko w root** (`frontend/`).
+- Jeśli w repo pojawiły się zagnieżdżone `node_modules/` → usuń je przez `npm run clean:modules`.
 
 ---
 
 ## Template-Based Layout System (WAŻNE!)
 
-Od niedawna Renia używa **Template-Based Layout System**. Layout to pełny komponent React w `app/modules/renia/layout/layouts/`. Każdy route wybiera layout przez `meta.layout`.
+Od niedawna Renia używa **Template-Based Layout System**. Layout to pełny komponent React w `app/modules/renia/framework/layout/layouts/`. Każdy route wybiera layout przez `meta.layout`.
 
 ### Dostępne layouty
 
 | Layout | Ścieżka | Zastosowanie |
 |--------|--------|--------------|
-| `Layout1Column` | `@framework/layout/layouts/Layout1Column` | Strony bez sidebara (login, wishlist, checkout) |
-| `Layout2ColumnsLeft` | `@framework/layout/layouts/Layout2ColumnsLeft` | Kategorie, produkty, wyszukiwarka (lewy sidebar) |
-| `LayoutEmpty` | `@framework/layout/layouts/LayoutEmpty` | Logowanie, rejestracja (bez headera/footera) |
+| `Layout1Column` | `@renia/framework/layout/layouts/Layout1Column` | Strony bez sidebara (login, wishlist, checkout) |
+| `Layout2ColumnsLeft` | `@renia/framework/layout/layouts/Layout2ColumnsLeft` | Kategorie, produkty, wyszukiwarka (lewy sidebar) |
+| `LayoutEmpty` | `@renia/framework/layout/layouts/LayoutEmpty` | Logowanie, rejestracja (bez headera/footera) |
 
 ### Jak zdefiniować route z layoutem
 
@@ -42,7 +71,7 @@ export default [
     priority: 30,
     contexts: ['my-page'],
     meta: {
-      layout: '@framework/layout/layouts/Layout1Column',  // ← ZAWSZE pełna ścieżka
+      layout: '@renia/framework/layout/layouts/Layout1Column',  // ← ZAWSZE pełna ścieżka
       type: 'my-page'
     }
   }
@@ -51,14 +80,14 @@ export default [
 
 ### Jak dodać nowy layout
 
-1. Utwórz plik: `src/framework/layout/layouts/LayoutMyNewLayout.tsx`
+1. Utwórz plik: `app/modules/renia/framework/layout/layouts/LayoutMyNewLayout.tsx`
 2. Implementuj: `type LayoutProps = { regions, main, routeMeta }`
-3. Dodaj do eksportu w: `src/framework/layout/index.ts`
-4. Zarejestruj w: `src/server/index.tsx` i `src/client/index.tsx`
+3. Dodaj do eksportu w: `app/modules/renia/framework/layout/index.ts`
+4. Zarejestruj w: `app/entry/server/index.tsx` i `app/entry/client.tsx`
 
 ```typescript
 // @env: mixed
-// src/framework/layout/layouts/LayoutMyNewLayout.tsx
+// app/modules/renia/framework/layout/layouts/LayoutMyNewLayout.tsx
 
 import React from 'react';
 import { Link } from 'react-router-dom';
@@ -95,13 +124,13 @@ export default function LayoutMyNewLayout({ regions, main }: LayoutProps) {
 }
 ```
 
-Następnie w `src/server/index.tsx` i `src/client/index.tsx`:
+Następnie w `app/entry/server/index.tsx` i `app/entry/client.tsx`:
 
 ```typescript
-import { LayoutMyNewLayout } from '@framework/layout';
+import { LayoutMyNewLayout } from '@renia/framework/layout';
 
 registerComponents({
-  '@framework/layout/layouts/LayoutMyNewLayout': LayoutMyNewLayout
+  '@renia/framework/layout/layouts/LayoutMyNewLayout': LayoutMyNewLayout
 });
 ```
 
@@ -116,17 +145,21 @@ Layout jest budowany jako drzewo z root node'em `page`:
 ```
 page (root)
 ├── header
-│   ├── control-menu (koszyk, logowanie, wishlist)
-│   └── main-menu
+├── control-menu (koszyk, logowanie, wishlist)
 ├── content (główna zawartość)
 ├── left (lewy sidebar)
 ├── footer
 └── global-overlay (powiadomienia, toast'y)
 ```
 
+Uwaga: `LayoutTreeBuilder` wspiera ścieżki hierarchiczne, ale obecny `buildRegions()` mapuje tylko 2 poziomy:
+- regiony: `page.<region>`
+- elementy regionu: `page.<region>.<id>`
+Jeśli potrzebujesz głębszego zagnieżdżenia, użyj `ExtensionsOutlet` (host/outlet) albo dodaj wsparcie w `buildRegions()`.
+
 ### Jak dodać komponent do layoutu
 
-Używaj fluent API `api.layout.get()` aby nawigować po hierarchii:
+Używaj fluent API `api.layout.at()` aby nawigować po hierarchii (`get()` jest wyłączone):
 
 ```typescript
 // @env: mixed
@@ -140,9 +173,9 @@ export default (api) => {
     'module-name/components/MyComponent': MyComponent
   });
 
-  // 2. Dodaj do layoutu - użyj get() i add()
+  // 2. Dodaj do layoutu - użyj at() i add()
   api.layout
-    .get('header')
+    .at('header')
     .add('module-name/components/MyComponent', 'my-component-id', {
       sortOrder: { before: '-' },  // Domyślnie pierwszy element
       props: { variant: 'dark' }
@@ -151,12 +184,12 @@ export default (api) => {
 ```
 
 **Ścieżki hierarchii:**
-- `api.layout.get('page.header')` - nagłówek
-- `api.layout.get('page.header.control-menu')` - menu kontrolne
-- `api.layout.get('page.content')` - główna zawartość
-- `api.layout.get('page.left')` - lewy sidebar
-- `api.layout.get('page.footer')` - footer
-- `api.layout.get('page.global-overlay')` - overlay
+- `api.layout.at('page.header')` - nagłówek
+- `api.layout.at('page.control-menu')` lub krócej `api.layout.at('control-menu')` - menu kontrolne
+- `api.layout.at('page.content')` - główna zawartość
+- `api.layout.at('page.left')` - lewy sidebar
+- `api.layout.at('page.footer')` - footer
+- `api.layout.at('page.global-overlay')` - overlay
 
 ### Sortowanie elementów
 
@@ -199,10 +232,59 @@ export default (api) => {
   });
 
   api.layout
-    .get('page.left')
+    .at('left')
     .add('module-name/components/CategoryFilters', 'category-filters');
 };
 ```
+
+---
+
+## URL-e i query (bez duplikatów)
+
+Jeśli budujesz URL-e wewnętrzne (np. `Link to={...}`), unikaj ręcznych `\`/${...}\`` i regexów. Używaj helperów frameworka:
+
+```ts
+import { toAbsolutePath, dedupeSearch } from '@renia/framework/router/paths';
+
+const href = toAbsolutePath(urlPathOrUrlKey) ?? '/';
+const search = dedupeSearch(window.location.search); // usuwa duplikaty kluczy w query
+```
+
+To jest szczególnie ważne dla listingu/search (zapobiega sytuacjom typu „raz brak query, raz podwójne query”).
+
+### PLP/search: stan listingu w URL
+
+Renia trzyma stan listingu w query stringu, żeby:
+- link był shareable (copy/paste),
+- back/forward działał przewidywalnie,
+- nie było duplikatów parametrów.
+
+Konwencje:
+- `page` (alias legacy: `p`)
+- `pageSize` (aliasy legacy: `ps`, `page_size`, `limit`)
+- `sort` (alias legacy: `s`)
+- search term: `q` (legacy: `query`)
+
+Helpery (używaj zamiast ręcznych operacji na stringach):
+
+```ts
+import {
+  readListingQueryState,
+  applyListingQuery,
+  normalizeListingQuery,
+  normalizeSearchTermKey
+} from '@renia/framework/router/listingQuery';
+```
+
+---
+
+## Cache (routing)
+
+Tymczasowo (do czasu docelowej warstwy DAL/Redis) `renia-magento-routing` może cachować w pamięci wyniki `urlResolver` i podstawowe payloady stron (PDP/PLP/CMS).
+
+Konfiguracja env:
+- `RENIA_MAGENTO_ROUTING_CACHE_TTL_MS` (domyślnie `30000`, `0` wyłącza)
+- `RENIA_MAGENTO_ROUTING_CACHE_MAX_ENTRIES` (domyślnie `2000`)
 
 ---
 
@@ -269,12 +351,12 @@ export default (api: InterceptorApi) => {
 
 ## GraphQL i augmentery
 
-- Zawsze używaj `executeGraphQLRequest` z `@framework/api/graphqlClient`, nie `executeRequest` bezpośrednio.
+- Zawsze używaj `executeGraphQLRequest` z `@renia/framework/api/graphqlClient`, nie `executeRequest` bezpośrednio.
 - Nagłówki: `registerGraphQLHeaderAugmenter`
 - Payloady: `registerGraphQLQueryAugmenter`
 
 ```typescript
-import { registerGraphQLHeaderAugmenter } from '@framework/api/graphqlClient';
+import { registerGraphQLHeaderAugmenter } from '@renia/framework/api/graphqlClient';
 
 registerGraphQLHeaderAugmenter((headers) => {
   headers['x-custom'] = 'value';
@@ -331,21 +413,21 @@ api.registerComponents?.({
 ```typescript
 // @env: mixed  ← Zmień to
 export default (api: InterceptorApi) => {
-  api.layout.get('header').add(MyComponent, 'my-id');
+  api.layout.at('header').add(MyComponent, 'my-id');
 };
 ```
 
-### ❌ "Failed to load layout: @framework/layout/layouts/LayoutCustom"
+### ❌ "Failed to load layout: @renia/framework/layout/layouts/LayoutCustom"
 
-**Przyczyna:** Layout nie zarejestrowany w `src/server/index.tsx` lub `src/client/index.tsx`.
+**Przyczyna:** Layout nie zarejestrowany w `app/entry/server/index.tsx` lub `app/entry/client.tsx`.
 
 **Rozwiązanie:**
 ```typescript
-// src/server/index.tsx i src/client/index.tsx
-import { LayoutCustom } from '@framework/layout';
+// app/entry/server/index.tsx i app/entry/client.tsx
+import { LayoutCustom } from '@renia/framework/layout';
 
 registerComponents({
-  '@framework/layout/layouts/LayoutCustom': LayoutCustom
+  '@renia/framework/layout/layouts/LayoutCustom': LayoutCustom
 });
 ```
 
@@ -353,7 +435,7 @@ registerComponents({
 
 **Sprawdź:**
 1. Komponent zarejestrowany w `api.registerComponents()`?
-2. Dodany do slotu przez `api.layout.get().add()`?
+2. Dodany do slotu przez `api.layout.at().add()`?
 3. `@env: mixed`?
 
 ---
@@ -501,14 +583,14 @@ Gdy zmieniasz architekturę (np. przenosisz moduł):
 2. Aktualizuj `README.md` jeśli dotyczy architektury
 3. Dodaj notę o breaking changes jeśli są
 
-**Przykład - stara ścieżka to `renia-layout/layouts/1column`, nowa to `@framework/layout/layouts/Layout1Column`:**
+**Przykład - stara ścieżka to `renia-layout/layouts/1column`, nowa to `@renia/framework/layout/layouts/Layout1Column`:**
 
 ```markdown
 // STARE (do usunięcia z przykładów)
 meta: { layout: 'renia-layout/layouts/1column' }
 
 // NOWE (używaj tego)
-meta: { layout: '@framework/layout/layouts/Layout1Column' }
+meta: { layout: '@renia/framework/layout/layouts/Layout1Column' }
 ```
 
 ### 8. Testing i weryfikacja

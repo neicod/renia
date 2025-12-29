@@ -64,7 +64,7 @@ export type GraphQLRequest = {
 
 export type GraphQLResponse<T = any> = {
   data?: T;
-  errors?: unknown;
+  errors?: unknown[] | null;
   status: number;
   headers: Record<string, string>;
 };

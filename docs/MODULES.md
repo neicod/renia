@@ -25,6 +25,29 @@ Moduły mogą znajdować się w:
 
 ---
 
+## Rejestracja endpointów serwera (Express)
+
+Niektóre moduły (np. integracje) mogą potrzebować zarejestrować własne endpointy Express (proxy, webhooks, itp.).
+Żeby `app/modules/renia/framework/` nie zawierał wiedzy domenowej (np. “Magento”), moduł może dostarczyć plik:
+
+- `registerServer.ts` (lub `.js/.mjs/.cjs`) w katalogu modułu.
+
+Ten plik powinien eksportować funkcję `default` lub `registerServer(app, ctx)`.
+Framework ładuje te pliki automatycznie przy starcie serwera (tylko dla enabled modules).
+
+Przykład:
+
+```ts
+// @env: server
+import type { Application } from 'express';
+
+export default function registerServer(app: Application) {
+  app.post('/api/vendor/webhook', (req, res) => res.status(204).end());
+}
+```
+
+---
+
 ## Aktywacja modułów
 
 Moduły są aktywowane poprzez konfigurację:
@@ -79,7 +102,7 @@ Przykładowe odpowiedzialności:
 - budowa kontekstu (`storeCode`, `currency`, `locale`, `groupId`),
 - standard klucza cache (zgodnie z `cache-policy.md`),
 - decyzja o zakresie cache: `PUBLIC / SEGMENT / PRIVATE`,
-- integracja z cache Next.js / Redis / browser storage.
+- integracja z cache serwera (np. Redis / in-memory) oraz storage przeglądarki.
 
 Zasady:
 - jeden właściciel kontekstu i klucza cache w całej aplikacji,
@@ -136,6 +159,41 @@ Charakterystyka:
 - **nie powinny zawierać ciężkiej logiki biznesowej**.
 
 Mechanizm interceptorów oraz sposób ich rejestracji **pozostaje niezmieniony** – zmieniło się wyłącznie miejsce implementacji systemu layoutów (przeniesione do `framework/layout`).
+
+---
+
+## Routing, handlery i `routeMeta`
+
+Każdy moduł może dostarczać:
+- `routes.ts` (statyczna definicja trasy: `path`, `contexts`, `meta`, `layout`),
+- opcjonalny `routeHandler` (`route.handler`) uruchamiany na serwerze, który może doprecyzować:
+  - `contexts` (np. po rozpoznaniu typu strony),
+  - `routeMeta` (meta-dane strony przekazywane do layoutu i do `/api/page-context`).
+
+### Jak wybieramy „aktywną” trasę?
+
+- Renderowanie SSR/CSR używa React Router (ranking ścieżek), więc **bardziej specyficzne ścieżki zawsze wygrywają** nad mniej specyficznymi (np. `/wishlist` wygrywa z `/*`).
+- `priority` z `routes.ts` jest używane do:
+  - deterministycznego scalania/porządkowania tras z modułów,
+  - rozstrzygania remisów (np. dwa moduły definiują ten sam `path` – wtedy wygrywa wyższy `priority`, bo trasa jest wcześniej w tablicy).
+- Zasada praktyczna: catch-all (`/*`) powinien mieć **niski** `priority`, żeby nie “zasłaniał” tras aplikacji.
+
+`routeMeta` jest kontraktem pomiędzy routingiem a modułami UI/layoutu (opis w `docs/page-context.md`). Przykłady użycia:
+- `type='redirect'` → SSR/CSR wykonuje redirect bez budowania layoutu,
+- `type='not-found'` → SSR zwraca `404` i ładuje kontekst `not-found`,
+- `type='category'|'product'|'cms'|'search'` → dobór interceptorów i layoutu + ewentualny SSR prefetch danych.
+
+W Renii ważne jest to, że handler może być jedynym „resolverem” dynamicznych URL-i (np. Magento `urlResolver` w module `renia-magento-routing` dla ścieżek `/*`), a moduły stron (PDP/PLP/CMS) są wstrzykiwane interceptorami na podstawie `contexts`.
+
+### Prefetch `/api/page-context` (szybkie przejścia)
+
+Prefetch PageContext jest **opcjonalną** optymalizacją (spekulatywny request na hover/focus). Domyślnie jest **wyłączony** i powinien być włączany tylko po pomiarach (żeby nie generować zbędnych requestów do `/api/page-context` i integracji).
+
+Jeśli świadomie włączasz prefetch:
+- komponent: `@renia/framework/router/PrefetchLink` + ustaw `prefetch={true}`
+- cache: klientowy in-memory TTL + coalescing requestów (żeby nie spamować `/api/page-context`)
+
+Efekt: przejścia SPA mają mniejszą liczbę requestów i zachowują się podobnie do SSR (dane routeMeta/contexts są gotowe w momencie nawigacji).
 
 ## Zasady zależności między modułami
 

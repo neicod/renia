@@ -1,7 +1,7 @@
 // @env: mixed
 
-import { getLogger } from '../services/logger';
-import type { Logger } from '../types/logger';
+import { getLogger } from '../services/logger.js';
+import type { Logger } from '../types/logger.js';
 
 /**
  * React hook to get the logger instance

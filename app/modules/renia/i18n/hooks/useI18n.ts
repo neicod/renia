@@ -1,6 +1,6 @@
 // @env: mixed
 import React from 'react';
-import { I18nContext } from '../context/I18nProvider';
+import { I18nContext } from '../context/I18nProvider.js';
 
 export const useI18n = () => {
   const ctx = React.useContext(I18nContext);

@@ -1,6 +1,6 @@
 // @env: mixed
 
-import type { GraphQLResponse, HttpResponse } from '../types';
+import type { GraphQLResponse } from '../types';
 import type { HttpResponse as TransportHttpResponse } from '../transport/HttpClient';
 
 export class ResponseHandler {

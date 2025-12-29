@@ -25,13 +25,17 @@ Moduł do budowania i wykonywania zapytań GraphQL. Obsługuje:
 
 ## Przykłady — builder
 ### Nowy (preferred) fluent API — czytelne modyfikacje selekcji
+Możesz używać helpera `gql` do czytelnych, wielolinijkowych snippetów (automatyczny dedent/trim).
+
 ```ts
-import { QueryBuilder } from 'renia-graphql-client';
+import { QueryBuilder, gql } from 'renia-graphql-client';
 
 const qb = new QueryBuilder('mutation').setName('RemoveItemFromCart');
 
-// Najpierw tworzysz pole (np. z args) jak dotychczas:
-qb.addField([], 'removeItemFromCart', { args: { input: '$input' } });
+// Najpierw tworzysz pole (np. z args) w formie snippetu:
+qb.add(gql`
+  removeItemFromCart(input: $input)
+`);
 
 // Potem łatwo doklejasz selekcję jako snippet (merge bez duplikatów):
 qb.at('removeItemFromCart').add('user_errors { code message }');
@@ -43,14 +47,14 @@ Ważne:
 
 ### Proste zapytanie
 ```ts
-import { QueryBuilder } from 'renia-graphql-client';
+import { QueryBuilder, gql } from 'renia-graphql-client';
 
 const q = new QueryBuilder('query')
   .setName('GetCart')
   .setVariable('id', 'ID!')
-  .addField([], 'cart', { args: { id: '$id' } }) // root.cart
-  .addField(['cart'], 'id')
-  .addField(['cart'], 'total');
+  .add(gql`
+    cart(id: $id) { id total }
+  `);
 
 console.log(q.toString());
 // query GetCart($id: ID!) { cart(id: $id) { id total } }
@@ -60,31 +64,30 @@ console.log(q.toString());
 ```ts
 // moduł A
 const q = new QueryBuilder('query').setName('GetCart');
-q.addField([], 'cart').addField(['cart'], 'id');
+q.add(gql`
+  cart { id }
+`);
 
 // moduł B (dostaje tę samą instancję)
-q.addField(['cart'], 'items', { args: { limit: 10 } })
- .addField(['cart', 'items'], 'sku')
- .addField(['cart', 'items'], 'qty');
+q.at('cart').add(gql`
+  items(limit: 10) { sku qty }
+`);
 ```
 
 ### Fragmenty i inline fragmenty
 ```ts
-q.addFragment('ItemFields', [
-  { name: 'sku' },
-  { name: 'name' }
-], 'CartItem');
+q.addFragment('ItemFields', 'sku name', 'CartItem');
 
-q.spreadFragment(['cart', 'items'], 'ItemFields');
+q.at('cart.items').add('...ItemFields');
 
-q.inlineFragment(['cart'], 'Bundle', [
-  { name: 'bundleItems', children: [{ name: 'sku' }] }
-]);
+q.at('cart').add(gql`
+  ... on Bundle { bundleItems { sku } }
+`);
 ```
 
 ### Usuwanie pola
 ```ts
-q.removeField(['cart'], 'total'); // wycina pole total z selekcji cart
+q.at('cart').remove('total'); // wycina pole total z selekcji cart
 ```
 
 > Uwaga: `addField/removeField/spreadFragment/inlineFragment` są utrzymywane dla kompatybilności, ale preferowane jest nowe API `at(...).add/merge/remove`.
@@ -102,9 +105,9 @@ import { executeRequest, QueryBuilder } from 'renia-graphql-client';
 
 const qb = new QueryBuilder('query')
   .setName('GetWishlist')
-  .addField([], 'wishlist')
-  .addField(['wishlist'], 'id')
-  .addField(['wishlist'], 'name');
+  .add(gql`
+    wishlist { id name }
+  `);
 
 const res = await executeRequest({
   endpoint: 'https://example.com/graphql',

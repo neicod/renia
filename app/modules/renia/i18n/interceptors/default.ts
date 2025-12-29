@@ -1,5 +1,5 @@
 // @env: mixed
-import I18nBootstrap from '../components/I18nBootstrap';
+import I18nBootstrap from '../components/I18nBootstrap.js';
 
 // Wstrzykujemy globalny provider i18n przez region global-overlay
 export default function i18nInterceptor(api: any = {}) {
@@ -7,7 +7,7 @@ export default function i18nInterceptor(api: any = {}) {
     'renia-i18n/components/I18nBootstrap': I18nBootstrap
   });
 
-  api.layout.get('global-overlay').add('renia-i18n/components/I18nBootstrap', 'i18n-bootstrap', {
+  api.layout.at('global-overlay').add('renia-i18n/components/I18nBootstrap', 'i18n-bootstrap', {
     sortOrder: { before: '-' }
   });
 }

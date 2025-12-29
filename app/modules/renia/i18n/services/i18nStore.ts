@@ -1,8 +1,8 @@
 // @env: mixed
 
 import deepEqual from 'fast-deep-equal';
-import { formatMessage } from './interpolate';
-import type { Messages } from './types';
+import { formatMessage } from './interpolate.js';
+import type { Messages } from './types.js';
 
 export type I18nState = {
   lang: string;

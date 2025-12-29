@@ -19,7 +19,7 @@ W praktyce oznacza to m.in.:
 - **PDP**: karta produktu (Product Detail Page)
 - **PLP**: lista produktów / kategoria (Product Listing Page)
 - **CMS**: strony treściowe
-- **Shell**: część strony renderowana jako ISR (PUBLIC)
+- **Shell**: część strony renderowana na serwerze Express (PUBLIC, cache CDN/Varnish)
 - **Wyspa (island)**: fragment renderowany osobno (SEGMENT/PRIVATE), np. cena
 
 ## Warstwa dostępu do danych (DAL)
@@ -33,27 +33,32 @@ W praktyce oznacza to m.in.:
 - Komponenty cenowe/dostępności są izolowane:
   - `PriceBlock`
   - `AvailabilityBlock`
+- Linki i query buduj przez helpery frameworka (np. `@renia/framework/router/paths#toAbsolutePath`, `@renia/framework/router/paths#dedupeSearch`) zamiast ręcznych `\`/${...}\`` i regexów – to eliminuje niespójności (`//`, brak `/`, duplikaty kluczy w query).
+- Stan listingu (PLP + search) jest synchronizowany z URL:
+  - `page`, `pageSize`, `sort` (aliasy mogą występować w starych URL-ach, ale zapisujemy tylko klucze kanoniczne)
+  - query search term: `q` (legacy `query` jest normalizowane do `q`)
+  - helpery: `@renia/framework/router/listingQuery` (`readListingQueryState`, `applyListingQuery`, `normalizeListingQuery`, `normalizeSearchTermKey`)
 
 ## Jak to wygląda na przykładach
 
 ### Przykład A: PUBLIC (jedna cena)
-- PDP shell (ISR) zawiera cenę
-- PLP (ISR) zawiera ceny w listingu
+- PDP shell (SSR) zawiera cenę
+- PLP (SSR) zawiera ceny w listingu
 
 ### Przykład B: GROUP_FEW (max 5 grup)
-- PDP shell (ISR) bez ceny lub z placeholder
+- PDP shell (SSR) bez ceny lub z placeholder
 - `PriceBlock` renderowany po stronie serwera i cache’owany per `groupId`
 - PLP: preferuj „batch pricing” dla listy produktów (jeden request)
 
 ### Przykład C: GROUP_MANY / ACCOUNT
-- PDP shell (ISR) bez ceny lub „cena po zalogowaniu”
+- PDP shell (SSR) bez ceny lub „cena po zalogowaniu”
 - `PriceBlock` jako prywatny fragment (bez public cache)
 - PLP: unikaj pobierania ceny dla każdego produktu osobno; preferuj prywatny fragment dla całej listy
 
-## Zasady Next.js
-- ISR dla stron katalogowych (PDP/PLP)
-- Server Components / Route Handlers dla fragmentów prywatnych
-- Unikamy logiki cenowej po stronie klienta (client fetch tylko jako ostateczny fallback UX)
+## Zasady renderingu (Express + CDN)
+- Shell renderujemy na serwerze i pozwalamy CDN/Varnish cache’ować go dla PUBLIC zakresów.
+- Fragmenty SEGMENT/PRIVATE renderujemy jako osobne fetch’e SSR (krótkie TTL) albo dowozimy po stronie klienta; nigdy nie mieszamy ich z shellem.
+- Unikamy logiki cenowej po stronie klienta – fetch w kliencie to tylko fallback UX, preferujemy SSR fetch + kontrolowane cache.
 
 ## Antywzorce
 - Jedno wielkie zapytanie GraphQL na base + pricing (ryzyko skażenia cache)

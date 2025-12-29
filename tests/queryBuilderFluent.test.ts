@@ -6,7 +6,7 @@ import { QueryBuilder } from 'renia-graphql-client/builder';
 
 test('fluent API: add() scala snippet bez duplikatów', () => {
   const qb = new QueryBuilder('mutation').setName('RemoveItemFromCart');
-  qb.addField([], 'removeItemFromCart');
+  qb.add('removeItemFromCart');
 
   qb.at('removeItemFromCart').add('user_errors { code message }');
   qb.at('removeItemFromCart').add('user_errors { code message }');
@@ -28,7 +28,7 @@ test('fluent API: konflikty args nadpisują z console.warn', () => {
 
   try {
     const qb = new QueryBuilder('query').setName('Products');
-    qb.addField([], 'products', { args: { pageSize: 10 } });
+    qb.add('products(pageSize: 10)');
     qb.at('').add('products(pageSize: 20) { total_count }');
 
     const q = qb.toString();
@@ -47,7 +47,7 @@ test('fluent API: at() rzuca wyjątek gdy ścieżka nie istnieje', () => {
 
 test('fluent API: obsługuje inline fragmenty i directives', () => {
   const qb = new QueryBuilder('query').setName('Cart');
-  qb.addField([], 'cart');
+  qb.add('cart');
 
   qb.at('cart').add('items { ... on BundleProduct @skip(if: $cond) { sku } }');
 
@@ -56,3 +56,15 @@ test('fluent API: obsługuje inline fragmenty i directives', () => {
   assert.match(q, /sku/);
 });
 
+test('addFragment: obsługuje selekcję jako string', () => {
+  const qb = new QueryBuilder('query').setName('Products');
+  qb.addFragment('ProductBase', 'id sku name', 'ProductInterface');
+  qb.add('products { items { ...ProductBase } }');
+
+  const q = qb.toString();
+  assert.match(q, /fragment ProductBase on ProductInterface/);
+  assert.match(q, /id/);
+  assert.match(q, /sku/);
+  assert.match(q, /name/);
+  assert.match(q, /\.\.\.ProductBase/);
+});

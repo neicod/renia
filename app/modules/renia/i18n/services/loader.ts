@@ -1,7 +1,7 @@
 // @env: server
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Messages } from './types';
+import type { Messages } from './types.js';
 
 const DIST_I18N_DIR = path.resolve(process.cwd(), 'dist', 'i18n');
 

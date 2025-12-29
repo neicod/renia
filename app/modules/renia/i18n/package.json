@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "type": "module",
   "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./hooks/*": "./hooks/*.ts",
+    "./context/*": "./context/*.ts",
+    "./services/*": "./services/*.ts"
+  },
   "dependencies": {
     "fast-deep-equal": "^3.1.3"
   }

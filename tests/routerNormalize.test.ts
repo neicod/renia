@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { normalizeRoute } from '../src/framework/router/normalize';
+import { normalizeRoute } from '@renia/framework/router/normalize';
 
 test('normalizeRoute: zachowuje contexts z routes.ts', () => {
   const route = normalizeRoute({

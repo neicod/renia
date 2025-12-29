@@ -28,7 +28,7 @@ Po ukończeniu refaktoryzacji `renia-graphql-client` wg. SOLID, istnieje kilka l
 ---
 
 ### Krok 2: Aktualizacja wszystkich callów `executeRequest`
-**Pliki:** `src/framework/api/graphqlClient.ts` + wszystkie moduły
+**Pliki:** `app/modules/renia/framework/api/graphqlClient.ts` + wszystkie moduły
 **Cel:** Optymalizacja istniejących callów, wykorzystanie nowych features
 
 **Co robić:**
@@ -83,7 +83,7 @@ Po ukończeniu refaktoryzacji `renia-graphql-client` wg. SOLID, istnieje kilka l
 
 **Szacunkowy czas:** TBD (zależy od analizy)
 
-### Krok 6: Refaktoryzacja `src/framework/api/graphqlClient.ts`
+### Krok 6: Refaktoryzacja `app/modules/renia/framework/api/graphqlClient.ts`
 **Cel:** Augmenters pattern -> Strategy pattern?
 
 **Analiza potrzebna:**
@@ -203,7 +203,7 @@ TIER 2 (Tests)
 
 TIER 3 (Other Modules)
 ├── Krok 5: magento-graphql-client SOLID
-├── Krok 6: src/framework/api SOLID
+├── Krok 6: app/modules/renia/framework/api SOLID
 └── (Zależy od): TIER 2 + analiza
 
 TIER 4 (Advanced)

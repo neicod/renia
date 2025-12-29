@@ -67,7 +67,8 @@ export class GraphQLRequestExecutor {
       const duration = Date.now() - started;
 
       const result = await this.responseHandler.handle(response);
-      this.options.logger.logResponse(response.status, req.operationId, duration, result.errors?.length);
+      const errorCount = Array.isArray(result.errors) ? result.errors.length : 0;
+      this.options.logger.logResponse(response.status, req.operationId, duration, errorCount);
 
       return result;
     } catch (error) {

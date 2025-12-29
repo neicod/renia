@@ -1,7 +1,7 @@
 // @env: mixed
 import React from 'react';
-import { i18nStore, I18nStore } from '../services/i18nStore';
-import type { Messages } from '../services/types';
+import { i18nStore, I18nStore } from '../services/i18nStore.js';
+import type { Messages } from '../services/types.js';
 
 export type I18nProviderProps = {
   lang?: string;
@@ -31,7 +31,12 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({
 
   const [state, setState] = React.useState(store.getState());
 
-  React.useEffect(() => store.subscribe(setState), [store]);
+  React.useEffect(() => {
+    const unsubscribe = store.subscribe(setState);
+    return () => {
+      unsubscribe();
+    };
+  }, [store]);
 
   const value = React.useMemo<I18nContextValue>(
     () => ({

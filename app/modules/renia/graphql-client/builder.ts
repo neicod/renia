@@ -2,6 +2,7 @@
 import type { ArgValue, FragmentDef, Operation, OperationKind, SelectionNode } from './types';
 import { GraphQLRenderer } from './rendering/GraphQLRenderer';
 import { SelectionBuilder } from './fluent/SelectionBuilder';
+import { SnippetParser } from './fluent/SnippetParser';
 import { formatPath, parsePath } from './fluent/path';
 
 export class QueryBuilder {
@@ -38,7 +39,7 @@ export class QueryBuilder {
    * Use `add/merge` at a parent first to create structure.
    *
    * @example
-   * qb.addField([], 'removeItemFromCart');
+   * qb.add('removeItemFromCart');
    * qb.at('removeItemFromCart').add('user_errors { code message }');
    */
   at(path?: string): SelectionBuilder {
@@ -106,8 +107,10 @@ export class QueryBuilder {
     return this;
   }
 
-  addFragment(name: string, selection: SelectionNode[], on?: string) {
-    this.fragments[name] = { name, on, selection };
+  addFragment(name: string, selection: SelectionNode[] | string, on?: string) {
+    const parsedSelection =
+      typeof selection === 'string' ? new SnippetParser().parseSelectionSnippet(selection) : selection;
+    this.fragments[name] = { name, on, selection: parsedSelection };
     return this;
   }
 

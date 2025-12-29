@@ -42,8 +42,8 @@ make docker-shell      # Interactive shell in container
 ## Architecture
 
 ### SSR + Hydration Flow
-1. Server (`src/server/index.tsx`) renders `AppRoot`, injects into HTML template
-2. Client (`src/client/index.tsx`) hydrates via `BrowserRouter`
+1. Server (`app/entry/server/index.tsx`) renders `AppRoot`, injects into HTML template
+2. Client (`app/entry/client.tsx`) hydrates via `BrowserRouter`
 3. Static assets served from `dist/public` at `/static`
 
 ### Module System
@@ -52,7 +52,7 @@ make docker-shell      # Interactive shell in container
 - Modules resolved via `NODE_PATH=./modules` and npm file dependencies
 - Each module can provide: `routes.ts`, `interceptors/`, `registerComponents.ts`
 
-### Framework Structure (`src/framework/`)
+### Framework Structure (`app/modules/renia/framework/`)
 - `api/` - GraphQL client with augmenters (`registerGraphQLHeaderAugmenter`, `registerGraphQLQueryAugmenter`)
 - `registry/` - Module and component registries
 - `router/` - Route resolution from module `routes.ts` files
@@ -60,9 +60,9 @@ make docker-shell      # Interactive shell in container
 - `runtime/` - `AppEnvironment` context (runtime mode, storeCode, storeConfig)
 
 ### Layout & Regions + Component Extensions
-- Layout system: `src/framework/layout/` contains core components (`LayoutShell`) and templates (`Layout1Column`, `Layout2ColumnsLeft`, `LayoutEmpty`)
+- Layout system: `app/modules/renia/framework/layout/` contains core components (`LayoutShell`) and templates (`Layout1Column`, `Layout2ColumnsLeft`, `LayoutEmpty`)
 - Regions available: `header`, `control-menu`, `content`, `left`, `footer`, `global-overlay`
-- Modules inject region components via interceptors (`api.layout.get(region).add(...)`)
+- Modules inject region components via interceptors (`api.layout.at(region).add(...)`)
 - For extending UI inside host components (PDP tile actions, etc.) use component extensions (`api.extend.component(host).outlet(name).add(...)`) and render via `ExtensionsOutlet`
 
 ### Product Strategy Pattern
@@ -83,20 +83,20 @@ Flow:
 Adding new product types:
 1. Create `registerStrategies()` function in your module
 2. Call `registerProductStrategy({ type: 'YourType', components: { 'add-to-cart-product-page': Panel, 'add-to-cart-product-listing': Icon } })`
-3. Call `registerProductStrategy()` in both `src/server/index.tsx` and `src/client/index.tsx`
+3. Call `registerProductStrategy()` in both `app/entry/server/index.tsx` and `app/entry/client.tsx`
 
 ### Interceptors
 - Files in `interceptors/default.ts` (global) or `interceptors/<context>.ts` (category, search, product, etc.)
-- API regions: `api.layout.get(regionName).add(componentPath, id, { sortOrder, props, meta })`
+- API regions: `api.layout.at(regionName).add(componentPath, id, { sortOrder, props, meta })`
 - API extensions: `api.extend.component(componentPath).outlet(outletName).add(componentPath, id, { sortOrder, props, meta })`
-- Hierarchical layout tree: `page.header`, `page.content`, `page.footer`, `page.global-overlay`, `page.header.control-menu`
+- Hierarchical layout tree: `page.header`, `page.control-menu`, `page.content`, `page.left`, `page.footer`, `page.global-overlay`
 - For product pages: Use `ProductAddToCartResolver` with `slot: 'add-to-cart-product-page'` to auto-select component by product type
 - Sort order: Use `{ before: '-' }` for first position, or `{ before: 'id' }` / `{ after: 'id' }` for relative positioning
 
 ### GraphQL Layer
 - `renia-graphql-client`: QueryBuilder, executeRequest
 - `renia-magento-graphql-client`: Magento-specific factory with operationId
-- Always use `executeGraphQLRequest` from `@framework/api/graphqlClient`
+- Always use `executeGraphQLRequest` from `@renia/framework/api/graphqlClient`
 - Augmenters modify headers/queries globally (e.g., store header, authorization)
 
 ## Key Environment Variables
@@ -128,7 +128,6 @@ GRAPHQL_LOG_RESPONSE=0      # Disable response logging
 | `renia-magento-cart` | Cart logic, actions, UI |
 | `renia-i18n` | Translations provider |
 | `renia-layout` | Layout shell, slot system |
-| `renia-interceptors` | Interceptor loader |
 
 ## Documentation References
 
@@ -164,7 +163,7 @@ GRAPHQL_LOG_RESPONSE=0      # Disable response logging
 5. **Revert bad changes immediately** - Don't persist with wrong approach
 
 ### Changes That Need Verification
-- **API calls** - Verify correct method/property names in framework (e.g., `api.layout.get()` API)
+- **API calls** - Verify correct method/property names in framework (e.g., `api.layout.at()` API)
 - **Interceptor changes** - Test that slot entries render correctly
 - **Type changes** - Ensure backward compatibility
 - **Hook logic** - Test with real data, not assumptions
